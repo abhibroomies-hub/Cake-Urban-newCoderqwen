@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useStore } from "../lib/store";
 import type { Order } from "../data/catalog";
-import { Ic, ImgX } from "../components/ui";
+import { Ic, PImg } from "../components/ui";
 import { useAuth } from "../components/chrome";
 
 const STEPS = ["Information", "Shipping", "Payment"];
@@ -27,9 +27,9 @@ export default function Checkout() {
   const [err, setErr] = useState("");
 
   const shipMethods = [
-    { label: "Standard", eta: "5–8 business days", cost: cartSubtotal >= (settings.zones[0]?.freeOver ?? 150) ? 0 : settings.zones[0]?.rate ?? 8 },
-    { label: "Express", eta: "2–4 business days", cost: cartSubtotal >= 150 ? 0 : 12 },
-    { label: "Overnight", eta: "Next business day", cost: 29 },
+    { label: "Same-day rider", eta: "Within ~90 minutes (order by 4 PM)", cost: cartSubtotal >= (settings.zones[0]?.freeOver ?? 49) ? 0 : settings.zones[0]?.rate ?? 4.9 },
+    { label: "Next-morning", eta: "Before 11 AM tomorrow, chilled", cost: cartSubtotal >= 90 ? 0 : 9 },
+    { label: "Celebration slot", eta: "Pick a 2-hour window, dressed & boxed", cost: 19 },
   ];
   const discount = applied?.type === "percent" ? (cartSubtotal * applied.value) / 100 : applied?.type === "fixed" ? Math.min(applied.value, cartSubtotal) : 0;
   const shipCost = applied?.type === "ship" ? 0 : shipMethods[shipIdx].cost;
@@ -93,7 +93,7 @@ export default function Checkout() {
       <div className="max-w-2xl mx-auto px-6 py-32 text-center">
         <Ic.bag className="w-12 h-12 mx-auto text-ink-600 mb-5" />
         <h1 className="font-display text-3xl font-black uppercase">{t("emptyCart")}</h1>
-        <p className="text-ink-400 mt-3">Add some gear first — checkout will be waiting.</p>
+        <p className="text-ink-400 mt-3">Add something sweet first — checkout will be waiting.</p>
         <Link to="/shop" className="clip-btn inline-block mt-8 bg-blaze-500 hover:bg-blaze-400 text-ink-50 font-mono text-xs tracking-[0.2em] uppercase px-8 py-4 transition-colors">{t("shopNow")}</Link>
       </div>
     );
@@ -225,7 +225,7 @@ export default function Checkout() {
               return (
                 <div key={`${it.productId}${it.color}${it.size}`} className="flex items-center gap-3">
                   <span className="relative w-14 h-14 bg-ink-900 clip-tag overflow-hidden shrink-0">
-                    <ImgX src={p.img} alt={p.name} className="w-full h-full object-cover" style={p.imgFilter ? { filter: p.imgFilter } : undefined} />
+                    <PImg src={p.img} crop={p.crop} filter={p.imgFilter} alt={p.name} className="w-full h-full object-cover" />
                     <span className="absolute -top-0 -right-0 w-5 h-5 grid place-items-center bg-blaze-500 text-ink-50 font-mono text-[9px]">{it.qty}</span>
                   </span>
                   <div className="flex-1 min-w-0"><p className="text-sm font-semibold truncate">{p.name}</p><p className="font-mono text-[10px] text-ink-500">{it.color} · {it.size}</p></div>

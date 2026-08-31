@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useStore } from "../lib/store";
-import { Ic, ImgX, Qty, Reveal, Stars, Tilt } from "../components/ui";
+import { Ic, ImgX, PImg, Qty, Reveal, Stars, Tilt } from "../components/ui";
 import { ProductCard, useQuickView } from "../components/product";
 
 export default function ProductPage({ onAddToCartFlow }: { onAddToCartFlow: () => void }) {
@@ -62,7 +62,7 @@ export default function ProductPage({ onAddToCartFlow }: { onAddToCartFlow: () =
               <div className="absolute inset-0 grid-lines opacity-50" />
               {p.tag && <span className="absolute top-5 left-5 z-10 clip-tag bg-blaze-500 text-ink-50 font-mono text-[11px] tracking-[0.2em] px-3 py-1.5">{p.tag}</span>}
               <span className="absolute top-5 right-5 z-10 font-mono text-[10px] tracking-[0.2em] text-ink-500">{p.sku}</span>
-              <ImgX key={`${p.id}-${color}`} src={p.img} alt={p.name} className="w-full aspect-square object-cover anim-fade-in" style={filter ? { filter } : undefined} />
+              <PImg key={`${p.id}-${color}`} src={p.img} crop={p.crop} filter={filter} alt={p.name} className="w-full aspect-square object-cover anim-fade-in" />
               <div className="absolute bottom-5 left-5 flex items-center gap-2 font-mono text-[10px] tracking-[0.2em] text-ink-300 uppercase bg-ink-950/70 backdrop-blur px-3 py-2">
                 <Ic.rotate className="w-3.5 h-3.5 text-blaze-500" /> Move cursor — 3D tilt
               </div>
@@ -71,7 +71,7 @@ export default function ProductPage({ onAddToCartFlow }: { onAddToCartFlow: () =
           <div className="flex gap-2.5 mt-4">
             {p.colors.map((c, i) => (
               <button key={c.name} onClick={() => setColor(i)} className={`relative w-20 h-20 clip-tag overflow-hidden border-2 transition-all ${i === color ? "border-blaze-500 scale-105" : "border-ink-700 opacity-60 hover:opacity-100"}`}>
-                <ImgX src={p.img} alt={c.name} className="w-full h-full object-cover" style={{ filter: p.imgFilter ?? c.filter }} />
+                <PImg src={p.img} crop={p.crop} filter={p.imgFilter ?? c.filter} alt={c.name} className="w-full h-full object-cover" />
                 <span className="absolute bottom-0 inset-x-0 bg-ink-950/85 font-mono text-[8px] tracking-wider uppercase py-0.5 text-center">{c.name}</span>
               </button>
             ))}

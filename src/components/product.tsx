@@ -2,7 +2,7 @@ import React, { createContext, useContext, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useStore } from "../lib/store";
 import type { Product } from "../data/catalog";
-import { Ic, ImgX, Modal, Qty, Stars, Tilt } from "./ui";
+import { Ic, Modal, PImg, Qty, Stars, Tilt } from "./ui";
 
 /* ---------- quick view context ---------- */
 const QVCtx = createContext<{ qv: string | null; openQV: (id: string) => void; closeQV: () => void }>({ qv: null, openQV: () => {}, closeQV: () => {} });
@@ -46,7 +46,7 @@ export function ProductCard({ p, index = 0 }: { p: Product; index?: number }) {
           </div>
           {/* image */}
           <Link to={`/product/${p.id}`} className="relative block aspect-square overflow-hidden" tabIndex={-1}>
-            <ImgX src={p.img} alt={p.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.07]" style={colorFilter ? { filter: colorFilter } : undefined} />
+            <PImg src={p.img} crop={p.crop} filter={colorFilter} alt={p.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.07]" />
             <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-ink-850 to-transparent" />
           </Link>
           {/* quick add bar */}
@@ -105,8 +105,8 @@ function QuickViewModal({ id, onClose }: { id: string | null; onClose: () => voi
         <div className="relative bg-ink-850 grid place-items-center p-8 md:p-12 min-h-72">
           <div className="absolute inset-0 grid-lines opacity-50" />
           {p.tag && <span className="absolute top-4 left-4 clip-tag bg-blaze-500 text-ink-50 font-mono text-[10px] tracking-[0.18em] px-2.5 py-1 z-10">{p.tag}</span>}
-          <Tilt max={14} className="relative">
-            <ImgX src={p.img} alt={p.name} className="w-full max-w-sm object-contain drop-shadow-2xl" style={filter ? { filter } : undefined} />
+          <Tilt max={14} className="relative w-full max-w-sm">
+            <PImg src={p.img} crop={p.crop} filter={filter} alt={p.name} className="w-full aspect-square drop-shadow-2xl" />
           </Tilt>
         </div>
         <div className="p-7 md:p-9">
@@ -196,7 +196,7 @@ export function CompareOverlay({ open, onClose }: { open: boolean; onClose: () =
                         <button onClick={() => toggleCompare(p.id)} className="absolute top-2 right-2 z-10 p-1.5 bg-ink-950/80 border border-ink-600 text-ink-300 hover:text-danger-400 hover:border-danger-400 transition-colors" aria-label="Remove">
                           <Ic.x className="w-3.5 h-3.5" />
                         </button>
-                        <ImgX src={p.img} alt={p.name} className="w-full aspect-square object-cover" style={p.imgFilter ? { filter: p.imgFilter } : undefined} />
+                        <PImg src={p.img} crop={p.crop} filter={p.imgFilter} alt={p.name} className="w-full aspect-square object-cover" />
                       </div>
                       <p className="font-display font-semibold text-sm mt-3 leading-snug">{p.name}</p>
                       <button onClick={() => { cartAdd(p.id, p.colors[0].name, p.sizes[0]); onClose(); }} className="clip-tag mt-2 w-full bg-blaze-500 hover:bg-blaze-400 text-ink-50 font-mono text-[11px] tracking-[0.15em] uppercase py-2 transition-colors">{t("addToCart")}</button>

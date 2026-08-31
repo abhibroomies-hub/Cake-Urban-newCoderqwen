@@ -40,10 +40,10 @@ function seedOrders(): Order[] {
     for (let j = 0; j < n; j++) {
       const p = PRODUCTS[Math.floor(rnd() * PRODUCTS.length)];
       if (items.some((it) => it.productId === p.id)) continue;
-      items.push({ productId: p.id, name: p.name, img: p.img, imgFilter: p.imgFilter, color: p.colors[0].name, size: p.sizes[0], qty: 1 + Math.floor(rnd() * 2), price: p.price });
+      items.push({ productId: p.id, name: p.name, img: p.img, imgFilter: p.imgFilter, crop: p.crop, color: p.colors[0].name, size: p.sizes[0], qty: 1 + Math.floor(rnd() * 2), price: p.price });
     }
     const subtotal = items.reduce((s, it) => s + it.price * it.qty, 0);
-    const shipping = subtotal > 150 ? 0 : 12;
+    const shipping = subtotal > 49 ? 0 : 4.9;
     const status = statuses[Math.floor(rnd() * statuses.length)];
     const daysAgo = Math.floor(rnd() * 30);
     const d = new Date(Date.now() - daysAgo * 86400000);
@@ -52,26 +52,26 @@ function seedOrders(): Order[] {
     const upto = status === "pending" ? 0 : status === "processing" ? 1 : status === "shipped" ? 2 : 3;
     for (let k = 0; k < upto; k++) timeline.push({ status: flow[k], at: new Date(d.getTime() + (k + 1) * 86400000).toISOString() });
     orders.push({
-      id: `VL-${9100 + i}`, email: `customer${i}@mail.com`, items, subtotal, discount: 0, shipping,
-      total: subtotal + shipping, status, date: d.toISOString(), address: `${4 + Math.floor(rnd() * 90)} Signal St, ${cities[i % cities.length]}`,
-      method: "Express", payment: rnd() > 0.5 ? "Card •••• 4242" : rnd() > 0.5 ? "Razorpay UPI" : "PayPal", timeline,
+      id: `CU-${9100 + i}`, email: `customer${i}@mail.com`, items, subtotal, discount: 0, shipping,
+      total: subtotal + shipping, status, date: d.toISOString(), address: `${4 + Math.floor(rnd() * 90)} Sugar Lane, ${cities[i % cities.length]}`,
+      method: "Same-day", payment: rnd() > 0.5 ? "Card •••• 4242" : rnd() > 0.5 ? "Razorpay UPI" : "PayPal", timeline,
     });
   }
   return orders;
 }
 
 const DEFAULT_SETTINGS: Settings = {
-  announcement: "FREE EXPRESS SHIPPING OVER $150 — 30-DAY RETURNS — SHIPS IN 24H",
+  announcement: "OVENS ON FROM 6 AM — FREE SAME-DAY DELIVERY OVER $49 — EGGLESS OPTIONS DAILY",
   hero: HERO_DEFAULT,
   faqs: SEED_FAQS,
   zones: [
-    { zone: "Domestic", rate: 8, freeOver: 150 },
-    { zone: "Europe", rate: 14, freeOver: 200 },
-    { zone: "International", rate: 24, freeOver: 300 },
+    { zone: "City (same-day)", rate: 4.9, freeOver: 49 },
+    { zone: "National (next-morning)", rate: 9, freeOver: 90 },
+    { zone: "International (chilled)", rate: 19, freeOver: 150 },
   ],
   payments: { card: true, razorpay: true, paypal: true, cod: false },
-  socials: { instagram: "instagram.com/voltasupply", twitter: "x.com/voltasupply", youtube: "youtube.com/@volta" },
-  seo: { title: "VOLTA — Premium Gear in Motion", description: "Engineered footwear, audio, wearables and technical apparel." },
+  socials: { instagram: "instagram.com/cakeurban", twitter: "x.com/cakeurban", youtube: "youtube.com/@cakeurban" },
+  seo: { title: "CakeUrban — Artisan Cakes & Cookies", description: "Signature layer cakes, 72-hour cookies and macarons, baked fresh daily and delivered same-day." },
 };
 
 type State = {
@@ -104,16 +104,16 @@ function initialState(): State {
   return {
     theme: "dark", lang: "en", currency: "USD", user: null,
     users: [
-      { name: "Alex Voss", email: "admin@volta.shop", pass: "demo123", role: "admin" },
-      { name: "Jordan Miles", email: "user@volta.shop", pass: "demo123", role: "customer" },
+      { name: "Aisha Verma", email: "admin@cakeurban.com", pass: "demo123", role: "admin" },
+      { name: "Jordan Miles", email: "user@cakeurban.com", pass: "demo123", role: "customer" },
     ],
-    cart: [], saved: [], wishlist: ["pulse-s-ti"], compare: [],
+    cart: [], saved: [], wishlist: ["raspberry-noir"], compare: [],
     orders: seedOrders(), reviews: SEED_REVIEWS, coupons: SEED_COUPONS,
     customers: SEED_CUSTOMERS, staff: SEED_STAFF,
     addresses: [{ id: "a1", label: "Home", name: "Jordan Miles", line1: "88 Meridian Ave", city: "Austin", zip: "73301", country: "United States", phone: "+1 512 555 0188" }],
     payMethods: [{ id: "p1", brand: "VISA", last4: "4242", exp: "09/28" }],
-    notifs: [{ id: 1, text: "Welcome to VOLTA — your 10% code is WELCOME10", at: new Date().toISOString(), read: false }],
-    chat: [{ from: "support", text: "Hey! This is VOLTA support. Ask me about orders, sizing or returns.", at: new Date().toISOString() }],
+    notifs: [{ id: 1, text: "Welcome to CakeUrban — your 10% code is WELCOME10", at: new Date().toISOString(), read: false }],
+    chat: [{ from: "support", text: "Hey! This is CakeUrban support. Ask me about same-day delivery, eggless options or cake messages.", at: new Date().toISOString() }],
     stockMap: {}, consent: "pending", subscribed: false, settings: DEFAULT_SETTINGS, blogHidden: [],
   };
 }
@@ -175,7 +175,7 @@ type Store = State & {
 const Ctx = createContext<Store>(null as unknown as Store);
 export const useStore = () => useContext(Ctx);
 
-const LS_KEY = "volta_state_v3";
+const LS_KEY = "cakeurban_state_v1";
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<State>(() => {
@@ -214,7 +214,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const set = (patch: Partial<State>) => setState((s) => ({ ...s, ...patch }));
 
   const [customProducts, setCustomProducts] = useState<Product[]>(() => {
-    try { return JSON.parse(localStorage.getItem("volta_custom_products") || "[]") as Product[]; } catch { return []; }
+    try { return JSON.parse(localStorage.getItem("cakeurban_custom_products") || "[]") as Product[]; } catch { return []; }
   });
   const products: Product[] = useMemo(
     () => PRODUCTS.map((p) => ({ ...p, stock: state.stockMap[p.id] ?? p.stock })).concat(customProducts),
@@ -222,7 +222,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   );
   const persistCustom = (list: Product[]) => {
     setCustomProducts(list);
-    try { localStorage.setItem("volta_custom_products", JSON.stringify(list)); } catch { /* */ }
+    try { localStorage.setItem("cakeurban_custom_products", JSON.stringify(list)); } catch { /* */ }
   };
 
   const cur = CURRENCIES.find((c) => c.code === state.currency) || CURRENCIES[0];
@@ -324,7 +324,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const u = { name: pendingOtp.name, email: pendingOtp.email, pass: pendingOtp.pass, role: "customer" as const };
     setState((s) => ({ ...s, users: [...s.users, u], user: { name: u.name, email: u.email, role: u.role } }));
     setPendingOtp(null);
-    toast("success", `Welcome to VOLTA, ${u.name.split(" ")[0]} — email verified ✓`);
+    toast("success", `Welcome to CakeUrban, ${u.name.split(" ")[0]} — email verified ✓`);
     pushNotif("Email verified — account created");
     return { ok: true, msg: "" };
   };
@@ -340,7 +340,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     if (!state.cart.length) return null;
     const items: OrderItem[] = state.cart.map((it) => {
       const p = products.find((x) => x.id === it.productId)!;
-      return { productId: it.productId, name: p.name, img: p.img, imgFilter: p.imgFilter ?? p.colors.find((c) => c.name === it.color)?.filter, color: it.color, size: it.size, qty: it.qty, price: p.price };
+      return { productId: it.productId, name: p.name, img: p.img, imgFilter: p.imgFilter ?? p.colors.find((c) => c.name === it.color)?.filter, crop: p.crop, color: it.color, size: it.size, qty: it.qty, price: p.price };
     });
     const subtotal = items.reduce((s, it) => s + it.price * it.qty, 0);
     let discount = 0;
@@ -350,7 +350,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
     const shipping = coupon === "FREESHIP" ? 0 : shipCost;
     const order: Order = {
-      id: `VL-${Math.floor(10000 + Math.random() * 89999)}`, email: state.user?.email ?? "guest@volta.shop",
+      id: `CU-${Math.floor(10000 + Math.random() * 89999)}`, email: state.user?.email ?? "guest@cakeurban.com",
       items, subtotal, discount, shipping, total: subtotal - discount + shipping, status: "pending",
       date: new Date().toISOString(), address, method, payment,
       timeline: [{ status: "pending", at: new Date().toISOString() }],

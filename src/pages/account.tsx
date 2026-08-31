@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useStore } from "../lib/store";
 import type { Order, OrderStatus } from "../data/catalog";
-import { Ic, ImgX, Modal, Stars } from "../components/ui";
+import { Ic, Modal, PImg, Stars } from "../components/ui";
 import { ProductCard } from "../components/product";
 import { useAuth } from "../components/chrome";
 
@@ -47,12 +47,12 @@ function Invoice({ order, onClose }: { order: Order; onClose: () => void }) {
     <Modal open onClose={onClose}>
       <div className="print-zone p-8">
         <div className="flex items-center justify-between border-b-2 border-ink-700 pb-5">
-          <div className="flex items-center gap-2"><Ic.bolt className="w-7 h-7 text-blaze-500" /><span className="font-display font-extrabold text-xl">VOLTA</span></div>
+          <div className="flex items-center gap-2"><Ic.cake className="w-7 h-7 text-blaze-500" /><span className="font-display font-extrabold text-xl">CakeUrban</span></div>
           <div className="text-right font-mono text-xs text-ink-400"><p>INVOICE — {order.id}</p><p>{new Date(order.date).toLocaleDateString()}</p></div>
         </div>
         <div className="grid grid-cols-2 gap-6 py-5 text-sm">
           <div><p className="font-mono text-[10px] tracking-[0.2em] text-ink-500 uppercase mb-1.5">Billed to</p><p className="font-semibold">{order.email}</p><p className="text-ink-300 text-sm mt-1">{order.address}</p></div>
-          <div className="text-right"><p className="font-mono text-[10px] tracking-[0.2em] text-ink-500 uppercase mb-1.5">Fulfilled by</p><p className="font-semibold">VOLTA Supply Co.</p><p className="text-ink-300 text-sm mt-1">1 Propulsion Way, Austin TX</p></div>
+          <div className="text-right"><p className="font-mono text-[10px] tracking-[0.2em] text-ink-500 uppercase mb-1.5">Fulfilled by</p><p className="font-semibold">CakeUrban Bakehouse</p><p className="text-ink-300 text-sm mt-1">14 Sugar Lane, Austin TX</p></div>
         </div>
         <table className="w-full text-sm">
           <thead><tr className="font-mono text-[10px] tracking-[0.15em] text-ink-500 uppercase border-b border-ink-700"><th className="text-left py-2.5">Item</th><th className="text-center">Qty</th><th className="text-right">Amount</th></tr></thead>
@@ -70,7 +70,7 @@ function Invoice({ order, onClose }: { order: Order; onClose: () => void }) {
             <div className="flex justify-between font-bold text-base pt-2 border-t border-ink-700"><span>Total</span><span>{fmt(order.total)}</span></div>
           </div>
         </div>
-        <p className="font-mono text-[9px] text-ink-500 mt-6 tracking-wide">Payment: {order.payment} · Delivery: {order.method} · Thank you for moving with VOLTA ⚡</p>
+        <p className="font-mono text-[9px] text-ink-500 mt-6 tracking-wide">Payment: {order.payment} · Delivery: {order.method} · Thank you for baking with CakeUrban</p>
       </div>
       <div className="flex gap-3 p-6 pt-0">
         <button onClick={() => window.print()} className="clip-btn flex-1 bg-blaze-500 hover:bg-blaze-400 text-ink-50 font-mono text-xs tracking-[0.2em] uppercase py-3 transition-colors flex items-center justify-center gap-2"><Ic.print className="w-4 h-4" /> Print / PDF</button>
@@ -100,14 +100,14 @@ export default function Account() {
       <div className="max-w-xl mx-auto px-6 py-32 text-center">
         <Ic.lock className="w-12 h-12 mx-auto text-ink-600 mb-5" />
         <h1 className="font-display text-3xl font-black uppercase">Member area</h1>
-        <p className="text-ink-400 mt-3">Sign in to see orders, tracking, addresses and saved gear.</p>
+        <p className="text-ink-400 mt-3">Sign in to see orders, live delivery tracking, addresses and saved bakes.</p>
         <button onClick={() => openAuth("login")} className="clip-btn mt-8 bg-blaze-500 hover:bg-blaze-400 text-ink-50 font-mono text-xs tracking-[0.2em] uppercase px-9 py-4 transition-colors">Sign in / create account</button>
-        <p className="font-mono text-[10px] text-ink-500 mt-5">Demo: user@volta.shop / demo123</p>
+        <p className="font-mono text-[10px] text-ink-500 mt-5">Demo: user@cakeurban.com / demo123</p>
       </div>
     );
   }
 
-  const myOrders = orders.filter((o) => o.email === user.email || o.email.startsWith("customer")).slice(0, user.email.startsWith("customer") ? 0 : undefined).filter((o) => o.email === user.email || o.id === "VL-9100");
+  const myOrders = orders.filter((o) => o.email === user.email || o.email.startsWith("customer")).slice(0, user.email.startsWith("customer") ? 0 : undefined).filter((o) => o.email === user.email || o.id === "CU-9100");
   const shown = myOrders.length ? myOrders : orders.slice(0, 4);
   const tabs = [
     ["overview", "Overview", Ic.chart], ["orders", "Orders", Ic.box], ["wishlist", t("wishlist"), Ic.heart],
@@ -122,7 +122,7 @@ export default function Account() {
         <div>
           <p className="font-mono text-[11px] tracking-[0.3em] text-blaze-500">MEMBER DASHBOARD</p>
           <h1 className="font-display text-4xl md:text-5xl font-black uppercase mt-2">Hey, {user.name.split(" ")[0]}</h1>
-          <p className="font-mono text-xs text-ink-400 mt-2">{user.email} · {user.role === "admin" ? "ADMIN ACCESS" : "Velocity member"}</p>
+          <p className="font-mono text-xs text-ink-400 mt-2">{user.email} · {user.role === "admin" ? "ADMIN ACCESS" : "Sweet member"}</p>
         </div>
         {user.role === "admin" && <Link to="/admin" className="clip-btn bg-gold-400 text-ink-950 hover:bg-gold-400/80 font-mono text-xs tracking-[0.2em] uppercase px-6 py-3.5 transition-colors flex items-center gap-2"><Ic.shield className="w-4 h-4" /> Admin console</Link>}
       </div>
@@ -185,7 +185,7 @@ export default function Account() {
                       <div className="mt-6 space-y-2.5">
                         {o.items.map((it, i) => (
                           <div key={i} className="flex items-center gap-3">
-                            <span className="w-12 h-12 bg-ink-900 clip-tag overflow-hidden shrink-0"><ImgX src={it.img} alt={it.name} className="w-full h-full object-cover" style={it.imgFilter ? { filter: it.imgFilter } : undefined} /></span>
+                            <span className="w-12 h-12 bg-ink-900 clip-tag overflow-hidden shrink-0"><PImg src={it.img} crop={it.crop} filter={it.imgFilter} alt={it.name} className="w-full h-full object-cover" /></span>
                             <span className="flex-1 text-sm">{it.name} <span className="font-mono text-[10px] text-ink-500">· {it.color} / {it.size} × {it.qty}</span></span>
                             <span className="font-mono tabnum text-sm">{fmt(it.price * it.qty)}</span>
                           </div>
@@ -197,7 +197,7 @@ export default function Account() {
                         {(o.status === "pending" || o.status === "processing") && (
                           <button onClick={() => cancelOrder(o.id)} className="clip-tag border border-danger-500/50 text-danger-400 hover:bg-danger-500 hover:text-ink-50 px-4 py-2.5 font-mono text-[10px] tracking-[0.15em] uppercase transition-colors">Cancel order</button>
                         )}
-                        {o.status === "delivered" && <span className="flex items-center gap-2 font-mono text-[10px] tracking-[0.15em] uppercase text-volt-400"><Ic.check className="w-3.5 h-3.5" /> Delivered — rate your gear on the product page</span>}
+                        {o.status === "delivered" && <span className="flex items-center gap-2 font-mono text-[10px] tracking-[0.15em] uppercase text-volt-400"><Ic.check className="w-3.5 h-3.5" /> Delivered — rate your bakes on the product page</span>}
                       </div>
                     </div>
                   )}

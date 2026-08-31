@@ -48,7 +48,17 @@ export const Ic = {
   logout: (p: IconProps) => <S {...p} d="M14.5 8V4.5h-10v15h10V16M9 12h11m-3.5-3.5L20 12l-3.5 3.5" />,
   filter: (p: IconProps) => <S {...p} d="M4 5.5h16L14 13v6l-4 2v-8L4 5.5Z" />,
   send: (p: IconProps) => <S {...p} d="m3.5 11.5 17-7-4.5 16-4.8-6.2-7.7-2.8Zm7.7 6.2 4.8-6.2" />,
+  cake: (p: IconProps) => <S {...p} d="M12 3.2a1.6 1.6 0 0 1 1.6 1.6c0 1.1-1.6 2.4-1.6 2.4S10.4 5.9 10.4 4.8A1.6 1.6 0 0 1 12 3.2ZM5 12.2c1.8 0 1.8 1.6 3.5 1.6s1.7-1.6 3.5-1.6 1.8 1.6 3.5 1.6S17.2 12.2 19 12.2V9.8a1.6 1.6 0 0 0-1.6-1.6H6.6A1.6 1.6 0 0 0 5 9.8v2.4ZM5 14.4v5.8h14v-5.8c-1.8 0-1.8 1.6-3.5 1.6s-1.7-1.6-3.5-1.6-1.8 1.6-3.5 1.6-1.7-1.6-3.5-1.6Z" />,
+  whisk: (p: IconProps) => <S {...p} d="m19.5 4.5-6 6M4.5 19.5c-1-1-1-3.5.8-5.3l5.2-5.2c1.8-1.8 4.3-1.8 5.3-.8s1 3.5-.8 5.3L9.8 18.7c-1.8 1.8-4.3 1.8-5.3.8ZM7 13l4 4" />,
 };
+
+/* ---------------- crop-aware product image ---------------- */
+export function PImg({ src, crop, filter, alt, className = "" }: { src: string; crop?: string; filter?: string; alt: string; className?: string }) {
+  if (crop) {
+    return <div role="img" aria-label={alt} className={`bg-cover bg-no-repeat ${className}`} style={{ backgroundImage: `url(${src})`, backgroundSize: "200% 200%", backgroundPosition: crop, filter: filter || undefined }} />;
+  }
+  return <ImgX src={src} alt={alt} className={className} style={filter ? { filter } : undefined} />;
+}
 
 /* ---------------- scroll reveal ---------------- */
 export function Reveal({ children, className = "", delay = 0, as: Tag = "div" }: { children: React.ReactNode; className?: string; delay?: number; as?: "div" | "section" | "li" | "span" }) {
@@ -99,7 +109,7 @@ export function ImgX({ src, alt, className = "", style }: { src: string; alt: st
   if (err)
     return (
       <div className={`flex items-center justify-center bg-ink-800 text-ink-500 ${className}`} style={style}>
-        <Ic.bolt className="w-10 h-10 opacity-40" />
+        <Ic.cake className="w-10 h-10 opacity-40" />
       </div>
     );
   return <img src={src} alt={alt} loading="lazy" onError={() => setErr(true)} className={className} style={style} draggable={false} />;
@@ -154,7 +164,7 @@ export function Qty({ value, onChange, max = 99, small = false }: { value: numbe
 }
 
 /* ---------------- particle canvas ---------------- */
-export function Particles({ className = "", count = 70, color = "255,77,18" }: { className?: string; count?: number; color?: string }) {
+export function Particles({ className = "", count = 70, color = "226,62,95" }: { className?: string; count?: number; color?: string }) {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     const cv = ref.current; if (!cv) return;

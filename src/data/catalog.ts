@@ -8,6 +8,8 @@ export type Product = {
   compareAt?: number;
   img: string;
   imgFilter?: string;
+  /** background-position for 2×2 grid source images — renders the quadrant as the product photo */
+  crop?: string;
   tag?: string;
   rating: number;
   ratingCount: number;
@@ -21,180 +23,236 @@ export type Product = {
 };
 
 const IMG = {
-  sneaker: "https://image.qwenlm.ai/generated-images/28775e2b-0e22-4188-a275-25c520509433/_result.png",
-  headphones: "https://image.qwenlm.ai/generated-images/36d09224-d210-4416-bb59-700a88cf4166/_result.png",
-  watch: "https://image.qwenlm.ai/generated-images/c890c539-8d6f-4ad2-9232-3ca72a9f477f/_result.png",
-  backpack: "https://image.qwenlm.ai/generated-images/8b10690f-cb85-4740-ab9a-2e53506d193b/_result.png",
-  sunglasses: "https://image.qwenlm.ai/generated-images/70cda3ac-5770-4a0d-a61d-ea8f5e3e71d8/_result.png",
-  speaker: "https://image.qwenlm.ai/generated-images/5829c5ec-f8a9-4f76-95c4-4c2a7386f5cf/_result.png",
-  jacket: "https://image.qwenlm.ai/generated-images/7b793936-7054-45e7-9b76-3e4f060f484c/_result.png",
-  earbuds: "https://image.qwenlm.ai/generated-images/dc9b2344-efad-4da2-a181-6c25625550cd/_result.png",
-  lifestyle: "https://image.qwenlm.ai/generated-images/1de31092-bfb9-4a20-993e-a5c26331b476/_result.png",
+  hero: "https://image.qwenlm.ai/generated-images/19868aa6-1a8b-4213-bf76-a00a5c538bec/_result.png",
+  cakes: "https://image.qwenlm.ai/generated-images/3375943d-96a8-43e8-9ab9-dbf92467ce64/_result.png",
+  cookies: "https://image.qwenlm.ai/generated-images/31255ff8-a239-432f-8d31-296fe494f4c1/_result.png",
 };
-export const LIFESTYLE_IMG = IMG.lifestyle;
+export const LIFESTYLE_IMG = IMG.hero;
+
+/* quadrant positions for the 2×2 sheet images */
+export const CROP = { TL: "0% 0%", TR: "100% 0%", BL: "0% 100%", BR: "100% 100%" };
 
 export const CATEGORIES = [
-  { name: "Footwear", subs: ["Running", "Training", "Lifestyle"], img: IMG.sneaker },
-  { name: "Audio", subs: ["Headphones", "Earbuds", "Speakers"], img: IMG.headphones },
-  { name: "Wearables", subs: ["Smartwatches", "Trackers"], img: IMG.watch },
-  { name: "Apparel", subs: ["Shells", "Base Layers"], img: IMG.jacket },
-  { name: "Accessories", subs: ["Carry", "Eyewear"], img: IMG.backpack },
+  { name: "Cakes", subs: ["Celebration", "Layer", "Drip", "Wedding"], img: IMG.cakes },
+  { name: "Cookies", subs: ["Choc Chip", "Macaron", "Brownie", "Thumbprint"], img: IMG.cookies },
+  { name: "Pastries & Bars", subs: ["Brownie", "Bars", "Croissant"], img: IMG.cookies, crop: CROP.BL },
+  { name: "Gift Boxes", subs: ["Hampers", "Party Packs", "Corporate"], img: IMG.hero },
+  { name: "Seasonal & Events", subs: ["Birthdays", "Weddings", "Anniversaries"], img: IMG.cakes, crop: CROP.TR },
 ];
 
-export const BRANDS = ["VOLTA Lab", "Aeon", "Northline", "Kinetik"];
+export const BRANDS = ["Noir Collection", "Crumb Lab", "Pâtisserie", "Oven Stories"];
 
 export const PRODUCTS: Product[] = [
   {
-    id: "velocity-x1", name: "Velocity Runner X1", brand: "VOLTA Lab", category: "Footwear",
-    price: 189, compareAt: 240, img: IMG.sneaker, tag: "BEST SELLER",
-    rating: 4.8, ratingCount: 2314, stock: 14, sku: "VL-FW-0189",
+    id: "raspberry-noir", name: "Raspberry Noir Signature", brand: "Noir Collection", category: "Cakes",
+    price: 54, compareAt: 68, img: IMG.hero, tag: "BEST SELLER",
+    rating: 4.9, ratingCount: 1284, stock: 18, sku: "CU-CK-0054",
     colors: [
-      { name: "Blaze", hex: "#ff4d12" },
-      { name: "Cobalt", hex: "#3e63dd", filter: "hue-rotate(205deg) saturate(1.15)" },
-      { name: "Bone", hex: "#c2cadb", filter: "grayscale(0.9) brightness(1.35)" },
+      { name: "Dark Chocolate", hex: "#3f2417" },
+      { name: "Raspberry", hex: "#d63e63", filter: "hue-rotate(-18deg) saturate(1.35) brightness(1.05)" },
+      { name: "Vanilla", hex: "#f1e0bd", filter: "sepia(0.45) brightness(1.3) saturate(0.8)" },
     ],
-    sizes: ["US 7", "US 8", "US 9", "US 10", "US 11", "US 12", "US 13"],
-    desc: "A carbon-plated racer tuned for daily velocity. The X1 pairs a supercritical foam midsole with an engineered knit upper that disappears on foot — 212 grams of pure forward intent.",
-    specs: [["Weight", "212 g (US 9)"], ["Drop", "8 mm"], ["Plate", "Full-length carbon"], ["Foam", "HyperCell™ supercritical"], ["Upper", "Engineered aero-knit"], ["Best for", "Tempo / race day"]],
+    sizes: ["1 KG", "1.5 KG", "2 KG"],
+    desc: "Our signature: three tiers of 72% Belgian dark sponge, whipped ganache and a slow-set raspberry coulis that drips on command. Finished with edible gold and fresh raspberries — baked to order, never from a freezer.",
+    specs: [["Layers", "3 × 72% dark sponge"], ["Couverture", "Belgian, 72% cocoa"], ["Coulis", "Slow-set raspberry"], ["Finish", "Edible gold leaf"], ["Eggless option", "On request"], ["Serves", "8–12 (per KG)"]],
     featured: true,
   },
   {
-    id: "aero-anc-700", name: "Aero ANC 700", brand: "Aeon", category: "Audio",
-    price: 329, img: IMG.headphones, tag: "NEW",
-    rating: 4.9, ratingCount: 1841, stock: 9, sku: "AE-AU-0329",
+    id: "midnight-fudge", name: "Midnight Fudge Layer", brand: "Oven Stories", category: "Cakes",
+    price: 42, img: IMG.cakes, crop: CROP.TL, tag: "NEW",
+    rating: 4.8, ratingCount: 861, stock: 14, sku: "CU-CK-0042",
     colors: [
-      { name: "Graphite", hex: "#2a3240" },
-      { name: "Sage", hex: "#8fae8b", filter: "hue-rotate(70deg) saturate(0.55) brightness(1.1)" },
+      { name: "Dark Chocolate", hex: "#3f2417" },
+      { name: "Espresso", hex: "#3a2a22", filter: "sepia(0.35) brightness(0.9) contrast(1.1)" },
     ],
-    sizes: ["One size"],
-    desc: "Adaptive noise cancelling that reads the room 500 times per second. Titanium-coated 40 mm drivers, spatial audio with head tracking, and 42 hours of playback.",
-    specs: [["Driver", "40 mm titanium-coated"], ["ANC", "Adaptive, -48 dB"], ["Battery", "42 h (ANC on)"], ["Codec", "LDAC / aptX Lossless"], ["Weight", "248 g"], ["Charge", "USB-C, 5 min = 4 h"]],
+    sizes: ["½ KG", "1 KG", "1.5 KG"],
+    desc: "Dense, dark and unapologetic. Four layers of devil's-food sponge soaked in espresso syrup, sealed with a glossy fudge ganache that sets like velvet. The cake chocolate people order when nobody's watching.",
+    specs: [["Layers", "4 × devil's food"], ["Soak", "Double espresso syrup"], ["Ganache", "54% fudge, gloss-set"], ["Texture", "Dense & fudgy"], ["Eggless option", "On request"], ["Serves", "8–12 (per KG)"]],
     featured: true,
   },
   {
-    id: "pulse-s-ti", name: "Pulse S Titanium", brand: "VOLTA Lab", category: "Wearables",
-    price: 399, compareAt: 449, img: IMG.watch,
-    rating: 4.7, ratingCount: 963, stock: 6, sku: "VL-WB-0399",
-    colors: [{ name: "Titanium", hex: "#76839c" }, { name: "Blaze band", hex: "#ff4d12", filter: "hue-rotate(-25deg) saturate(1.3)" }],
-    sizes: ["42 mm", "46 mm"],
-    desc: "Grade-5 titanium case, dual-band GPS, and a waveform display that renders your effort in real time. 14-day battery, 10 ATM, built for the long haul.",
-    specs: [["Case", "Grade-5 titanium"], ["GPS", "Dual-band L1+L5"], ["Battery", "14 days typical"], ["WR", "10 ATM / EN13319"], ["Sensors", "HR, SpO₂, ECG, temp"], ["Display", "1.43″ AMOLED 2000 nit"]],
+    id: "chantilly-cloud", name: "Chantilly Berry Cloud", brand: "Pâtisserie", category: "Cakes",
+    price: 39, img: IMG.cakes, crop: CROP.TR,
+    rating: 4.7, ratingCount: 642, stock: 16, sku: "CU-CK-0039",
+    colors: [
+      { name: "Vanilla Chantilly", hex: "#f1e0bd" },
+      { name: "Strawberry", hex: "#e85d75", filter: "hue-rotate(-30deg) saturate(1.4) brightness(1.12)" },
+    ],
+    sizes: ["½ KG", "1 KG", "1.5 KG"],
+    desc: "A whisper-light vanilla génoise folded with freshly whipped chantilly and macerated berries. It disappears in one bite — which is exactly the point.",
+    specs: [["Sponge", "Vanilla bean génoise"], ["Cream", "Hand-whipped chantilly"], ["Berries", "Macerated 12 h"], ["Sweetness", "Low, 38 g/kg"], ["Storage", "Chilled, 48 h"], ["Serves", "8–12 (per KG)"]],
+  },
+  {
+    id: "pistachio-rose", name: "Pistachio Rose Royale", brand: "Pâtisserie", category: "Cakes",
+    price: 48, compareAt: 56, img: IMG.cakes, crop: CROP.BL, tag: "NEW",
+    rating: 4.9, ratingCount: 512, stock: 9, sku: "CU-CK-0048",
+    colors: [
+      { name: "Pistachio", hex: "#9cb86e" },
+      { name: "Rose", hex: "#e8a0b4", filter: "hue-rotate(-45deg) saturate(1.2) brightness(1.15)" },
+    ],
+    sizes: ["½ KG", "1 KG", "1.5 KG"],
+    desc: "Sicilian pistachios roasted in-house, ground into a silky cream between rose-scented layers, crowned with crushed pistachio and dried petals. Our most-photographed cake — and the reason most people find us.",
+    specs: [["Pistachio", "Sicilian, house-roasted"], ["Layers", "Rose-water sponge"], ["Cream", "Pistachio mousseline"], ["Finish", "Crush + dried petals"], ["Allergens", "Tree nuts"], ["Serves", "8–12 (per KG)"]],
     featured: true,
   },
   {
-    id: "metro-carry-22", name: "Metro Carry 22L", brand: "Northline", category: "Accessories",
-    price: 145, img: IMG.backpack,
-    rating: 4.6, ratingCount: 712, stock: 21, sku: "NL-AC-0145",
-    colors: [{ name: "Black", hex: "#141821" }, { name: "Olive", hex: "#6b7a52", filter: "hue-rotate(60deg) saturate(0.6) brightness(0.9)" }],
-    sizes: ["22 L"],
-    desc: "A weatherproof commuter with a suspended 16″ laptop bay, magnetic quick-access pockets and a clamshell that opens flat for security lines.",
-    specs: [["Volume", "22 L"], ["Laptop", 'Up to 16"'], ["Fabric", "420D ripstop, DWR"], ["Access", "Clamshell + quick-draw"], ["Warranty", "Lifetime"], ["Weight", "980 g"]],
+    id: "salted-caramel-drip", name: "Salted Caramel Drip", brand: "Oven Stories", category: "Cakes",
+    price: 45, img: IMG.cakes, crop: CROP.BR,
+    rating: 4.6, ratingCount: 733, stock: 12, sku: "CU-CK-0045",
+    colors: [
+      { name: "Salted Caramel", hex: "#c98a3d" },
+      { name: "Chocolate", hex: "#3f2417", filter: "sepia(0.4) brightness(0.75) contrast(1.15)" },
+    ],
+    sizes: ["½ KG", "1 KG", "1.5 KG"],
+    desc: "Amber caramel taken to the edge of bitter, balanced with Maldon flakes, dripping down a brown-butter sponge. The drip is engineered to hold its shape for exactly 40 minutes — plenty of time for photos.",
+    specs: [["Caramel", "Amber, house-made"], ["Salt", "Maldon flakes"], ["Sponge", "Brown-butter"], ["Drip hold", "~40 min at 21°C"], ["Sweetness", "Medium"], ["Serves", "8–12 (per KG)"]],
   },
   {
-    id: "prism-ti", name: "Prism Ti Eyewear", brand: "Aeon", category: "Accessories",
-    price: 159, img: IMG.sunglasses, tag: "NEW",
-    rating: 4.5, ratingCount: 388, stock: 3, sku: "AE-AC-0159",
-    colors: [{ name: "Matte black", hex: "#10131a" }, { name: "Smoke", hex: "#55627a", filter: "hue-rotate(180deg) saturate(0.4) brightness(1.2)" }],
-    sizes: ["Standard", "Wide"],
-    desc: "Beta-titanium frame at 19 grams. Zeiss-tuned polycarbonate lenses with anti-fog venting — built for sprint sessions and glare-heavy commutes.",
-    specs: [["Frame", "Beta-titanium"], ["Weight", "19 g"], ["Lens", "Zeiss-tuned PC, Cat. 3"], ["UV", "100% UVA/UVB"], ["Fit", "Hydrophilic grip pads"], ["Case", "Hard shell included"]],
-  },
-  {
-    id: "orb-360", name: "Orb 360 Speaker", brand: "Aeon", category: "Audio",
-    price: 129, compareAt: 159, img: IMG.speaker,
-    rating: 4.4, ratingCount: 1102, stock: 34, sku: "AE-AU-0129",
-    colors: [{ name: "Charcoal", hex: "#2a3240" }, { name: "Blaze cap", hex: "#ff4d12", filter: "hue-rotate(-30deg) saturate(1.4)" }],
-    sizes: ["One size"],
-    desc: "Room-filling 360° sound from a cylinder that fits in a bottle cage. IP67, 20-hour battery, and pair-to-stereo with a second Orb.",
-    specs: [["Output", "30 W 360°"], ["Rating", "IP67"], ["Battery", "20 h"], ["Pairing", "Stereo link ×2"], ["Range", "Bluetooth 5.4, 30 m"], ["Weight", "640 g"]],
-  },
-  {
-    id: "storm-shell-3l", name: "Storm Shell 3L", brand: "Northline", category: "Apparel",
-    price: 289, img: IMG.jacket, tag: "LIMITED",
-    rating: 4.8, ratingCount: 456, stock: 4, sku: "NL-AP-0289",
-    colors: [{ name: "Black", hex: "#10131a" }, { name: "Ember", hex: "#ff6b35", filter: "hue-rotate(-35deg) saturate(1.6) brightness(1.05)" }],
-    sizes: ["XS", "S", "M", "L", "XL", "XXL"],
-    desc: "A 3-layer waterproof shell with fully taped seams, helmet-compatible hood and laser-cut venting. Packs into its own chest pocket at 310 grams.",
-    specs: [["Fabric", "3L waterproof 28k/25k"], ["Seams", "Fully taped"], ["Weight", "310 g"], ["Packs", "Into chest pocket"], ["Hood", "Helmet-compatible"], ["Vents", "Laser-cut underarm"]],
+    id: "chocchip-stack", name: "Molten Choc-Chip Stack", brand: "Crumb Lab", category: "Cookies",
+    price: 16, img: IMG.cookies, crop: CROP.TL, tag: "BEST SELLER",
+    rating: 4.8, ratingCount: 2980, stock: 40, sku: "CU-CO-0016",
+    colors: [
+      { name: "Classic", hex: "#c98a3d" },
+      { name: "Double Dark", hex: "#3f2417", filter: "sepia(0.5) brightness(0.7) contrast(1.2)" },
+      { name: "Brown Butter", hex: "#a9743f", filter: "sepia(0.35) brightness(1.05) saturate(1.15)" },
+    ],
+    sizes: ["6 PCS", "12 PCS", "24 PCS"],
+    desc: "A 72-hour cold-fermented dough, hand-scooped and baked to order: crisp edge, molten centre, 54% couverture chunks and a final snow of Maldon salt. Sells out most weekends — order early.",
+    specs: [["Dough", "72 h cold ferment"], ["Chocolate", "54% couverture chunks"], ["Salt", "Maldon flakes"], ["Texture", "Crisp edge, molten core"], ["Vegan option", "Available"], ["Shelf life", "5 days, airtight"]],
     featured: true,
   },
   {
-    id: "drift-buds-pro", name: "Drift Buds Pro", brand: "Aeon", category: "Audio",
-    price: 149, img: IMG.earbuds,
-    rating: 4.6, ratingCount: 2980, stock: 41, sku: "AE-AU-0149",
-    colors: [{ name: "Onyx", hex: "#141821" }, { name: "Blaze dot", hex: "#ff4d12", filter: "hue-rotate(-20deg) saturate(1.5)" }],
-    sizes: ["One size"],
-    desc: "Six-mic adaptive ANC in a 4.1-gram bud. Lossless over LE Audio, wireless charging case, and a transparency mode that actually sounds natural.",
-    specs: [["ANC", "Adaptive 6-mic"], ["Weight", "4.1 g / bud"], ["Battery", "9 h + 27 h case"], ["Audio", "LE Audio lossless"], ["Rating", "IPX5"], ["Latency", "38 ms game mode"]],
+    id: "macaron-jewel", name: "Macaron Jewel Box", brand: "Pâtisserie", category: "Cookies",
+    price: 24, img: IMG.cookies, crop: CROP.TR, tag: "NEW",
+    rating: 4.7, ratingCount: 1102, stock: 22, sku: "CU-CO-0024",
+    colors: [
+      { name: "Assorted", hex: "#e8a0b4" },
+      { name: "Raspberry", hex: "#d63e63", filter: "hue-rotate(-10deg) saturate(1.3)" },
+      { name: "Pistachio", hex: "#9cb86e", filter: "hue-rotate(60deg) saturate(0.9)" },
+    ],
+    sizes: ["BOX OF 6", "BOX OF 12", "BOX OF 24"],
+    desc: "Italian-method shells rested 24 hours for the perfect foot, filled the morning they ship. Raspberry, pistachio, salted caramel, dark chocolate — jewel tones, zero artificial colour.",
+    specs: [["Method", "Italian meringue"], ["Rest", "24 h shells"], ["Filling", "Filled day-of-dispatch"], ["Colours", "Natural only"], ["Storage", "Chilled, 5 days"], ["Allergens", "Almond, egg, dairy"]],
   },
   {
-    id: "velocity-x1-cobalt", name: 'Velocity X1 "Cobalt Edition"', brand: "VOLTA Lab", category: "Footwear",
-    price: 209, img: IMG.sneaker, imgFilter: "hue-rotate(205deg) saturate(1.2)", tag: "LIMITED",
-    rating: 4.9, ratingCount: 642, stock: 8, sku: "VL-FW-0209",
-    colors: [{ name: "Cobalt", hex: "#3e63dd" }],
-    sizes: ["US 8", "US 9", "US 10", "US 11", "US 12"],
-    desc: "The X1 racer in a numbered cobalt colorway — 500 pairs worldwide, each with a laser-etched serial on the heel plate.",
-    specs: [["Weight", "212 g (US 9)"], ["Edition", "Numbered /500"], ["Plate", "Full-length carbon"], ["Foam", "HyperCell™ supercritical"], ["Upper", "Engineered aero-knit"], ["Box", "Collector slipcase"]],
+    id: "espresso-brownie", name: "Espresso Walnut Brownie", brand: "Crumb Lab", category: "Pastries & Bars",
+    price: 18, img: IMG.cookies, crop: CROP.BL,
+    rating: 4.6, ratingCount: 456, stock: 26, sku: "CU-PA-0018",
+    colors: [
+      { name: "Espresso Walnut", hex: "#3a2a22" },
+      { name: "Dark Sea Salt", hex: "#2b1d14", filter: "brightness(0.8) contrast(1.2)" },
+    ],
+    sizes: ["SLAB OF 4", "SLAB OF 9"],
+    desc: "A fudge-dense slab cut from a single pan: 70% chocolate, a double shot of espresso in the batter, toasted walnuts through the middle and a crackled top that shatters on the first cut.",
+    specs: [["Chocolate", "70% dark"], ["Espresso", "Double shot in batter"], ["Walnuts", "House-toasted"], ["Top", "Crackled meringue crust"], ["Texture", "Fudge-dense"], ["Shelf life", "6 days, airtight"]],
+  },
+  {
+    id: "raspberry-thumbprint", name: "Raspberry Thumbprint Dozen", brand: "Oven Stories", category: "Cookies",
+    price: 15, img: IMG.cookies, crop: CROP.BR,
+    rating: 4.5, ratingCount: 388, stock: 30, sku: "CU-CO-0015",
+    colors: [
+      { name: "Raspberry Jam", hex: "#d63e63" },
+      { name: "Apricot", hex: "#e0913f", filter: "hue-rotate(20deg) saturate(1.25) brightness(1.1)" },
+    ],
+    sizes: ["DOZEN", "2 DOZEN"],
+    desc: "Buttery shortbread pressed by thumb (really — it's in the name), filled with small-batch raspberry jam reduced with a squeeze of lemon, finished with powdered sugar.",
+    specs: [["Base", "French shortbread"], ["Jam", "Small-batch raspberry"], ["Reduction", "Lemon-brightened"], ["Finish", "Powdered sugar"], ["Texture", "Melt-in-mouth"], ["Shelf life", "7 days, airtight"]],
+  },
+  {
+    id: "bakers-dozen", name: "Baker's Dozen Gift Tin", brand: "Crumb Lab", category: "Gift Boxes",
+    price: 34, compareAt: 42, img: IMG.cookies, tag: "BEST SELLER",
+    rating: 4.9, ratingCount: 977, stock: 20, sku: "CU-GB-0034",
+    colors: [{ name: "Assorted", hex: "#c98a3d" }],
+    sizes: ["13-PIECE TIN"],
+    desc: "Thirteen cookies, one matte-black tin: four choc-chip, four thumbprints, three brownie bites, two macarons. Wrapped in wax paper, tied with twine, addressed in your words on a kraft card.",
+    specs: [["Contents", "13 pieces, 4 varieties"], ["Tin", "Matte black, reusable"], ["Card", "Handwritten on request"], ["Wrap", "Wax paper + twine"], ["Freshness", "Baked day-of-dispatch"], ["Shelf life", "5 days"]],
     featured: true,
   },
   {
-    id: "aero-anc-sage", name: 'Aero ANC 700 "Sage"', brand: "Aeon", category: "Audio",
-    price: 329, img: IMG.headphones, imgFilter: "hue-rotate(70deg) saturate(0.5) brightness(1.05)",
-    rating: 4.8, ratingCount: 511, stock: 12, sku: "AE-AU-0331",
-    colors: [{ name: "Sage", hex: "#8fae8b" }],
-    sizes: ["One size"],
-    desc: "The ANC 700 in a botanical sage finish with anodized aluminum yokes. Same adaptive silence, softer edges.",
-    specs: [["Driver", "40 mm titanium-coated"], ["ANC", "Adaptive, -48 dB"], ["Battery", "42 h (ANC on)"], ["Finish", "Anodized sage"], ["Weight", "248 g"], ["Charge", "USB-C fast charge"]],
+    id: "celebration-tower", name: "Celebration Tower Trio", brand: "Pâtisserie", category: "Gift Boxes",
+    price: 89, img: IMG.cakes, tag: "LIMITED",
+    rating: 4.9, ratingCount: 204, stock: 4, sku: "CU-GB-0089",
+    colors: [{ name: "Assorted Cakes", hex: "#d63e63" }],
+    sizes: ["3-TIER STAND"],
+    desc: "Three signature ½ KG cakes — Midnight Fudge, Chantilly Cloud, Pistachio Rose — dressed on a brushed-steel stand that ships with the box. The centerpiece that ends the debate about where to order.",
+    specs: [["Contents", "3 × ½ KG signature cakes"], ["Stand", "Brushed steel, included"], ["Serves", "18–24"], ["Assembly", "Pre-set, ready to serve"], ["Delivery", "Chained cold-box"], ["Notice", "48 h recommended"]],
+  },
+  {
+    id: "noir-wedding-tier", name: "Noir Wedding Tier", brand: "Noir Collection", category: "Cakes",
+    price: 129, img: IMG.hero, imgFilter: "brightness(0.94) contrast(1.06)", tag: "LIMITED",
+    rating: 4.9, ratingCount: 156, stock: 3, sku: "CU-CK-0129",
+    colors: [
+      { name: "Dark Chocolate", hex: "#3f2417" },
+      { name: "Vanilla", hex: "#f1e0bd", filter: "sepia(0.5) brightness(1.35) saturate(0.75)" },
+      { name: "Mixed tiers", hex: "#d69740", filter: "sepia(0.3) brightness(1.05)" },
+    ],
+    sizes: ["2-TIER", "3-TIER", "4-TIER"],
+    desc: "The Raspberry Noir, scaled for the head table. Each tier is a separate flavour if you wish, structured on hidden food-safe pillars, finished with coulis drip and gold leaf. Includes a private tasting for two.",
+    specs: [["Tiers", "2–4, hidden pillars"], ["Tasting", "Private session for 2"], ["Flavours", "Mix per tier"], ["Finish", "Coulis + gold leaf"], ["Setup", "On-site assembly included"], ["Booking", "3 weeks minimum"]],
+  },
+  {
+    id: "eggless-dough-jar", name: "Choc-Chip Dough Jar (Eggless)", brand: "Crumb Lab", category: "Cookies",
+    price: 13, img: IMG.cookies, crop: CROP.TL, imgFilter: "sepia(0.3) brightness(1.18) saturate(0.9) hue-rotate(-12deg)", tag: "EGGLESS",
+    rating: 4.4, ratingCount: 311, stock: 35, sku: "CU-CO-0013",
+    colors: [
+      { name: "Cookie Dough", hex: "#e3c08d" },
+      { name: "Choc Chip", hex: "#3f2417", filter: "sepia(0.5) brightness(0.7)" },
+    ],
+    sizes: ["350 G JAR", "700 G JAR"],
+    desc: "The raw dough people keep asking to lick off the spoon — made safe to eat: heat-treated flour, no egg, all the chunks. Spoon it, sandwich it over ice cream, or bake it into rough-edged cookies.",
+    specs: [["Safe to eat", "Heat-treated flour, egg-free"], ["Chunks", "54% couverture"], ["Bakes into", "~9 rough cookies"], ["Storage", "Chilled, 3 weeks"], ["Vegan", "Yes"], ["Jar", "Glass, returnable"]],
   },
 ];
 
 export type Review = { id: string; productId: string; name: string; rating: number; title: string; text: string; date: string; hasImage?: boolean };
 
 export const SEED_REVIEWS: Review[] = [
-  { id: "r1", productId: "velocity-x1", name: "Amara Osei", rating: 5, title: "Illegal levels of fast", text: "Ran a 10K PB by 41 seconds in these. The plate snaps you forward without feeling harsh. Best racer I've owned.", date: "2026-01-18", hasImage: true },
-  { id: "r2", productId: "velocity-x1", name: "Diego Fuentes", rating: 5, title: "Worth every cent", text: "The knit upper locks the midfoot perfectly. Zero break-in time.", date: "2026-01-05" },
-  { id: "r3", productId: "velocity-x1", name: "Priya Nair", rating: 4, title: "Nearly perfect", text: "Runs slightly narrow — size up half a size if you're between. Otherwise phenomenal energy return.", date: "2025-12-22" },
-  { id: "r4", productId: "aero-anc-700", name: "Jonas Keller", rating: 5, title: "Silence, engineered", text: "The adaptive ANC erases my open-plan office. Transparency mode sounds like real ears.", date: "2026-02-01", hasImage: true },
-  { id: "r5", productId: "aero-anc-700", name: "Mei Tanaka", rating: 5, title: "42 hours is real", text: "Charged them once in two weeks of commuting. LDAC quality is stunning.", date: "2026-01-14" },
-  { id: "r6", productId: "pulse-s-ti", name: "Sam Whitfield", rating: 5, title: "GPS lock is instant", text: "Dual-band GPS traces city canyons perfectly. Battery does 13 days with always-on display.", date: "2026-01-27" },
-  { id: "r7", productId: "pulse-s-ti", name: "Lena Hoffmann", rating: 4, title: "Beautiful hardware", text: "Titanium feels premium, strap swaps in seconds. App could use more watch faces.", date: "2025-12-30" },
-  { id: "r8", productId: "storm-shell-3l", name: "Ravi Menon", rating: 5, title: "Survived a Scottish winter", text: "Fully waterproof through sideways rain. Packs down to nothing.", date: "2026-01-20", hasImage: true },
-  { id: "r9", productId: "drift-buds-pro", name: "Carla Reyes", rating: 5, title: "Tiny, mighty", text: "Forget they're in until the music stops. Game mode latency is genuinely low.", date: "2026-02-06" },
-  { id: "r10", productId: "orb-360", name: "Theo Brandt", rating: 4, title: "Big room sound", text: "Fills my whole studio. Wish it had an aux input, but stereo pairing fixes everything else.", date: "2026-01-09" },
+  { id: "r1", productId: "raspberry-noir", name: "Amara Osei", rating: 5, title: "The coulis drip is theatre", text: "Ordered for my mother's 60th. The drip held perfectly through forty minutes of photographs, and the dark sponge is genuinely not too sweet. Best cake in the city, no contest.", date: "2026-01-18", hasImage: true },
+  { id: "r2", productId: "raspberry-noir", name: "Diego Fuentes", rating: 5, title: "Worth every cent", text: "Gold leaf, fresh raspberries, and a sponge that tastes like it was baked an hour ago — because it was.", date: "2026-01-05" },
+  { id: "r3", productId: "raspberry-noir", name: "Priya Nair", rating: 4, title: "Nearly perfect", text: "Ask for the eggless version if you're ordering for a mixed crowd — it's 95% as good, which is a miracle in itself.", date: "2025-12-22" },
+  { id: "r4", productId: "chocchip-stack", name: "Jonas Keller", rating: 5, title: "Molten centre is real", text: "The 72-hour dough is not marketing. Crisp outside, almost underbaked middle, salt on top. I've reordered six times.", date: "2026-02-01", hasImage: true },
+  { id: "r5", productId: "chocchip-stack", name: "Mei Tanaka", rating: 5, title: "Sell-out is real too", text: "Order before Thursday or you're waiting till Monday. That's the only complaint I have.", date: "2026-01-14" },
+  { id: "r6", productId: "macaron-jewel", name: "Sam Whitfield", rating: 5, title: "Perfect feet, every shell", text: "Italian method done properly. No hollows, clean snap, and the raspberry one tastes like actual fruit.", date: "2026-01-27" },
+  { id: "r7", productId: "macaron-jewel", name: "Lena Hoffmann", rating: 4, title: "Beautiful box", text: "The jewel box looks more expensive than it is. Wish there were more pistachio per box.", date: "2025-12-30" },
+  { id: "r8", productId: "midnight-fudge", name: "Ravi Menon", rating: 5, title: "Dense in the best way", text: "Survived a two-hour drive in a cold box and cut like fudge. The espresso soak is subtle but makes it.", date: "2026-01-20", hasImage: true },
+  { id: "r9", productId: "pistachio-rose", name: "Carla Reyes", rating: 5, title: "The photographed one", text: "Every single guest asked where it was from. Rose is light, pistachio is loud. Perfect balance.", date: "2026-02-06" },
+  { id: "r10", productId: "bakers-dozen", name: "Theo Brandt", rating: 5, title: "The office peace treaty", text: "One tin ended three weeks of kitchen disputes. The handwritten card was a lovely touch.", date: "2026-01-09" },
 ];
 
-export type BlogPost = { slug: string; title: string; tag: string; date: string; read: string; excerpt: string; img: string; body: string[] };
+export type BlogPost = { slug: string; title: string; tag: string; date: string; read: string; excerpt: string; img: string; crop?: string; body: string[] };
 
 export const BLOG_POSTS: BlogPost[] = [
   {
-    slug: "carbon-plates-explained", title: "Carbon Plates, Explained by the Engineers Who Tune Them", tag: "ENGINEERING", date: "2026-02-08", read: "8 min",
-    excerpt: "Why a plate is never 'stiff' or 'soft' — it's a spring tuned to your stride frequency. Our propulsion lab opens its data.",
-    img: IMG.sneaker,
+    slug: "the-72-hour-dough", title: "Why Our Cookie Dough Rests for 72 Hours", tag: "CRAFT", date: "2026-02-08", read: "6 min",
+    excerpt: "Flour hydrates slowly. Flavour compounds develop slowly. Everything good about our choc-chip cookie happens while nobody is watching.",
+    img: IMG.cookies, crop: CROP.TL,
     body: [
-      "Every plate we ship is tested against 214 stride signatures before a single pair leaves the lab. The goal is not maximum stiffness — it's the right stiffness at the right moment of toe-off, and that moment shifts with your cadence.",
-      "HyperCell™ foam stores roughly 87% of impact energy; the carbon plate decides where that energy goes. Tune it too aggressive and you fight the shoe at easy paces. Tune it too soft and it disappears at 4:00/km.",
-      "The X1 sits at what we call the 'velocity window' — a rocker geometry that engages from 3:10 to 5:30 per kilometre. That's why the same shoe feels like a trainer on recovery days and a racer on threshold Tuesdays.",
-      "Our advice: don't chase plate hype, chase fit. A perfectly tuned plate in the wrong last is slower than a modest plate on a foot that trusts it.",
+      "The moment you mix cookie dough, two slow processes begin: flour hydrates fully, and enzymes start breaking starches into simple sugars. At hour 6 you can barely taste the difference. At hour 72, the dough caramelizes deeper, spreads less, and browns in uneven, gorgeous patches.",
+      "Cold is the other ingredient. At 4°C the butter firms into thin sheets instead of blending in, which is why a rested cookie shatters at the edge but stays molten in the middle — the same physics as laminated pastry, in a humbler form.",
+      "We've tested 24, 48 and 96 hours. 24 is good, 96 is slightly sour. 72 is the window where toffee notes peak. That number isn't tradition — it's a curve we measured.",
+      "The inconvenient truth for bakeries: rested dough means we can only bake what we planned three days ago. It's why the stacks sell out. We'd rather sell out than shortcut.",
     ],
   },
   {
-    slug: "anc-that-reads-the-room", title: "Designing ANC That Reads the Room 500 Times a Second", tag: "AUDIO", date: "2026-01-24", read: "6 min",
-    excerpt: "Adaptive noise cancelling is a prediction problem. Here's how the Aero 700 models your acoustic world before it happens.",
-    img: IMG.headphones,
+    slug: "physics-of-the-drip", title: "The Physics of a Perfect Drip", tag: "PÂTISSERIE", date: "2026-01-24", read: "5 min",
+    excerpt: "A coulis that runs is a sauce. A coulis that freezes is wax. The drip lives in a 4°C window of viscosity — here's how we hold it there.",
+    img: IMG.hero,
     body: [
-      "Classic ANC reacts. Adaptive ANC predicts. The Aero 700 samples your environment 500 times per second and runs a lightweight acoustic model that anticipates the next 40 milliseconds of noise.",
-      "That lookahead is why office chatter dissolves instead of merely dimming — speech is periodic enough to model, which is exactly where reactive systems fall apart.",
-      "We also tune transparency to your ear canal geometry at first pairing. Two minutes of calibration, and the world outside sounds like it does with nothing in your ears.",
+      "A drip cake fails in one of two ways: the coulis runs to the plate, or it sets into a shell that cracks when cut. Both are viscosity problems, and viscosity is a temperature story.",
+      "We set our raspberry coulis with just enough pectin to hold at 21°C for roughly forty minutes — long enough for the full photo ritual, short enough that the first slice cuts clean.",
+      "The pour happens at exactly 34°C, over a cake chilled to 6°C. The thermal shock stops each drip at a different length, which is the 'organic' look people photograph. It's not randomness; it's controlled instability.",
+      "Gold leaf goes on last, by tweezers, one fleck at a time. It adds nothing to flavour and everything to the moment. Some things are allowed to be pure theatre.",
     ],
   },
   {
-    slug: "city-proof-carry", title: "The Anatomy of a City-Proof Carry System", tag: "DESIGN", date: "2026-01-11", read: "5 min",
-    excerpt: "A commuter bag fails in dozens of tiny moments. We obsessed over each one so the Metro Carry doesn't.",
-    img: IMG.backpack,
+    slug: "eggless-without-compromise", title: "Eggless Baking, Without the Compromise", tag: "BAKEHOUSE", date: "2026-01-11", read: "7 min",
+    excerpt: "Most eggless cakes are apologies. Ours took 41 test bakes to stop tasting like an apology — aquafaba, emulsifiers and one secret we're keeping.",
+    img: IMG.cakes, crop: CROP.TR,
     body: [
-      "The average commuter opens their bag 14 times a day. Multiply the friction of each opening by a year and you understand why we prototyped the Metro's magnetic quick-draw pocket 61 times.",
-      "The suspended laptop bay isn't marketing — it keeps 400 grams of aluminum off your spine line, which changes how the whole pack hangs after hour three.",
-      "And the clamshell opening exists for one ritual: the security line. Flat, visible, done in eight seconds.",
+      "Eggs do three jobs in a cake: structure, emulsion, and tenderness. Remove them and most recipes quietly give up on at least one. Ours refused to.",
+      "Structure comes from a precise aquafaba meringue folded at the exact moment it hits soft peaks. Emulsion from sunflower lecithin — half a gram per kilo, no more. Tenderness from browned butter, which also brings the toffee note people can't place.",
+      "Test bake 41 was the one where our head chef couldn't tell the eggless tier from the original in a blind cut. That's when it went on the menu.",
+      "Around 30% of our orders now request eggless. It stopped being a category and became a standard — which is exactly what 'no compromise' should mean.",
     ],
   },
 ];
@@ -203,7 +261,7 @@ export type Coupon = { code: string; type: "percent" | "fixed" | "ship"; value: 
 
 export const SEED_COUPONS: Coupon[] = [
   { code: "WELCOME10", type: "percent", value: 10, min: 0, expires: "2026-12-31", limit: 10000, used: 3421, active: true },
-  { code: "VOLT25", type: "fixed", value: 25, min: 200, expires: "2026-06-30", limit: 2000, used: 618, active: true },
+  { code: "SWEET20", type: "percent", value: 20, min: 60, expires: "2026-06-30", limit: 2000, used: 618, active: true },
   { code: "FREESHIP", type: "ship", value: 0, min: 0, expires: "2026-09-30", limit: 5000, used: 1204, active: true },
 ];
 
@@ -217,7 +275,7 @@ export const CURRENCIES = [
 export type CartItem = { productId: string; color: string; size: string; qty: number };
 export type Address = { id: string; label: string; name: string; line1: string; city: string; zip: string; country: string; phone: string };
 export type PaymentMethod = { id: string; brand: string; last4: string; exp: string };
-export type OrderItem = { productId: string; name: string; img: string; imgFilter?: string; color: string; size: string; qty: number; price: number };
+export type OrderItem = { productId: string; name: string; img: string; imgFilter?: string; crop?: string; color: string; size: string; qty: number; price: number };
 export type OrderStatus = "pending" | "processing" | "shipped" | "delivered" | "cancelled";
 export type Order = {
   id: string; email: string; items: OrderItem[]; subtotal: number; discount: number; shipping: number; total: number;
@@ -226,34 +284,36 @@ export type Order = {
 
 export type Customer = { id: string; name: string; email: string; joined: string; orders: number; spend: number; blocked: boolean };
 export const SEED_CUSTOMERS: Customer[] = [
-  { id: "c1", name: "Amara Osei", email: "amara@runmail.com", joined: "2025-03-12", orders: 7, spend: 1420, blocked: false },
-  { id: "c2", name: "Diego Fuentes", email: "diego.f@fastmail.io", joined: "2025-05-02", orders: 4, spend: 812, blocked: false },
-  { id: "c3", name: "Priya Nair", email: "priya.n@gmail.com", joined: "2025-06-19", orders: 11, spend: 2340, blocked: false },
-  { id: "c4", name: "Jonas Keller", email: "jonas.k@web.de", joined: "2025-08-07", orders: 3, spend: 701, blocked: false },
-  { id: "c5", name: "Mei Tanaka", email: "mei.t@icloud.com", joined: "2025-09-23", orders: 6, spend: 1180, blocked: false },
-  { id: "c6", name: "Sam Whitfield", email: "samw@outlook.com", joined: "2025-11-01", orders: 2, spend: 548, blocked: true },
-  { id: "c7", name: "Lena Hoffmann", email: "lena.h@gmx.de", joined: "2025-12-14", orders: 5, spend: 990, blocked: false },
-  { id: "c8", name: "Ravi Menon", email: "ravi.m@proton.me", joined: "2026-01-08", orders: 1, spend: 289, blocked: false },
+  { id: "c1", name: "Amara Osei", email: "amara@runmail.com", joined: "2025-03-12", orders: 7, spend: 540, blocked: false },
+  { id: "c2", name: "Diego Fuentes", email: "diego.f@fastmail.io", joined: "2025-05-02", orders: 4, spend: 312, blocked: false },
+  { id: "c3", name: "Priya Nair", email: "priya.n@gmail.com", joined: "2025-06-19", orders: 11, spend: 890, blocked: false },
+  { id: "c4", name: "Jonas Keller", email: "jonas.k@web.de", joined: "2025-08-07", orders: 6, spend: 401, blocked: false },
+  { id: "c5", name: "Mei Tanaka", email: "mei.t@icloud.com", joined: "2025-09-23", orders: 6, spend: 480, blocked: false },
+  { id: "c6", name: "Sam Whitfield", email: "samw@outlook.com", joined: "2025-11-01", orders: 2, spend: 148, blocked: true },
+  { id: "c7", name: "Lena Hoffmann", email: "lena.h@gmx.de", joined: "2025-12-14", orders: 5, spend: 390, blocked: false },
+  { id: "c8", name: "Ravi Menon", email: "ravi.m@proton.me", joined: "2026-01-08", orders: 1, spend: 89, blocked: false },
 ];
 
 export type Staff = { id: string; name: string; email: string; role: "Super Admin" | "Manager" | "Staff"; lastActive: string };
 export const SEED_STAFF: Staff[] = [
-  { id: "s1", name: "Alex Voss", email: "admin@volta.shop", role: "Super Admin", lastActive: "2026-02-11 09:41" },
-  { id: "s2", name: "Mira Chen", email: "mira@volta.shop", role: "Manager", lastActive: "2026-02-11 08:15" },
-  { id: "s3", name: "Devon Park", email: "devon@volta.shop", role: "Staff", lastActive: "2026-02-10 17:52" },
+  { id: "s1", name: "Alex Voss", email: "admin@cakeurban.com", role: "Super Admin", lastActive: "2026-02-11 09:41" },
+  { id: "s2", name: "Mira Chen", email: "mira@cakeurban.com", role: "Manager", lastActive: "2026-02-11 08:15" },
+  { id: "s3", name: "Devon Park", email: "devon@cakeurban.com", role: "Staff", lastActive: "2026-02-10 17:52" },
 ];
 
 export type Faq = { q: string; a: string };
 export const SEED_FAQS: Faq[] = [
-  { q: "How long does shipping take?", a: "Express orders ship within 24h and arrive in 2–4 business days. Standard arrives in 5–8 business days. Free express shipping on orders over $150." },
-  { q: "What is your return policy?", a: "30 days, unworn, in original packaging. Start a return from your account dashboard — we email a prepaid label instantly." },
-  { q: "Do you ship internationally?", a: "Yes — we ship to 40+ countries. Duties are calculated at checkout so there are no surprises at the door." },
-  { q: "How do warranty claims work?", a: "Every product carries at least a 2-year warranty. Contact support with your order number and we'll arrange repair or replacement." },
+  { q: "How fast is same-day delivery?", a: "Order by 4 PM and our riders bring it the same day within the city, in a chilled box — most orders arrive inside 90 minutes. After 4 PM, it's first slot next morning." },
+  { q: "Do you offer eggless and vegan options?", a: "Yes. Every cake on the menu has an eggless version baked on a dedicated line, and the Choc-Chip Stack and Dough Jar are fully vegan. Flag it at checkout and we double-check by hand." },
+  { q: "Can I write a message on the cake?", a: "Always. Add your message in the order notes — our pipers hand-write up to 20 words in dark or white chocolate, free of charge. Gift tins come with a kraft card we fill by hand." },
+  { q: "What about allergens?", a: "Our bakehouse handles gluten, dairy, eggs, tree nuts and soy. Every product page lists allergens, and nut-free items are prepared on separate benches, though we can't guarantee zero cross-contact." },
+  { q: "How should I store my cake?", a: "Chilled, in its box, up to 48 hours. Take it out 30 minutes before serving — cold mutes flavour, and the ganache cuts cleanest at room temperature." },
+  { q: "What is your refund policy?", a: "Freshness guaranteed: if anything arrives short of perfect, send a photo within 2 hours and we re-bake or refund — your choice. Custom and wedding tiers follow the booking agreement." },
 ];
 
 export const HERO_DEFAULT = {
-  kicker: "FW/26 COLLECTION — LIVE NOW",
-  titleA: "GEAR IN",
-  titleB: "MOTION",
-  sub: "Engineered footwear, adaptive audio and titanium wearables — built in our propulsion lab, tested at race pace, delivered in 48 hours.",
+  kicker: "BAKED FRESH DAILY — ORDER BY 4 PM FOR SAME-DAY",
+  titleA: "CAKES &",
+  titleB: "COOKIES",
+  sub: "Signature layer cakes, 72-hour cookie dough and jewel-box macarons — handcrafted in our urban bakehouse and at your door before the frosting sets.",
 };
