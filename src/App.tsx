@@ -11,6 +11,10 @@ import Checkout from "./pages/checkout";
 import Account from "./pages/account";
 import Admin from "./pages/admin";
 import { BlogList, BlogPost } from "./pages/blog";
+import About from "./pages/about";
+import Contact from "./pages/contact";
+import CustomBuilder from "./pages/builder";
+import PolicyPage from "./pages/policies";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -66,6 +70,10 @@ function Shell() {
             <Route path="/blog/:slug" element={<BlogPost />} />
             <Route path="/wishlist" element={<WishlistPage />} />
             <Route path="/compare" element={<ComparePage />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/builder" element={<CustomBuilder />} />
+            <Route path="/policy/:type" element={<PolicyPage />} />
             <Route path="*" element={<Home />} />
           </Routes>
         </div>

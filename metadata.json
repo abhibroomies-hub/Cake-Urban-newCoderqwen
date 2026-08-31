@@ -1,0 +1,6 @@
+{
+  "name": "CakeUrban",
+  "description": "Artisan cakes and small-batch cookies, handcrafted in an urban bakehouse and delivered fresh.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

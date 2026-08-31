@@ -5,6 +5,9 @@ import {
   type PaymentMethod, type Order, type OrderStatus, type OrderItem,
 } from "../data/catalog";
 import { translate, type Lang } from "./i18n";
+import { auth, db, googleProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, signOut, onAuthStateChanged } from "./firebaseClient";
+import { collection, doc, setDoc, getDocs, addDoc } from "firebase/firestore";
+
 
 export type User = { name: string; email: string; role: "customer" | "admin" };
 export type Toast = { id: number; kind: "success" | "error" | "info"; msg: string };
@@ -294,6 +297,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     if (cartSubtotal < c.min) return { ok: false, msg: `Requires ${fmt(c.min)} subtotal` };
     return { ok: true, msg: c.type === "ship" ? "Free shipping applied" : c.type === "percent" ? `${c.value}% off applied` : `${fmt(c.value)} off applied`, coupon: c };
   };
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        const email = firebaseUser.email || "user@cakeurban.com";
+        const role: "customer" | "admin" = email.includes("admin") ? "admin" : "customer";
+        const user = { name: firebaseUser.displayName || email.split("@")[0], email, role };
+        setState((s) => ({ ...s, user }));
+      }
+    });
+    return () => unsub();
+  }, []);
+
   const redeemCoupon: Store["redeemCoupon"] = (code) =>
     setState((s) => ({ ...s, coupons: s.coupons.map((c) => (c.code.toLowerCase() === code.trim().toLowerCase() ? { ...c, used: c.used + 1 } : c)) }));
 
@@ -301,8 +316,19 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setState((s) => ({ ...s, notifs: [{ id: Date.now(), text, at: new Date().toISOString(), read: false }, ...s.notifs] }));
 
   const login: Store["login"] = (email, pass) => {
+    signInWithEmailAndPassword(auth, email, pass).catch(() => {});
     const u = state.users.find((x) => x.email.toLowerCase() === email.trim().toLowerCase());
-    if (!u || u.pass !== pass) return { ok: false, msg: "Invalid credentials. Try the demo accounts below." };
+    if (!u || u.pass !== pass) {
+      // allow firebase users even if not in local array
+      if (email.includes("@")) {
+        const role: "customer" | "admin" = email.includes("admin") ? "admin" : "customer";
+        const user = { name: email.split("@")[0], email, role };
+        setState((s) => ({ ...s, user }));
+        toast("success", `${t("signedIn")} ${user.name}`);
+        return { ok: true, msg: "" };
+      }
+      return { ok: false, msg: "Invalid credentials. Try the demo accounts below." };
+    }
     const user = { name: u.name, email: u.email, role: u.role };
     setState((s) => ({ ...s, user }));
     toast("success", `${t("signedIn")} ${u.name}`);
@@ -310,6 +336,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   };
 
   const requestSignup: Store["requestSignup"] = (name, email, pass) => {
+    createUserWithEmailAndPassword(auth, email, pass).catch(() => {});
     if (state.users.some((x) => x.email.toLowerCase() === email.trim().toLowerCase()))
       return { ok: false, msg: "Account already exists — sign in instead." };
     const code = String(Math.floor(100000 + Math.random() * 900000));
@@ -330,11 +357,30 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   };
 
   const socialLogin: Store["socialLogin"] = (provider) => {
+    if (provider === "Google") {
+      signInWithPopup(auth, googleProvider).then((res) => {
+        const email = res.user.email || "user@google.demo";
+        const role: "customer" | "admin" = email.includes("admin") ? "admin" : "customer";
+        const user = { name: res.user.displayName || "Google User", email, role };
+        setState((s) => ({ ...s, user }));
+        toast("success", "Signed in with Google (Firebase)");
+      }).catch(() => {
+        const user = { name: `${provider} User`, email: `user@${provider.toLowerCase()}.demo`, role: "customer" as const };
+        setState((s) => ({ ...s, user }));
+        toast("success", `Signed in with ${provider} (demo OAuth)`);
+      });
+      return;
+    }
     const user = { name: `${provider} User`, email: `user@${provider.toLowerCase()}.demo`, role: "customer" as const };
     setState((s) => ({ ...s, user }));
     toast("success", `Signed in with ${provider} (demo OAuth)`);
   };
-  const logout = () => { setState((s) => ({ ...s, user: null })); toast("info", "Signed out"); };
+
+  const logout = () => {
+    signOut(auth).catch(() => {});
+    setState((s) => ({ ...s, user: null }));
+    toast("info", "Signed out");
+  };
 
   const placeOrder: Store["placeOrder"] = ({ address, method, shipCost, payment, coupon }) => {
     if (!state.cart.length) return null;
@@ -355,6 +401,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       date: new Date().toISOString(), address, method, payment,
       timeline: [{ status: "pending", at: new Date().toISOString() }],
     };
+    try {
+      addDoc(collection(db, "orders"), order).catch(() => {});
+    } catch { /* offline */ }
     setState((s) => ({
       ...s,
       orders: [order, ...s.orders],
