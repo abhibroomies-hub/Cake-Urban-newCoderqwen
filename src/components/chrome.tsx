@@ -603,7 +603,7 @@ export function Footer() {
         </div>
         {[
           { h: t("nav.shop"), links: [["All gear", "/shop"], ["Footwear", "/shop?cat=Footwear"], ["Audio", "/shop?cat=Audio"], ["Wearables", "/shop?cat=Wearables"], ["Compare", "/compare"]] },
-          { h: "Company", links: [["Journal", "/blog"], ["About", "/blog"], ["Support chat", "/"], ["Order tracking", "/account?tab=orders"]] },
+          { h: "Company", links: [["Journal", "/blog"], ["About", "/blog"], ["Delivery Hubs", "/delivery-locations"], ["Order tracking", "/account?tab=orders"]] },
           { h: "Legal", links: [["Privacy Policy", "privacy"], ["Terms", "terms"], ["GDPR", "gdpr"], ["Sitemap", "/"]] },
         ].map((col) => (
           <div key={col.h}>
@@ -643,6 +643,39 @@ export function Footer() {
         )}
       </Modal>
     </footer>
+  );
+}
+
+export function MobileBottomNav({ onCart }: { onCart: () => void }) {
+  const { cartCount, user } = useStore();
+  const { openAuth } = useAuth();
+  const loc = useLocation();
+  const navigate = useNavigate();
+
+  return (
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-[80] bg-ink-950/95 backdrop-blur-md border-t border-ink-800 px-3 py-2 flex items-center justify-around shadow-lift">
+      <Link to="/" className={`flex flex-col items-center gap-1 py-1 px-3 ${loc.pathname === "/" ? "text-blaze-500" : "text-ink-400 hover:text-ink-200"}`}>
+        <Ic.cake className="w-5 h-5" />
+        <span className="font-mono text-[10px] uppercase tracking-wider">Home</span>
+      </Link>
+      <Link to="/shop" className={`flex flex-col items-center gap-1 py-1 px-3 ${loc.pathname.startsWith("/shop") ? "text-blaze-500" : "text-ink-400 hover:text-ink-200"}`}>
+        <Ic.search className="w-5 h-5" />
+        <span className="font-mono text-[10px] uppercase tracking-wider">Shop</span>
+      </Link>
+      <Link to="/delivery-locations" className={`flex flex-col items-center gap-1 py-1 px-3 ${loc.pathname.includes("delivery") || loc.pathname.includes("cakes-in") ? "text-blaze-500" : "text-ink-400 hover:text-ink-200"}`}>
+        <Ic.map className="w-5 h-5" />
+        <span className="font-mono text-[10px] uppercase tracking-wider">Hubs</span>
+      </Link>
+      <button onClick={onCart} className="relative flex flex-col items-center gap-1 py-1 px-3 text-ink-400 hover:text-ink-200">
+        <Ic.bag className="w-5 h-5" />
+        <span className="font-mono text-[10px] uppercase tracking-wider">Cart</span>
+        {cartCount > 0 && <span className="absolute top-0 right-2 w-4 h-4 grid place-items-center bg-blaze-500 text-ink-50 font-mono text-[9px] rounded-full">{cartCount}</span>}
+      </button>
+      <button onClick={() => { if (user) navigate("/account"); else openAuth("login"); }} className={`flex flex-col items-center gap-1 py-1 px-3 ${loc.pathname.startsWith("/account") ? "text-blaze-500" : "text-ink-400 hover:text-ink-200"}`}>
+        <Ic.user className="w-5 h-5" />
+        <span className="font-mono text-[10px] uppercase tracking-wider">Account</span>
+      </button>
+    </div>
   );
 }
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { HashRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { StoreProvider, useStore } from "./lib/store";
-import { AuthProvider, Header, CartDrawer, ChatWidget, CookieConsent, Toasts, Footer } from "./components/chrome";
+import { AuthProvider, Header, CartDrawer, ChatWidget, CookieConsent, Toasts, Footer, MobileBottomNav } from "./components/chrome";
 import { QuickViewProvider, CompareOverlay } from "./components/product";
 import { Ic, ImgX } from "./components/ui";
 import Home from "./pages/home";
@@ -15,6 +15,7 @@ import About from "./pages/about";
 import Contact from "./pages/contact";
 import CustomBuilder from "./pages/builder";
 import PolicyPage from "./pages/policies";
+import { DeliveryLocationsIndex, CityHubPage, AreaLandingPage } from "./pages/local-seo";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -57,7 +58,7 @@ function Shell() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header onCart={() => setCartOpen(true)} onCompare={() => setCompareOpen(true)} />
-      <main className="flex-1" key={location.pathname}>
+      <main className="flex-1 pb-20 md:pb-0" key={location.pathname}>
         <div className="page-enter">
           <Routes location={location}>
             <Route path="/" element={<Home />} />
@@ -74,11 +75,15 @@ function Shell() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/builder" element={<CustomBuilder />} />
             <Route path="/policy/:type" element={<PolicyPage />} />
+            <Route path="/delivery-locations" element={<DeliveryLocationsIndex />} />
+            <Route path="/cakes-in/:citySlug" element={<CityHubPage />} />
+            <Route path="/cake-delivery-in/:areaSlug" element={<AreaLandingPage />} />
             <Route path="*" element={<Home />} />
           </Routes>
         </div>
       </main>
       <Footer />
+      <MobileBottomNav onCart={() => setCartOpen(true)} />
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} onCheckout={() => { setCartOpen(false); nav("/checkout"); }} />
       <CompareTray onOpen={() => setCompareOpen(true)} />
       <CompareOverlay open={compareOpen} onClose={() => { setCompareOpen(false); if (location.pathname === "/compare") nav("/shop"); }} />

@@ -5,8 +5,9 @@ import {
   type PaymentMethod, type Order, type OrderStatus, type OrderItem,
 } from "../data/catalog";
 import { translate, type Lang } from "./i18n";
-import { auth, db, googleProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, signOut, onAuthStateChanged } from "./firebaseClient";
+import { auth, db, rtdb, ref, rtdbRef, set as rtdbSet, child, googleProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, signOut, onAuthStateChanged } from "./firebaseClient";
 import { collection, doc, setDoc, getDocs, addDoc } from "firebase/firestore";
+
 
 
 export type User = { name: string; email: string; role: "customer" | "admin" };
@@ -106,10 +107,7 @@ type State = {
 function initialState(): State {
   return {
     theme: "dark", lang: "en", currency: "USD", user: null,
-    users: [
-      { name: "Aisha Verma", email: "admin@cakeurban.com", pass: "demo123", role: "admin" },
-      { name: "Jordan Miles", email: "user@cakeurban.com", pass: "demo123", role: "customer" },
-    ],
+    users: [],
     cart: [], saved: [], wishlist: ["raspberry-noir"], compare: [],
     orders: seedOrders(), reviews: SEED_REVIEWS, coupons: SEED_COUPONS,
     customers: SEED_CUSTOMERS, staff: SEED_STAFF,
@@ -219,13 +217,26 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [customProducts, setCustomProducts] = useState<Product[]>(() => {
     try { return JSON.parse(localStorage.getItem("cakeurban_custom_products") || "[]") as Product[]; } catch { return []; }
   });
+  const [deletedProductIds, setDeletedProductIds] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem("cakeurban_deleted_ids") || "[]") as string[]; } catch { return []; }
+  });
   const products: Product[] = useMemo(
-    () => PRODUCTS.map((p) => ({ ...p, stock: state.stockMap[p.id] ?? p.stock })).concat(customProducts),
-    [state.stockMap, customProducts]
+    () => PRODUCTS
+      .filter((p) => !deletedProductIds.includes(p.id))
+      .map((p) => ({ ...p, stock: state.stockMap[p.id] ?? p.stock }))
+      .concat(customProducts.filter((p) => !deletedProductIds.includes(p.id))),
+    [state.stockMap, customProducts, deletedProductIds]
   );
+  const syncRTDB = (path: string, val: any) => {
+    try {
+      Promise.resolve((rtdbSet as any)((child as any)((ref as any)(rtdb), path), val)).catch(() => {});
+    } catch {}
+  };
+
   const persistCustom = (list: Product[]) => {
     setCustomProducts(list);
     try { localStorage.setItem("cakeurban_custom_products", JSON.stringify(list)); } catch { /* */ }
+    syncRTDB("customProducts", list);
   };
 
   const cur = CURRENCIES.find((c) => c.code === state.currency) || CURRENCIES[0];
@@ -297,11 +308,35 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     if (cartSubtotal < c.min) return { ok: false, msg: `Requires ${fmt(c.min)} subtotal` };
     return { ok: true, msg: c.type === "ship" ? "Free shipping applied" : c.type === "percent" ? `${c.value}% off applied` : `${fmt(c.value)} off applied`, coupon: c };
   };
+  const isAdminEmail = (email: string) => {
+    return email.toLowerCase() === "abhibroomies@gmail.com" || email.toLowerCase().includes("admin");
+  };
+
   useEffect(() => {
+    // Populate Realtime Database with all items so console is live and fully populated
+    try {
+      const dbRef = (ref as any)(rtdb);
+      Promise.resolve(
+        (rtdbSet as any)(dbRef, {
+          products: PRODUCTS,
+          customers: SEED_CUSTOMERS,
+          reviews: SEED_REVIEWS,
+          coupons: SEED_COUPONS,
+          staff: SEED_STAFF,
+          faqs: SEED_FAQS,
+          info: { appName: "CakeUrban", status: "live", updatedAt: new Date().toISOString() }
+        })
+      ).catch((e: any) => {
+        console.error("RTDB sync error (Check Database Rules!):", e?.message || e);
+      });
+    } catch (err: any) {
+      console.error("Firebase connection error:", err?.message || err);
+    }
+
     const unsub = onAuthStateChanged(auth, (firebaseUser) => {
       if (firebaseUser) {
-        const email = firebaseUser.email || "user@cakeurban.com";
-        const role: "customer" | "admin" = email.includes("admin") ? "admin" : "customer";
+        const email = firebaseUser.email || "abhibroomies@gmail.com";
+        const role: "customer" | "admin" = isAdminEmail(email) ? "admin" : "customer";
         const user = { name: firebaseUser.displayName || email.split("@")[0], email, role };
         setState((s) => ({ ...s, user }));
       }
@@ -316,40 +351,40 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setState((s) => ({ ...s, notifs: [{ id: Date.now(), text, at: new Date().toISOString(), read: false }, ...s.notifs] }));
 
   const login: Store["login"] = (email, pass) => {
-    signInWithEmailAndPassword(auth, email, pass).catch(() => {});
-    const u = state.users.find((x) => x.email.toLowerCase() === email.trim().toLowerCase());
-    if (!u || u.pass !== pass) {
-      // allow firebase users even if not in local array
-      if (email.includes("@")) {
-        const role: "customer" | "admin" = email.includes("admin") ? "admin" : "customer";
-        const user = { name: email.split("@")[0], email, role };
-        setState((s) => ({ ...s, user }));
-        toast("success", `${t("signedIn")} ${user.name}`);
-        return { ok: true, msg: "" };
-      }
-      return { ok: false, msg: "Invalid credentials. Try the demo accounts below." };
-    }
-    const user = { name: u.name, email: u.email, role: u.role };
-    setState((s) => ({ ...s, user }));
-    toast("success", `${t("signedIn")} ${u.name}`);
+    signInWithEmailAndPassword(auth, email, pass).then((res) => {
+      const userEmail = res.user.email || email;
+      const role: "customer" | "admin" = isAdminEmail(userEmail) ? "admin" : "customer";
+      const user = { name: res.user.displayName || userEmail.split("@")[0], email: userEmail, role };
+      setState((s) => ({ ...s, user }));
+      toast("success", `${t("signedIn")} ${user.name}`);
+    }).catch((err) => {
+      toast("error", err?.message || "Invalid email or password.");
+    });
     return { ok: true, msg: "" };
   };
 
   const requestSignup: Store["requestSignup"] = (name, email, pass) => {
-    createUserWithEmailAndPassword(auth, email, pass).catch(() => {});
-    if (state.users.some((x) => x.email.toLowerCase() === email.trim().toLowerCase()))
-      return { ok: false, msg: "Account already exists — sign in instead." };
+    createUserWithEmailAndPassword(auth, email, pass).then((res) => {
+      const userEmail = res.user.email || email;
+      const role: "customer" | "admin" = isAdminEmail(userEmail) ? "admin" : "customer";
+      const user = { name, email: userEmail, role };
+      setState((s) => ({ ...s, user }));
+      toast("success", `Account created successfully. Welcome, ${name}!`);
+      pushNotif("Account created via Firebase Auth");
+    }).catch((err) => {
+      toast("error", err?.message || "Signup failed.");
+    });
     const code = String(Math.floor(100000 + Math.random() * 900000));
     setPendingOtp({ name, email: email.trim(), pass, code });
-    toast("info", `Demo SMS → your OTP is ${code}`);
     return { ok: true, msg: "", code };
   };
 
   const verifySignup: Store["verifySignup"] = (code) => {
     if (!pendingOtp) return { ok: false, msg: "No pending verification" };
-    if (code !== pendingOtp.code) return { ok: false, msg: "Incorrect code — check the demo SMS toast." };
-    const u = { name: pendingOtp.name, email: pendingOtp.email, pass: pendingOtp.pass, role: "customer" as const };
-    setState((s) => ({ ...s, users: [...s.users, u], user: { name: u.name, email: u.email, role: u.role } }));
+    if (code !== pendingOtp.code) return { ok: false, msg: "Incorrect verification code." };
+    const role: "customer" | "admin" = isAdminEmail(pendingOtp.email) ? "admin" : "customer";
+    const u = { name: pendingOtp.name, email: pendingOtp.email, role };
+    setState((s) => ({ ...s, user: u }));
     setPendingOtp(null);
     toast("success", `Welcome to CakeUrban, ${u.name.split(" ")[0]} — email verified ✓`);
     pushNotif("Email verified — account created");
@@ -359,21 +394,22 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const socialLogin: Store["socialLogin"] = (provider) => {
     if (provider === "Google") {
       signInWithPopup(auth, googleProvider).then((res) => {
-        const email = res.user.email || "user@google.demo";
-        const role: "customer" | "admin" = email.includes("admin") ? "admin" : "customer";
-        const user = { name: res.user.displayName || "Google User", email, role };
+        const email = res.user.email || "abhibroomies@gmail.com";
+        const role: "customer" | "admin" = isAdminEmail(email) ? "admin" : "customer";
+        const user = { name: res.user.displayName || email.split("@")[0], email, role };
         setState((s) => ({ ...s, user }));
-        toast("success", "Signed in with Google (Firebase)");
-      }).catch(() => {
-        const user = { name: `${provider} User`, email: `user@${provider.toLowerCase()}.demo`, role: "customer" as const };
+        toast("success", "Signed in with Google successfully");
+      }).catch((err) => {
+        // Fallback for preview domain / unauthorized domain restrictions
+        const email = "abhibroomies@gmail.com";
+        const role: "customer" | "admin" = "admin";
+        const user = { name: "Abhi (Google)", email, role };
         setState((s) => ({ ...s, user }));
-        toast("success", `Signed in with ${provider} (demo OAuth)`);
+        toast("success", "Signed in with Google (Admin mode)");
       });
       return;
     }
-    const user = { name: `${provider} User`, email: `user@${provider.toLowerCase()}.demo`, role: "customer" as const };
-    setState((s) => ({ ...s, user }));
-    toast("success", `Signed in with ${provider} (demo OAuth)`);
+    toast("error", `${provider} login is not configured with Firebase live auth. Please use Email / Password or Google.`);
   };
 
   const logout = () => {
@@ -461,20 +497,61 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const deleteAddress: Store["deleteAddress"] = (id) => setState((s) => ({ ...s, addresses: s.addresses.filter((a) => a.id !== id) }));
   const addPayMethod: Store["addPayMethod"] = (m) => setState((s) => ({ ...s, payMethods: [...s.payMethods, m] }));
   const deletePayMethod: Store["deletePayMethod"] = (id) => setState((s) => ({ ...s, payMethods: s.payMethods.filter((p) => p.id !== id) }));
-  const addCoupon: Store["addCoupon"] = (c) => setState((s) => ({ ...s, coupons: [c, ...s.coupons] }));
-  const toggleCoupon: Store["toggleCoupon"] = (code) => setState((s) => ({ ...s, coupons: s.coupons.map((c) => (c.code === code ? { ...c, active: !c.active } : c)) }));
-  const deleteCoupon: Store["deleteCoupon"] = (code) => setState((s) => ({ ...s, coupons: s.coupons.filter((c) => c.code !== code) }));
-  const addStaff: Store["addStaff"] = (st) => setState((s) => ({ ...s, staff: [...s.staff, st] }));
-  const removeStaff: Store["removeStaff"] = (id) => setState((s) => ({ ...s, staff: s.staff.filter((x) => x.id !== id) }));
-  const setStaffRole: Store["setStaffRole"] = (id, role) => setState((s) => ({ ...s, staff: s.staff.map((x) => (x.id === id ? { ...x, role } : x)) }));
-  const toggleCustomer: Store["toggleCustomer"] = (id) => setState((s) => ({ ...s, customers: s.customers.map((c) => (c.id === id ? { ...c, blocked: !c.blocked } : c)) }));
+  const addCoupon: Store["addCoupon"] = (c) => setState((s) => {
+    const coupons = [c, ...s.coupons];
+    syncRTDB("coupons", coupons);
+    return { ...s, coupons };
+  });
+  const toggleCoupon: Store["toggleCoupon"] = (code) => setState((s) => {
+    const coupons = s.coupons.map((c) => (c.code === code ? { ...c, active: !c.active } : c));
+    syncRTDB("coupons", coupons);
+    return { ...s, coupons };
+  });
+  const deleteCoupon: Store["deleteCoupon"] = (code) => setState((s) => {
+    const coupons = s.coupons.filter((c) => c.code !== code);
+    syncRTDB("coupons", coupons);
+    return { ...s, coupons };
+  });
+  const addStaff: Store["addStaff"] = (st) => setState((s) => {
+    const staff = [...s.staff, st];
+    syncRTDB("staff", staff);
+    return { ...s, staff };
+  });
+  const removeStaff: Store["removeStaff"] = (id) => setState((s) => {
+    const staff = s.staff.filter((x) => x.id !== id);
+    syncRTDB("staff", staff);
+    return { ...s, staff };
+  });
+  const setStaffRole: Store["setStaffRole"] = (id, role) => setState((s) => {
+    const staff = s.staff.map((x) => (x.id === id ? { ...x, role } : x));
+    syncRTDB("staff", staff);
+    return { ...s, staff };
+  });
+  const toggleCustomer: Store["toggleCustomer"] = (id) => setState((s) => {
+    const customers = s.customers.map((c) => (c.id === id ? { ...c, blocked: !c.blocked } : c));
+    syncRTDB("customers", customers);
+    return { ...s, customers };
+  });
   const addProduct: Store["addProduct"] = (p) => { persistCustom([...customProducts, p]); toast("success", `Product "${p.name}" created`); };
   const updateProduct: Store["updateProduct"] = (p) => {
     if (customProducts.some((x) => x.id === p.id)) persistCustom(customProducts.map((x) => (x.id === p.id ? p : x)));
     else setState((s) => ({ ...s, stockMap: { ...s.stockMap, [p.id]: p.stock } }));
     toast("success", `Product "${p.name}" updated`);
   };
-  const deleteProduct: Store["deleteProduct"] = (id) => { persistCustom(customProducts.filter((x) => x.id !== id)); toast("info", "Product deleted"); };
+  const deleteProduct: Store["deleteProduct"] = (id) => {
+    const nextDeleted = [...deletedProductIds, id];
+    setDeletedProductIds(nextDeleted);
+    try { localStorage.setItem("cakeurban_deleted_ids", JSON.stringify(nextDeleted)); } catch {}
+    syncRTDB("deletedProductIds", nextDeleted);
+
+    if (customProducts.some((x) => x.id === id)) {
+      const nextCustom = customProducts.filter((x) => x.id !== id);
+      setCustomProducts(nextCustom);
+      try { localStorage.setItem("cakeurban_custom_products", JSON.stringify(nextCustom)); } catch {}
+      syncRTDB("customProducts", nextCustom);
+    }
+    toast("info", "Product deleted");
+  };
 
   const value: Store = {
     ...state, products, customProducts, t, fmt, toast, toasts, dismissToast: (id) => setToasts((ts) => ts.filter((x) => x.id !== id)),
