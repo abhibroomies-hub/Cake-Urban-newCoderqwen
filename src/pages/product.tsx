@@ -241,7 +241,7 @@ export default function ProductPage({ onAddToCartFlow }: { onAddToCartFlow: () =
       {related.length > 0 && (
         <section className="mt-20">
           <h2 className="font-display text-2xl md:text-3xl font-bold uppercase mb-6">Pairs well with</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-5">
             {related.map((rp, i) => <Reveal key={rp.id} delay={i * 80}><ProductCard p={rp} index={i} /></Reveal>)}
           </div>
         </section>

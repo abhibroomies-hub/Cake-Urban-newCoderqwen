@@ -61,6 +61,8 @@ export default function Shop() {
   const activeCount = f.cats.length + f.brands.length + f.colors.length + f.sizes.length + (f.minRating ? 1 : 0) + (f.inStock ? 1 : 0) + (f.maxPrice < 450 ? 1 : 0);
   const clearAll = () => { setF({ cats: [], brands: [], colors: [], sizes: [], minRating: 0, maxPrice: 450, inStock: false, q: "" }); setParams({}); };
 
+  const [viewMode, setViewMode] = useState<"grid2" | "grid1" | "carousel">("grid2");
+
   const FilterPanel = (
     <div className="space-y-7">
       <section>
@@ -142,31 +144,86 @@ export default function Shop() {
         </aside>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
+          <div className="flex items-center justify-between gap-3 mb-6 flex-wrap">
             <div className="flex items-center gap-2 flex-wrap">
-              <button onClick={() => setMobileF(true)} className="lg:hidden clip-tag border border-ink-600 px-4 py-2 font-mono text-xs tracking-[0.15em] uppercase flex items-center gap-2"><Ic.filter className="w-3.5 h-3.5" /> {t("filter")} {activeCount > 0 && `(${activeCount})`}</button>
-              <input value={f.q} onChange={(e) => setF({ ...f, q: e.target.value })} placeholder="Search in results…" className="bg-ink-900 border border-ink-600 focus:border-blaze-500 outline-none px-3 py-2 text-sm w-44 transition-colors" />
+              <button onClick={() => setMobileF(true)} className="lg:hidden clip-tag border border-ink-600 px-3.5 py-2 font-mono text-xs tracking-[0.15em] uppercase flex items-center gap-1.5"><Ic.filter className="w-3.5 h-3.5" /> {t("filter")} {activeCount > 0 && `(${activeCount})`}</button>
+              <input value={f.q} onChange={(e) => setF({ ...f, q: e.target.value })} placeholder="Search cakes…" className="bg-ink-900 border border-ink-600 focus:border-blaze-500 outline-none px-3 py-2 text-xs sm:text-sm w-36 sm:w-44 transition-colors" />
             </div>
-            <select value={sort} onChange={(e) => setSort(e.target.value)} className="bg-ink-900 border border-ink-600 outline-none px-3 py-2 font-mono text-xs tracking-wide uppercase cursor-pointer">
-              <option value="featured">{t("sort")}: Popular</option>
-              <option value="newest">{t("sort")}: Newest</option>
-              <option value="price-asc">{t("price")} ↑</option>
-              <option value="price-desc">{t("price")} ↓</option>
-              <option value="rating">{t("rating")} ↓</option>
-            </select>
+
+            <div className="flex items-center gap-2">
+              {/* View Switcher: 2-Col Grid, Carousel Reel, Detail List */}
+              <div className="flex items-center bg-ink-900 border border-ink-700/80 rounded p-0.5">
+                <button
+                  type="button"
+                  onClick={() => setViewMode("grid2")}
+                  title="2-Column Grid"
+                  className={`px-2.5 py-1 text-xs font-mono rounded transition-colors ${viewMode === "grid2" ? "bg-blaze-500 text-ink-50 font-bold" : "text-ink-400 hover:text-ink-100"}`}
+                >
+                  ⊞ Grid
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode("carousel")}
+                  title="Horizontal Reel (Swipe Left/Right)"
+                  className={`px-2.5 py-1 text-xs font-mono rounded transition-colors ${viewMode === "carousel" ? "bg-blaze-500 text-ink-50 font-bold" : "text-ink-400 hover:text-ink-100"}`}
+                >
+                  ⇆ Reel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode("grid1")}
+                  title="Single Column"
+                  className={`hidden sm:block px-2.5 py-1 text-xs font-mono rounded transition-colors ${viewMode === "grid1" ? "bg-blaze-500 text-ink-50 font-bold" : "text-ink-400 hover:text-ink-100"}`}
+                >
+                  ☰ List
+                </button>
+              </div>
+
+              <select value={sort} onChange={(e) => setSort(e.target.value)} className="bg-ink-900 border border-ink-600 outline-none px-2.5 py-1.5 font-mono text-xs tracking-wide uppercase cursor-pointer">
+                <option value="featured">{t("sort")}: Popular</option>
+                <option value="newest">{t("sort")}: Newest</option>
+                <option value="price-asc">{t("price")} ↑</option>
+                <option value="price-desc">{t("price")} ↓</option>
+                <option value="rating">{t("rating")} ↓</option>
+              </select>
+            </div>
           </div>
 
           {list.length === 0 ? (
             <div className="text-center py-24 border border-dashed border-ink-700">
               <Ic.search className="w-10 h-10 mx-auto text-ink-600 mb-4" />
               <p className="font-display font-bold uppercase">Zero matches</p>
-              <p className="text-sm text-ink-400 mt-2">Loosen a filter or two — the right gear is in here.</p>
+              <p className="text-sm text-ink-400 mt-2">Loosen a filter or two — the right cake is in here.</p>
               <button onClick={clearAll} className="clip-tag mt-6 border border-blaze-500 text-blaze-400 hover:bg-blaze-500 hover:text-ink-50 px-6 py-2.5 font-mono text-xs tracking-[0.15em] uppercase transition-colors">{t("clearAll")}</button>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+          ) : viewMode === "carousel" ? (
+            /* Smooth Horizontal Carousel (Swiping Left/Right) */
+            <div className="relative">
+              <p className="text-xs font-mono text-ink-400 mb-3 flex items-center gap-1.5">
+                <span>👉 Swipe left/right or scroll to browse</span>
+                <span className="text-blaze-400">({list.length} cakes)</span>
+              </p>
+              <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-5 pt-1 smooth-scroll no-scrollbar snap-x-mandatory">
+                {list.map((p, i) => (
+                  <div key={p.id} className="w-[190px] sm:w-[240px] md:w-[270px] shrink-0 snap-item">
+                    <ProductCard p={p} index={i} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : viewMode === "grid1" ? (
+            <div className="grid grid-cols-1 gap-5">
               {list.map((p, i) => (
-                <motion.div key={p.id} initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: (i % 6) * 0.05 }}>
+                <motion.div key={p.id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: (i % 6) * 0.04 }}>
+                  <ProductCard p={p} index={i} />
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            /* 2-Column Responsive Grid on Mobile & Tablets/Desktops */
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-5">
+              {list.map((p, i) => (
+                <motion.div key={p.id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: (i % 6) * 0.04 }}>
                   <ProductCard p={p} index={i} />
                 </motion.div>
               ))}
@@ -209,7 +266,7 @@ export function WishlistPage() {
           <p className="text-sm text-ink-400 mt-2">Tap the ♥ on any product to keep it here.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-5">
           {items.map((p, i) => <Reveal key={p.id} delay={i * 70}><ProductCard p={p} index={i} /></Reveal>)}
         </div>
       )}

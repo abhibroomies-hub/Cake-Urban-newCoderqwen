@@ -315,7 +315,7 @@ export type Order = {
   status: OrderStatus; date: string; address: string; method: string; payment: string; timeline: { status: OrderStatus; at: string }[];
 };
 
-export type Customer = { id: string; name: string; email: string; joined: string; orders: number; spend: number; blocked: boolean };
+export type Customer = { id: string; name: string; email: string; joined: string; orders: number; spend: number; blocked: boolean; phone?: string };
 export const SEED_CUSTOMERS: Customer[] = [
   { id: "c1", name: "Amara Osei", email: "amara@runmail.com", joined: "2025-03-12", orders: 7, spend: 540, blocked: false },
   { id: "c2", name: "Diego Fuentes", email: "diego.f@fastmail.io", joined: "2025-05-02", orders: 4, spend: 312, blocked: false },

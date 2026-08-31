@@ -460,7 +460,7 @@ export default function Account() {
           {tab === "wishlist" && (
             <div className="anim-fade-up">
               {wishItems.length === 0 ? <p className="text-sm text-ink-400 border border-dashed border-ink-700 p-10 text-center">Wishlist is empty — tap ♥ on any product.</p> : (
-                <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">{wishItems.map((p, i) => <ProductCard key={p.id} p={p} index={i} />)}</div>
+                <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-2.5 sm:gap-5">{wishItems.map((p, i) => <ProductCard key={p.id} p={p} index={i} />)}</div>
               )}
             </div>
           )}

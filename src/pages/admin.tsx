@@ -10,15 +10,27 @@ import { CategoriesManager } from "../components/admin/CategoriesManager";
 import { CmsManager } from "../components/admin/CmsManager";
 import { NcrHubsManager } from "../components/admin/NcrHubsManager";
 import { SeoAiManager } from "../components/admin/SeoAiManager";
+import { KitchenKdsManager } from "../components/admin/KitchenKdsManager";
+import { RiderDispatchManager } from "../components/admin/RiderDispatchManager";
+import { WhatsAppAutomationManager } from "../components/admin/WhatsAppAutomationManager";
+import { InventoryTrackerManager } from "../components/admin/InventoryTrackerManager";
+import { DynamicPricingManager } from "../components/admin/DynamicPricingManager";
+import { ReviewsManager } from "../components/admin/ReviewsManager";
 
 const NAV = [
   ["dashboard", "Dashboard", Ic.chart],
+  ["kds", "Kitchen (KDS)", Ic.cake],
+  ["dispatch", "Rider Dispatch", Ic.truck],
   ["orders", "Orders", Ic.box],
   ["products", "Products", Ic.tag],
+  ["inventory", "Kitchen Stock", Ic.box],
+  ["pricing", "Flash Deals & Surge", Ic.bolt],
+  ["whatsapp", "WhatsApp Auto", Ic.whatsapp],
   ["categories", "Categories CMS", Ic.grid],
   ["cms", "Header & Home CMS", Ic.eye],
   ["ncr_hubs", "Delhi NCR Hubs", Ic.map],
   ["seo", "SEO & AI Domination", Ic.sparkle],
+  ["reviews", "Reviews & UGC", Ic.star],
   ["customers", "Customers", Ic.users],
   ["coupons", "Coupons", Ic.tag],
   ["content", "Content & FAQs", Ic.mail],
@@ -88,7 +100,7 @@ export default function Admin() {
         <h1 className="font-display text-4xl font-black uppercase mt-3">Admin console</h1>
         <p className="text-ink-400 mt-4">Role-based access — Super Admin, Manager or Staff required. Session is JWT-secured.</p>
         <button onClick={() => openAuth("login")} className="clip-btn mt-8 bg-gold-400 text-ink-950 hover:bg-gold-400/80 font-mono text-xs tracking-[0.2em] uppercase px-9 py-4 transition-colors">Admin sign in</button>
-        <p className="font-mono text-[10px] text-ink-500 mt-5">Demo: admin@volta.shop / demo123</p>
+        <p className="font-mono text-[10px] text-ink-500 mt-5">Admin Email: abhibroomies@gmail.com / admin@cakeurban.com</p>
       </div>
     );
   }
@@ -98,7 +110,7 @@ export default function Admin() {
     products.forEach((p) => rows.push([p.id, `"${p.name}"`, p.brand, p.category, p.price, p.stock, p.rating, p.sku].join(",")));
     const blob = new Blob([rows.join("\n")], { type: "text/csv" });
     const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob); a.download = "volta-products.csv"; a.click();
+    a.href = URL.createObjectURL(blob); a.download = "cakeurban-products.csv"; a.click();
     store.toast("success", `Exported ${products.length} products to CSV`);
   };
   const importCSV = (file: File) => {
@@ -110,10 +122,10 @@ export default function Admin() {
         const [name, brand, category, price, stock] = line.split(",").map((s) => s.replace(/"/g, "").trim());
         if (!name) return;
         store.addProduct({
-          id: `imp-${Date.now()}-${n}`, name, brand: brand || "VOLTA Lab", category: category || "Accessories",
-          price: parseFloat(price) || 99, img: PRODUCTS[0].img, rating: 4.2, ratingCount: 0,
-          stock: parseInt(stock) || 10, sku: `IMP-${1000 + n}`, colors: [{ name: "Import", hex: "#76839c" }],
-          sizes: ["One size"], desc: "Imported via CSV.", specs: [["Imported", "Yes"]], tag: "NEW",
+          id: `imp-${Date.now()}-${n}`, name, brand: brand || "CakeUrban Bakehouse", category: category || "Cakes",
+          price: parseFloat(price) || 499, img: PRODUCTS[0].img, rating: 4.9, ratingCount: 1,
+          stock: parseInt(stock) || 15, sku: `IMP-${1000 + n}`, colors: [{ name: "Standard", hex: "#e07a5f" }],
+          sizes: ["0.5 KG", "1 KG"], desc: "Imported via CSV.", specs: [["Eggless", "100% Pure Veg"]], tag: "NEW",
         });
         n++;
       });
@@ -563,6 +575,21 @@ export default function Admin() {
             </div>
           )}
 
+          {/* ===== KITCHEN DISPLAY SYSTEM (KDS) ===== */}
+          {tab === "kds" && <KitchenKdsManager />}
+
+          {/* ===== RIDER DISPATCH ===== */}
+          {tab === "dispatch" && <RiderDispatchManager />}
+
+          {/* ===== INVENTORY TRACKER ===== */}
+          {tab === "inventory" && <InventoryTrackerManager />}
+
+          {/* ===== FLASH SALES & DYNAMIC SURGE ===== */}
+          {tab === "pricing" && <DynamicPricingManager />}
+
+          {/* ===== WHATSAPP MARKETING & AUTOMATION ===== */}
+          {tab === "whatsapp" && <WhatsAppAutomationManager />}
+
           {/* ===== CATEGORIES CMS ===== */}
           {tab === "categories" && <CategoriesManager />}
 
@@ -574,6 +601,9 @@ export default function Admin() {
 
           {/* ===== SEO & AI SEARCH DOMINATION ===== */}
           {tab === "seo" && <SeoAiManager />}
+
+          {/* ===== REVIEWS & UGC MODERATION ===== */}
+          {tab === "reviews" && <ReviewsManager />}
 
           {/* ===== CUSTOMERS ===== */}
           {tab === "customers" && (

@@ -70,6 +70,9 @@ export default function Checkout() {
         shipCost,
         payment: payTab === "card" ? `Card •••• ${card.num.slice(-4) || "4242"}` : payTab === "razorpay" ? "Razorpay UPI" : "PayPal",
         coupon: applied?.code,
+        email: info.email,
+        customerName: info.name,
+        customerPhone: info.phone,
       });
       setProcessing(false);
       setDone(order);

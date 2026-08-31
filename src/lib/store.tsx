@@ -248,7 +248,7 @@ type Store = State & {
   updateProfile: (data: { name?: string; phone?: string; photoURL?: string }) => void;
   socialLogin: (provider: string) => void;
   logout: () => void;
-  placeOrder: (o: { address: string; method: string; shipCost: number; payment: string; coupon?: string }) => Order | null;
+  placeOrder: (o: { address: string; method: string; shipCost: number; payment: string; coupon?: string; email?: string; customerName?: string; customerPhone?: string }) => Order | null;
   cancelOrder: (id: string) => void;
   setOrderStatus: (id: string, s: OrderStatus) => void;
   addReview: (r: Omit<Review, "id" | "date">) => void;
@@ -728,7 +728,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     toast("info", "Signed out");
   };
 
-  const placeOrder: Store["placeOrder"] = ({ address, method, shipCost, payment, coupon }) => {
+  const placeOrder: Store["placeOrder"] = ({ address, method, shipCost, payment, coupon, email, customerName, customerPhone }) => {
     if (!state.cart.length) return null;
     const items: OrderItem[] = state.cart.map((it) => {
       const p = products.find((x) => x.id === it.productId)!;
@@ -741,8 +741,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (c) discount = c.type === "percent" ? (subtotal * c.value) / 100 : c.type === "fixed" ? Math.min(c.value, subtotal) : 0;
     }
     const shipping = coupon === "FREESHIP" ? 0 : shipCost;
+    const orderEmail = email || state.user?.email || "guest@cakeurban.com";
     const order: Order = {
-      id: `CU-${Math.floor(10000 + Math.random() * 89999)}`, email: state.user?.email ?? "guest@cakeurban.com",
+      id: `CU-${Math.floor(10000 + Math.random() * 89999)}`,
+      email: orderEmail,
       items, subtotal, discount, shipping, total: subtotal - discount + shipping, status: "pending",
       date: new Date().toISOString(), address, method, payment,
       timeline: [{ status: "pending", at: new Date().toISOString() }],
@@ -750,6 +752,32 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     
     // Sync order to RTDB live
     syncRTDB(`orders/${order.id}`, order);
+
+    // Update customer database record if available
+    const existingCustIdx = state.customers.findIndex((c) => c.email.toLowerCase() === orderEmail.toLowerCase());
+    let nextCustomers = [...state.customers];
+    if (existingCustIdx >= 0) {
+      const ec = nextCustomers[existingCustIdx];
+      nextCustomers[existingCustIdx] = {
+        ...ec,
+        orders: ec.orders + 1,
+        spend: ec.spend + order.total,
+        phone: customerPhone || ec.phone,
+        name: customerName || ec.name,
+      };
+    } else if (customerName || state.user?.name) {
+      nextCustomers.unshift({
+        id: `c_${Date.now()}`,
+        name: customerName || state.user?.name || "Valued Patron",
+        email: orderEmail,
+        phone: customerPhone || state.user?.phone || "+91 98765 43210",
+        orders: 1,
+        spend: order.total,
+        joined: new Date().toISOString().slice(0, 10),
+        blocked: false,
+      });
+    }
+    syncRTDB("customers", nextCustomers);
 
     const nextStockMap = Object.fromEntries(
       Object.entries(items.reduce<Record<string, number>>((m, it) => ((m[it.productId] = (m[it.productId] || 0) + it.qty), m), {}))
@@ -764,6 +792,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setState((s) => ({
       ...s,
       orders: [order, ...s.orders],
+      customers: nextCustomers,
       cart: [],
       stockMap: { ...s.stockMap, ...nextStockMap },
     }));

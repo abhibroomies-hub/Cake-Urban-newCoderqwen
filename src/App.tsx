@@ -123,7 +123,7 @@ function ComparePage() {
           <p className="text-sm text-ink-400 mt-2">Add up to 4 products with the ⇄ icon on any card.</p>
         </div>
       ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-5">
           {list.map((p) => p && (
             <div key={p.id} className="border border-ink-700/60 bg-ink-850 clip-tile overflow-hidden">
               <div className="relative">

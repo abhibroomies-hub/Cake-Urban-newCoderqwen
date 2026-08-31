@@ -1,8 +1,9 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { DELHI_NCR_CITIES, getAllSeoAreas, getSeoAreaBySlug, SEO_INTENTS, AreaData, CityHubData } from "../data/seoLocations";
 import { useStore } from "../lib/store";
 import { Ic, ImgX } from "../components/ui";
+import { ProductCard } from "../components/product";
 import { generateAreaStructuredData } from "../lib/seoHelpers";
 
 export function DeliveryLocationsIndex() {
@@ -136,7 +137,7 @@ export function DeliveryLocationsIndex() {
                   </Link>
                 </div>
 
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 pt-6">
                   {cityAreas.map((area) => (
                     <Link
                       key={area.slug}
@@ -281,6 +282,15 @@ export function AreaLandingPage({ intent = "standard" }: { intent?: string }) {
 
   const navigate = useNavigate();
   const { products, fmt, cartAdd } = useStore();
+  const [viewMode, setViewMode] = useState<"grid" | "reel">("grid");
+  const reelRef = useRef<HTMLDivElement>(null);
+
+  const scrollReel = (dir: "left" | "right") => {
+    if (reelRef.current) {
+      const shift = dir === "left" ? -260 : 260;
+      reelRef.current.scrollBy({ left: shift, behavior: "smooth" });
+    }
+  };
 
   useEffect(() => {
     if (area) {
@@ -416,49 +426,80 @@ export function AreaLandingPage({ intent = "standard" }: { intent?: string }) {
 
       {/* Featured Cakes for this Locality */}
       <div className="mb-16">
-        <div className="flex items-end justify-between mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-6">
           <div>
             <p className="font-mono text-xs tracking-[0.2em] text-cobalt-400 uppercase">Bestsellers In {area.areaName}</p>
-            <h2 className="font-display text-3xl font-bold uppercase mt-1">Available For Immediate Delivery</h2>
+            <h2 className="font-display text-2xl sm:text-3xl font-bold uppercase mt-1">Available For Immediate Delivery</h2>
           </div>
-          <Link to="/shop" className="font-mono text-xs uppercase tracking-wider text-blaze-400 hover:underline">
-            View All ({products.length}) →
-          </Link>
+          <div className="flex items-center gap-3 self-end sm:self-auto">
+            {/* View Switcher */}
+            <div className="flex items-center bg-ink-900 border border-ink-700/80 rounded p-0.5">
+              <button
+                type="button"
+                onClick={() => setViewMode("grid")}
+                title="2-Column Mobile Grid"
+                className={`px-2.5 py-1 text-xs font-mono rounded transition-colors ${viewMode === "grid" ? "bg-blaze-500 text-ink-50 font-bold" : "text-ink-400 hover:text-ink-100"}`}
+              >
+                ⊞ Grid
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("reel")}
+                title="Smooth Swipe Reel"
+                className={`px-2.5 py-1 text-xs font-mono rounded transition-colors ${viewMode === "reel" ? "bg-blaze-500 text-ink-50 font-bold" : "text-ink-400 hover:text-ink-100"}`}
+              >
+                ⇆ Reel
+              </button>
+            </div>
+            <Link to="/shop" className="font-mono text-xs uppercase tracking-wider text-blaze-400 hover:underline">
+              View All ({products.length}) →
+            </Link>
+          </div>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {curatedCakes.map((cake) => (
-            <div key={cake.id} className="bg-ink-850 border border-ink-700/70 p-5 clip-tile flex flex-col justify-between group">
-              <div>
-                <div className="aspect-[4/3] bg-ink-900 overflow-hidden mb-4 relative">
-                  <ImgX src={cake.img} alt={cake.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  {cake.tag && (
-                    <span className="absolute top-2 left-2 bg-emerald-950/90 text-emerald-400 text-[10px] font-mono px-2 py-0.5 border border-emerald-500/40">
-                      {cake.tag}
-                    </span>
-                  )}
-                </div>
-                <h3 className="font-display text-lg font-bold text-ink-50 group-hover:text-blaze-400 transition-colors">
-                  {cake.name}
-                </h3>
-                <p className="text-xs text-ink-300 mt-1 line-clamp-2">{cake.desc}</p>
-              </div>
-
-              <div className="mt-5 pt-4 border-t border-ink-700/50 flex items-center justify-between">
-                <div>
-                  <p className="font-mono text-xs text-ink-400">Starting from</p>
-                  <p className="font-display text-xl font-bold text-blaze-400">{fmt(cake.price)}</p>
-                </div>
+        {viewMode === "reel" ? (
+          /* Smooth Horizontal Carousel */
+          <div className="relative">
+            <div className="flex items-center justify-between text-xs font-mono text-ink-400 mb-3 px-1">
+              <span>👉 Swipe left / right or scroll</span>
+              <div className="flex items-center gap-1.5">
                 <button
-                  onClick={() => cartAdd(cake.id, cake.colors[0]?.name || "Standard", cake.sizes[0] || "500g", 1)}
-                  className="px-4 py-2.5 bg-blaze-500 hover:bg-blaze-400 text-ink-50 font-mono text-[11px] uppercase tracking-wider clip-btn transition-colors"
+                  onClick={() => scrollReel("left")}
+                  className="w-7 h-7 rounded border border-ink-700 bg-ink-900 text-ink-200 hover:border-blaze-500 hover:text-blaze-400 grid place-items-center active:scale-95 transition-all"
+                  aria-label="Scroll left"
                 >
-                  Quick Add +
+                  ←
+                </button>
+                <button
+                  onClick={() => scrollReel("right")}
+                  className="w-7 h-7 rounded border border-ink-700 bg-ink-900 text-ink-200 hover:border-blaze-500 hover:text-blaze-400 grid place-items-center active:scale-95 transition-all"
+                  aria-label="Scroll right"
+                >
+                  →
                 </button>
               </div>
             </div>
-          ))}
-        </div>
+            <div
+              ref={reelRef}
+              className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 pt-1 smooth-scroll no-scrollbar snap-x-mandatory"
+            >
+              {curatedCakes.map((cake, i) => (
+                <div key={cake.id} className="w-[185px] sm:w-[240px] md:w-[270px] shrink-0 snap-item">
+                  <ProductCard p={cake} index={i} />
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          /* 2-Column Responsive Grid on Mobile & Desktops */
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-2.5 sm:gap-5">
+            {curatedCakes.map((cake, i) => (
+              <div key={cake.id} className="h-full">
+                <ProductCard p={cake} index={i} />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Highlights & Delivery Coverage Details */}

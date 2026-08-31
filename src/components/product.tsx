@@ -13,7 +13,7 @@ export function QuickViewProvider({ children }: { children: React.ReactNode }) {
 }
 
 /* ---------- product card ---------- */
-export function ProductCard({ p, index = 0 }: { p: Product; index?: number }) {
+export function ProductCard({ p, index = 0, compact = false }: { p: Product; index?: number; compact?: boolean }) {
   const { fmt, t, toggleWish, wishlist, toggleCompare, compare, cartAdd } = useStore();
   const { openQV } = useQuickView();
   const [color, setColor] = useState(0);
@@ -23,62 +23,111 @@ export function ProductCard({ p, index = 0 }: { p: Product; index?: number }) {
   const out = p.stock <= 0;
 
   return (
-    <div className="group relative" style={{ animationDelay: `${index * 60}ms` }}>
-      <Tilt className="relative">
-        <div className={`relative overflow-hidden clip-tile bg-ink-850 border transition-all duration-300 ${out ? "opacity-60" : ""} ${compared ? "border-blaze-500/70 shadow-glow" : "border-ink-700/50 group-hover:border-ink-600"}`}>
-          <div className="absolute inset-0 grid-lines opacity-60" />
-          {/* badges */}
-          <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
-            {p.tag && <span className="clip-tag bg-blaze-500 text-ink-50 font-mono text-[10px] tracking-[0.18em] px-2.5 py-1">{p.tag}</span>}
-            {p.compareAt && <span className="clip-tag bg-ink-950/80 text-volt-400 font-mono text-[10px] tracking-[0.14em] px-2.5 py-1">−{Math.round((1 - p.price / p.compareAt) * 100)}%</span>}
+    <div className="group relative w-full h-full" style={{ animationDelay: `${index * 50}ms` }}>
+      <Tilt className="relative h-full">
+        <div className={`relative flex flex-col justify-between h-full overflow-hidden clip-tile bg-ink-850 border transition-all duration-300 ${out ? "opacity-60" : ""} ${compared ? "border-blaze-500/70 shadow-glow" : "border-ink-700/50 hover:border-blaze-500/60"}`}>
+          <div className="absolute inset-0 grid-lines opacity-40 pointer-events-none" />
+
+          {/* Badges */}
+          <div className="absolute top-2 left-2 sm:top-3 sm:left-3 z-10 flex flex-col gap-1 pointer-events-none">
+            {p.tag && <span className="clip-tag bg-blaze-500 text-ink-50 font-mono text-[8px] sm:text-[10px] font-bold tracking-[0.15em] px-2 py-0.5 sm:px-2.5 sm:py-1">{p.tag}</span>}
+            {p.compareAt && <span className="clip-tag bg-ink-950/85 text-volt-400 font-mono text-[8px] sm:text-[10px] font-bold tracking-[0.1em] px-2 py-0.5 sm:px-2.5 sm:py-1">−{Math.round((1 - p.price / p.compareAt) * 100)}%</span>}
           </div>
-          {/* actions */}
-          <div className="absolute top-3 right-3 z-10 flex flex-col gap-1.5 translate-x-14 group-hover:translate-x-0 transition-transform duration-300">
-            <button aria-label="Wishlist" onClick={() => toggleWish(p.id)} className={`grid place-items-center w-9 h-9 border backdrop-blur transition-colors ${wished ? "bg-blaze-500 border-blaze-500 text-ink-50" : "bg-ink-950/70 border-ink-600 text-ink-200 hover:border-blaze-500 hover:text-blaze-400"}`}>
-              <Ic.heart className="w-4 h-4" filled={wished} />
+
+          {/* Actions */}
+          <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10 flex flex-col gap-1 sm:translate-x-14 sm:opacity-0 sm:group-hover:translate-x-0 sm:group-hover:opacity-100 transition-all duration-300">
+            <button
+              aria-label="Wishlist"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleWish(p.id); }}
+              className={`grid place-items-center w-7 h-7 sm:w-9 sm:h-9 border backdrop-blur rounded-sm transition-transform active:scale-90 ${wished ? "bg-blaze-500 border-blaze-500 text-ink-50" : "bg-ink-950/80 border-ink-600/80 text-ink-200 hover:border-blaze-500 hover:text-blaze-400"}`}
+            >
+              <Ic.heart className="w-3.5 h-3.5 sm:w-4 sm:h-4" filled={wished} />
             </button>
-            <button aria-label="Compare" onClick={() => toggleCompare(p.id)} className={`grid place-items-center w-9 h-9 border backdrop-blur transition-colors ${compared ? "bg-cobalt-500 border-cobalt-500 text-ink-50" : "bg-ink-950/70 border-ink-600 text-ink-200 hover:border-cobalt-400 hover:text-cobalt-300"}`}>
-              <Ic.scale className="w-4 h-4" />
-            </button>
-            <button aria-label="Quick view" onClick={() => openQV(p.id)} className="grid place-items-center w-9 h-9 border bg-ink-950/70 border-ink-600 text-ink-200 backdrop-blur hover:border-volt-400 hover:text-volt-400 transition-colors">
+            <button
+              aria-label="Quick view"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); openQV(p.id); }}
+              className="hidden sm:grid place-items-center w-9 h-9 border bg-ink-950/80 border-ink-600/80 text-ink-200 backdrop-blur hover:border-volt-400 hover:text-volt-400 rounded-sm transition-colors"
+            >
               <Ic.eye className="w-4 h-4" />
             </button>
           </div>
-          {/* image */}
-          <Link to={`/product/${p.id}`} className="relative block aspect-square overflow-hidden" tabIndex={-1}>
-            <PImg src={p.img} crop={p.crop} filter={colorFilter} alt={p.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.07]" />
-            <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-ink-850 to-transparent" />
-          </Link>
-          {/* quick add bar */}
-          <div className="absolute inset-x-3 bottom-3 z-10 translate-y-16 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-            {out ? (
-              <div className="clip-btn bg-ink-950/90 border border-ink-600 text-ink-400 text-center font-mono text-xs tracking-[0.2em] py-3 uppercase">{t("outOfStock")}</div>
-            ) : (
-              <button onClick={() => cartAdd(p.id, p.colors[color].name, p.sizes[0])} className="clip-btn w-full bg-blaze-500 hover:bg-blaze-400 text-ink-50 font-mono text-xs tracking-[0.2em] py-3 uppercase transition-colors flex items-center justify-center gap-2">
-                <Ic.bag className="w-4 h-4" /> {t("addToCart")}
-              </button>
-            )}
-          </div>
-          {/* body */}
-          <div className="relative p-4 pt-1 bg-ink-850">
-            <div className="flex items-center justify-between mb-1">
-              <span className="font-mono text-[10px] tracking-[0.22em] text-ink-400 uppercase">{p.brand}</span>
-              <span className="flex items-center gap-1 font-mono text-[11px] text-ink-300"><Ic.star className="w-3 h-3 text-gold-400" />{p.rating.toFixed(1)}</span>
+
+          {/* Image */}
+          <div className="relative block aspect-square overflow-hidden bg-ink-900">
+            <Link to={`/product/${p.id}`} className="block w-full h-full" tabIndex={-1}>
+              <PImg src={p.img} crop={p.crop} filter={colorFilter} alt={p.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+              <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-ink-850 via-ink-850/40 to-transparent" />
+            </Link>
+
+            {/* Desktop Quick Add bar on hover */}
+            <div className="hidden sm:block absolute inset-x-2.5 bottom-2.5 z-10 translate-y-14 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+              {out ? (
+                <div className="clip-btn bg-ink-950/90 border border-ink-600 text-ink-400 text-center font-mono text-[11px] tracking-[0.15em] py-2 uppercase">{t("outOfStock")}</div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); cartAdd(p.id, p.colors[color].name, p.sizes[0]); }}
+                  className="clip-btn w-full bg-blaze-500 hover:bg-blaze-400 text-ink-50 font-mono text-[11px] font-bold tracking-[0.15em] py-2.5 uppercase transition-colors flex items-center justify-center gap-1.5 shadow-lg"
+                >
+                  <Ic.bag className="w-3.5 h-3.5" /> {t("addToCart")}
+                </button>
+              )}
             </div>
-            <Link to={`/product/${p.id}`} className="block font-display text-sm font-semibold leading-snug hover:text-blaze-400 transition-colors">{p.name}</Link>
-            <div className="mt-2.5 flex items-center justify-between">
-              <div className="flex items-baseline gap-2">
-                <span className="font-mono tabnum font-semibold text-ink-50">{fmt(p.price)}</span>
-                {p.compareAt && <span className="font-mono tabnum text-xs text-ink-500 line-through">{fmt(p.compareAt)}</span>}
+          </div>
+
+          {/* Body */}
+          <div className="relative p-2.5 sm:p-3.5 bg-ink-850 flex flex-col justify-between flex-1">
+            <div>
+              <div className="flex items-center justify-between mb-0.5">
+                <span className="font-mono text-[9px] sm:text-[10px] tracking-[0.18em] text-ink-400 uppercase truncate max-w-[100px]">{p.brand}</span>
+                <span className="flex items-center gap-0.5 font-mono text-[10px] sm:text-[11px] text-ink-300 font-bold">
+                  <Ic.star className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gold-400" />{p.rating.toFixed(1)}
+                </span>
               </div>
-              <div className="flex gap-1">
-                {p.colors.map((c, i) => (
-                  <button key={c.name} aria-label={c.name} onMouseEnter={() => setColor(i)} onClick={() => setColor(i)} className={`w-3.5 h-3.5 rounded-full border transition-transform ${i === color ? "scale-125 border-ink-100" : "border-ink-600"}`} style={{ background: c.hex }} />
+              <Link to={`/product/${p.id}`} className="block font-display text-xs sm:text-sm font-semibold leading-snug text-ink-100 hover:text-blaze-400 transition-colors line-clamp-2 min-h-[32px] sm:min-h-[36px]">
+                {p.name}
+              </Link>
+            </div>
+
+            <div className="mt-2 pt-2 border-t border-ink-800/60 flex items-center justify-between gap-1">
+              <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-1.5">
+                <span className="font-mono tabnum font-bold text-xs sm:text-sm text-ink-50">{fmt(p.price)}</span>
+                {p.compareAt && <span className="font-mono tabnum text-[9px] sm:text-xs text-ink-500 line-through">{fmt(p.compareAt)}</span>}
+              </div>
+
+              {/* Mobile Quick Add Button */}
+              <div className="sm:hidden">
+                {out ? (
+                  <span className="text-[9px] font-mono text-ink-500 uppercase">Sold</span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); cartAdd(p.id, p.colors[color].name, p.sizes[0]); }}
+                    className="px-2.5 py-1 bg-blaze-500 hover:bg-blaze-400 text-ink-50 font-mono text-[10px] font-bold rounded flex items-center gap-1 active:scale-95 transition-transform"
+                    aria-label="Add to cart"
+                  >
+                    <span>+</span> Add
+                  </button>
+                )}
+              </div>
+
+              {/* Desktop Color Swatches */}
+              <div className="hidden sm:flex gap-1">
+                {p.colors.slice(0, 3).map((c, i) => (
+                  <button
+                    key={c.name}
+                    aria-label={c.name}
+                    onMouseEnter={() => setColor(i)}
+                    onClick={() => setColor(i)}
+                    className={`w-3 h-3 rounded-full border transition-transform ${i === color ? "scale-125 border-ink-100" : "border-ink-600"}`}
+                    style={{ background: c.hex }}
+                  />
                 ))}
               </div>
             </div>
+
             {p.stock > 0 && p.stock <= 5 && (
-              <p className="mt-2 font-mono text-[10px] tracking-[0.14em] text-gold-400 uppercase">⚠ {t("lowStock", { n: p.stock })}</p>
+              <p className="mt-1 font-mono text-[8px] sm:text-[9px] tracking-[0.1em] text-gold-400 uppercase truncate">⚠ Only {p.stock} left in hub</p>
             )}
           </div>
         </div>
