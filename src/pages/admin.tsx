@@ -6,11 +6,25 @@ import { Ic, Modal } from "../components/ui";
 import { useAuth } from "../components/chrome";
 import { StatusPill } from "./account";
 import type { OrderStatus } from "../data/catalog";
+import { CategoriesManager } from "../components/admin/CategoriesManager";
+import { CmsManager } from "../components/admin/CmsManager";
+import { NcrHubsManager } from "../components/admin/NcrHubsManager";
+import { SeoAiManager } from "../components/admin/SeoAiManager";
 
 const NAV = [
-  ["dashboard", "Dashboard", Ic.chart], ["orders", "Orders", Ic.box], ["products", "Products", Ic.tag],
-  ["customers", "Customers", Ic.users], ["coupons", "Coupons", Ic.tag], ["content", "Content", Ic.mail],
-  ["support", "Support", Ic.chat], ["staff", "Staff", Ic.users], ["reports", "Reports", Ic.download],
+  ["dashboard", "Dashboard", Ic.chart],
+  ["orders", "Orders", Ic.box],
+  ["products", "Products", Ic.tag],
+  ["categories", "Categories CMS", Ic.grid],
+  ["cms", "Header & Home CMS", Ic.eye],
+  ["ncr_hubs", "Delhi NCR Hubs", Ic.map],
+  ["seo", "SEO & AI Domination", Ic.sparkle],
+  ["customers", "Customers", Ic.users],
+  ["coupons", "Coupons", Ic.tag],
+  ["content", "Content & FAQs", Ic.mail],
+  ["support", "Support", Ic.chat],
+  ["staff", "Staff", Ic.users],
+  ["reports", "Reports", Ic.download],
   ["settings", "Settings", Ic.settings],
 ] as const;
 
@@ -31,10 +45,13 @@ export default function Admin() {
   const { openAuth } = useAuth();
   const [tab, setTab] = useState<string>("dashboard");
   const [q, setQ] = useState("");
+  const [productCatFilter, setProductCatFilter] = useState<string>("All");
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [editP, setEditP] = useState<Product | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [invoice, setInvoice] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const productImageInputRef = useRef<HTMLInputElement>(null);
 
   const revSeries = useMemo(() => {
     const days = Array.from({ length: 30 }, (_, i) => {
@@ -246,39 +263,317 @@ export default function Admin() {
           {/* ===== PRODUCTS ===== */}
           {tab === "products" && (
             <div className="anim-fade-up space-y-4">
-              <div className="flex items-center gap-3 flex-wrap">
-                <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search products…" className="bg-ink-900 border border-ink-600 focus:border-blaze-500 outline-none px-3 py-2.5 text-xs font-mono flex-1 min-w-48 transition-colors" />
-                <button onClick={() => { setIsNew(true); setEditP({ id: `new-${Date.now()}`, name: "", brand: "VOLTA Lab", category: "Footwear", price: 99, img: PRODUCTS[0].img, rating: 0, ratingCount: 0, stock: 10, sku: `VL-${Math.floor(Math.random() * 9000 + 1000)}`, colors: [{ name: "Default", hex: "#76839c" }], sizes: ["One size"], desc: "", specs: [["Weight", "—"]], tag: "NEW" }); }} className="clip-btn bg-blaze-500 hover:bg-blaze-400 text-ink-50 font-mono text-[10px] tracking-[0.15em] uppercase px-5 py-2.5 flex items-center gap-2 transition-colors"><Ic.plus className="w-3.5 h-3.5" /> Add product</button>
+              {/* Top Controls: Search, Category Filter, and Add Button */}
+              <div className="flex items-center gap-3 flex-wrap justify-between bg-ink-850 border border-ink-700/60 p-4 clip-tile">
+                <div className="flex items-center gap-3 flex-1 min-w-[280px]">
+                  <input
+                    value={q}
+                    onChange={(e) => setQ(e.target.value)}
+                    placeholder="Search by name, SKU, category, tag…"
+                    className="bg-ink-900 border border-ink-600 focus:border-blaze-500 outline-none px-3.5 py-2 text-xs font-mono flex-1 transition-colors"
+                  />
+                  <select
+                    value={productCatFilter}
+                    onChange={(e) => setProductCatFilter(e.target.value)}
+                    className="bg-ink-900 border border-ink-600 outline-none px-3 py-2 text-xs cursor-pointer text-ink-200"
+                  >
+                    <option value="All">All Categories ({products.length})</option>
+                    {CATEGORIES.map((c) => (
+                      <option key={c.name} value={c.name}>{c.name}</option>
+                    ))}
+                    <option value="LowStock">Low Stock (≤5)</option>
+                    <option value="Eggless">100% Eggless</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      setIsNew(true);
+                      setEditP({
+                        id: `cake-${Date.now()}`,
+                        name: "",
+                        brand: "Noir Collection",
+                        category: "Cakes",
+                        price: 34,
+                        compareAt: 42,
+                        img: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&auto=format&fit=crop&q=80",
+                        rating: 4.9,
+                        ratingCount: 12,
+                        stock: 15,
+                        sku: `CU-${Math.floor(Math.random() * 9000 + 1000)}`,
+                        colors: [
+                          { name: "Belgian Dark", hex: "#3a2318" },
+                          { name: "Raspberry Gold", hex: "#b8324f" },
+                        ],
+                        sizes: ["½ KG", "1 KG", "1.5 KG", "2 KG"],
+                        desc: "100% Pure eggless artisan cake crafted with premium Belgian chocolate and layered to perfection. Baked fresh on order.",
+                        specs: [["Dietary", "100% Pure Eggless Vegetarian"], ["Delivery", "30-45 Mins Express"], ["Shelf Life", "48 Hours Chilled"]],
+                        tag: "100% EGGLESS",
+                      });
+                    }}
+                    className="clip-btn bg-blaze-500 hover:bg-blaze-400 text-ink-50 font-mono text-[11px] tracking-[0.15em] uppercase px-5 py-2.5 flex items-center gap-2 transition-colors font-bold shadow-lg shadow-blaze-500/20"
+                  >
+                    <Ic.plus className="w-4 h-4" /> Add New Item / Cake
+                  </button>
+                </div>
               </div>
-              <div className="border border-ink-700/60 bg-ink-850 clip-tile overflow-hidden">
+
+              {/* Multi-Select Floating / Sticky Action Bar */}
+              {selectedIds.length > 0 && (
+                <div className="bg-blaze-950/90 border-2 border-blaze-500/80 p-3.5 clip-tile flex items-center justify-between gap-3 flex-wrap text-xs shadow-xl animate-fade-in">
+                  <div className="flex items-center gap-2 font-mono text-ink-100">
+                    <span className="bg-blaze-500 text-ink-950 font-bold px-2 py-0.5 rounded text-[11px]">
+                      {selectedIds.length} SELECTED
+                    </span>
+                    <span>of {products.length} products</span>
+                  </div>
+
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                      onClick={() => store.bulkUpdateStock(selectedIds, { mode: "add", value: 10 })}
+                      className="bg-ink-800 hover:bg-ink-700 text-volt-400 font-mono text-[10px] uppercase px-2.5 py-1.5 border border-ink-600 rounded transition-colors"
+                      title="Add 10 units to selected"
+                    >
+                      +10 Stock
+                    </button>
+                    <button
+                      onClick={() => store.bulkUpdateStock(selectedIds, { mode: "set", value: 25 })}
+                      className="bg-ink-800 hover:bg-ink-700 text-ink-100 font-mono text-[10px] uppercase px-2.5 py-1.5 border border-ink-600 rounded transition-colors"
+                    >
+                      Set Stock: 25
+                    </button>
+                    <button
+                      onClick={() => store.bulkUpdateStock(selectedIds, { mode: "set", value: 0 })}
+                      className="bg-ink-800 hover:bg-ink-700 text-danger-400 font-mono text-[10px] uppercase px-2.5 py-1.5 border border-danger-500/40 rounded transition-colors"
+                    >
+                      Mark Out of Stock
+                    </button>
+                    <button
+                      onClick={() => store.bulkUpdateTag(selectedIds, "100% EGGLESS")}
+                      className="bg-ink-800 hover:bg-ink-700 text-emerald-400 font-mono text-[10px] uppercase px-2.5 py-1.5 border border-emerald-500/40 rounded transition-colors"
+                    >
+                      Tag: Eggless
+                    </button>
+                    <button
+                      onClick={() => store.bulkUpdateTag(selectedIds, "BEST SELLER")}
+                      className="bg-ink-800 hover:bg-ink-700 text-gold-400 font-mono text-[10px] uppercase px-2.5 py-1.5 border border-gold-500/40 rounded transition-colors"
+                    >
+                      Tag: Best Seller
+                    </button>
+                    <button
+                      onClick={() => store.bulkUpdatePriceDiscount(selectedIds, 10)}
+                      className="bg-ink-800 hover:bg-ink-700 text-blaze-400 font-mono text-[10px] uppercase px-2.5 py-1.5 border border-blaze-500/40 rounded transition-colors"
+                    >
+                      10% Discount
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (confirm(`Are you sure you want to delete ${selectedIds.length} selected items?`)) {
+                          store.bulkDeleteProducts(selectedIds);
+                          setSelectedIds([]);
+                        }
+                      }}
+                      className="bg-danger-600 hover:bg-danger-500 text-white font-mono text-[10px] uppercase px-3 py-1.5 rounded transition-colors flex items-center gap-1.5 font-bold"
+                    >
+                      <Ic.trash className="w-3.5 h-3.5" /> Delete ({selectedIds.length})
+                    </button>
+                    <button
+                      onClick={() => setSelectedIds([])}
+                      className="text-ink-400 hover:text-ink-200 font-mono text-[10px] uppercase px-2 py-1 underline"
+                    >
+                      Deselect All
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Products Table */}
+              <div className="border border-ink-700/60 bg-ink-850 clip-tile overflow-hidden shadow-sm">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm min-w-[760px]">
-                    <thead><tr className="font-mono text-[9px] tracking-[0.2em] uppercase text-ink-500 border-b border-ink-800">
-                      <th className="text-left p-4">Product</th><th className="text-left p-4">Category</th><th className="text-left p-4">Price</th><th className="text-left p-4">Stock</th><th className="text-left p-4">Rating</th><th className="text-right p-4">Actions</th>
-                    </tr></thead>
+                  <table className="w-full text-sm min-w-[840px]">
+                    <thead>
+                      <tr className="font-mono text-[9px] tracking-[0.2em] uppercase text-ink-400 border-b border-ink-800 bg-ink-900/60">
+                        <th className="p-4 w-12 text-center">
+                          <input
+                            type="checkbox"
+                            checked={
+                              products.length > 0 &&
+                              products.filter((p) => {
+                                if (productCatFilter === "LowStock") return p.stock <= 5;
+                                if (productCatFilter === "Eggless") return (p.tag || "").includes("EGGLESS") || (p.desc || "").toLowerCase().includes("eggless");
+                                if (productCatFilter !== "All") return p.category === productCatFilter;
+                                return true;
+                              }).filter((p) => (p.name + p.brand + p.sku + (p.tag || "")).toLowerCase().includes(q.toLowerCase())).every((p) => selectedIds.includes(p.id))
+                            }
+                            onChange={(e) => {
+                              const visible = products.filter((p) => {
+                                if (productCatFilter === "LowStock") return p.stock <= 5;
+                                if (productCatFilter === "Eggless") return (p.tag || "").includes("EGGLESS") || (p.desc || "").toLowerCase().includes("eggless");
+                                if (productCatFilter !== "All") return p.category === productCatFilter;
+                                return true;
+                              }).filter((p) => (p.name + p.brand + p.sku + (p.tag || "")).toLowerCase().includes(q.toLowerCase()));
+                              
+                              if (e.target.checked) {
+                                setSelectedIds(Array.from(new Set([...selectedIds, ...visible.map((p) => p.id)])));
+                              } else {
+                                const visibleSet = new Set(visible.map((p) => p.id));
+                                setSelectedIds(selectedIds.filter((id) => !visibleSet.has(id)));
+                              }
+                            }}
+                            className="w-4 h-4 cursor-pointer accent-blaze-500 rounded"
+                          />
+                        </th>
+                        <th className="text-left p-4">Item & Baker Details</th>
+                        <th className="text-left p-4">Category</th>
+                        <th className="text-left p-4">Price</th>
+                        <th className="text-left p-4">Stock Status</th>
+                        <th className="text-left p-4">Badge / Tag</th>
+                        <th className="text-left p-4">Rating</th>
+                        <th className="text-right p-4">Actions</th>
+                      </tr>
+                    </thead>
                     <tbody>
-                      {products.filter((p) => (p.name + p.brand + p.sku).toLowerCase().includes(q.toLowerCase())).map((p) => (
-                        <tr key={p.id} className="border-b border-ink-800/60 hover:bg-ink-800/40 transition-colors">
-                          <td className="p-4"><div className="flex items-center gap-3"><span className="w-10 h-10 bg-ink-900 clip-tag overflow-hidden shrink-0"><img src={p.img} alt="" className="w-full h-full object-cover" style={p.imgFilter ? { filter: p.imgFilter } : undefined} /></span><span><span className="block font-semibold text-xs">{p.name}</span><span className="block font-mono text-[9px] text-ink-500">{p.sku} · {p.brand}</span></span></div></td>
-                          <td className="p-4 font-mono text-[11px] text-ink-300">{p.category}</td>
-                          <td className="p-4 font-mono tabnum text-xs">{fmt(p.price)}</td>
-                          <td className="p-4">
-                            <span className={`font-mono text-xs ${p.stock <= 5 ? "text-gold-400" : "text-volt-400"}`}>{p.stock}</span>
-                            <button onClick={() => store.setStock(p.id, p.stock + 10)} className="ml-2 font-mono text-[9px] text-cobalt-300 hover:text-cobalt-400">+10</button>
-                          </td>
-                          <td className="p-4 font-mono text-xs text-gold-400">★ {p.rating.toFixed(1)}</td>
-                          <td className="p-4 text-right">
-                            <button onClick={() => { setIsNew(false); setEditP({ ...p }); }} className="p-1.5 text-ink-400 hover:text-cobalt-300 transition-colors"><Ic.settings className="w-4 h-4" /></button>
-                            <button onClick={() => store.deleteProduct(p.id)} className="p-1.5 text-ink-400 hover:text-danger-400 transition-colors"><Ic.trash className="w-4 h-4" /></button>
-                          </td>
-                        </tr>
-                      ))}
+                      {products
+                        .filter((p) => {
+                          if (productCatFilter === "LowStock") return p.stock <= 5;
+                          if (productCatFilter === "Eggless") return (p.tag || "").includes("EGGLESS") || (p.desc || "").toLowerCase().includes("eggless");
+                          if (productCatFilter !== "All") return p.category === productCatFilter;
+                          return true;
+                        })
+                        .filter((p) => (p.name + p.brand + p.sku + (p.tag || "")).toLowerCase().includes(q.toLowerCase()))
+                        .map((p) => {
+                          const isSelected = selectedIds.includes(p.id);
+                          return (
+                            <tr
+                              key={p.id}
+                              className={`border-b border-ink-800/60 hover:bg-ink-800/40 transition-colors ${
+                                isSelected ? "bg-blaze-500/10" : ""
+                              }`}
+                            >
+                              <td className="p-4 text-center">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={(e) => {
+                                    if (e.target.checked) setSelectedIds([...selectedIds, p.id]);
+                                    else setSelectedIds(selectedIds.filter((id) => id !== p.id));
+                                  }}
+                                  className="w-4 h-4 cursor-pointer accent-blaze-500 rounded"
+                                />
+                              </td>
+                              <td className="p-4">
+                                <div className="flex items-center gap-3">
+                                  <span className="w-12 h-12 bg-ink-900 clip-tag overflow-hidden shrink-0 border border-ink-700/60 relative">
+                                    <img
+                                      src={p.img}
+                                      alt={p.name}
+                                      className="w-full h-full object-cover"
+                                      style={p.imgFilter ? { filter: p.imgFilter } : undefined}
+                                      onError={(e) => {
+                                        (e.currentTarget as HTMLImageElement).src = "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&auto=format&fit=crop&q=80";
+                                      }}
+                                    />
+                                  </span>
+                                  <div>
+                                    <span className="block font-semibold text-xs text-ink-100">{p.name}</span>
+                                    <span className="block font-mono text-[9px] text-ink-400">
+                                      {p.sku} · {p.brand}
+                                    </span>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="p-4 font-mono text-[11px] text-ink-300">
+                                <span className="bg-ink-800 px-2 py-0.5 rounded text-[10px] border border-ink-700">
+                                  {p.category}
+                                </span>
+                              </td>
+                              <td className="p-4 font-mono tabnum text-xs">
+                                <span className="font-bold text-ink-100">{fmt(p.price)}</span>
+                                {p.compareAt && p.compareAt > p.price && (
+                                  <span className="block text-[10px] text-ink-500 line-through">
+                                    {fmt(p.compareAt)}
+                                  </span>
+                                )}
+                              </td>
+                              <td className="p-4">
+                                <div className="flex items-center gap-2">
+                                  <span
+                                    className={`font-mono text-xs font-bold px-2 py-0.5 rounded ${
+                                      p.stock === 0
+                                        ? "bg-danger-500/20 text-danger-400 border border-danger-500/30"
+                                        : p.stock <= 5
+                                        ? "bg-gold-500/20 text-gold-400 border border-gold-500/30"
+                                        : "bg-volt-500/20 text-volt-400 border border-volt-500/30"
+                                    }`}
+                                  >
+                                    {p.stock === 0 ? "Out of Stock" : `${p.stock} in stock`}
+                                  </span>
+                                  <button
+                                    onClick={() => store.setStock(p.id, p.stock + 10)}
+                                    className="font-mono text-[9px] text-blaze-400 hover:text-blaze-300 bg-ink-800 hover:bg-ink-700 px-1.5 py-0.5 rounded border border-ink-600 transition-colors"
+                                    title="Add 10 units"
+                                  >
+                                    +10
+                                  </button>
+                                </div>
+                              </td>
+                              <td className="p-4 font-mono text-[10px]">
+                                {p.tag ? (
+                                  <span className="bg-blaze-500/15 text-blaze-300 px-2 py-0.5 rounded border border-blaze-500/30">
+                                    {p.tag}
+                                  </span>
+                                ) : (
+                                  <span className="text-ink-600">—</span>
+                                )}
+                              </td>
+                              <td className="p-4 font-mono text-xs text-gold-400">★ {p.rating.toFixed(1)}</td>
+                              <td className="p-4 text-right">
+                                <div className="flex items-center justify-end gap-1">
+                                  <button
+                                    onClick={() => {
+                                      setIsNew(false);
+                                      setEditP({ ...p });
+                                    }}
+                                    className="p-2 text-ink-300 hover:text-blaze-400 hover:bg-ink-800 rounded transition-colors"
+                                    title="Edit Product"
+                                  >
+                                    <Ic.settings className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      if (confirm(`Remove "${p.name}" from catalog?`)) {
+                                        store.deleteProduct(p.id);
+                                      }
+                                    }}
+                                    className="p-2 text-ink-400 hover:text-danger-400 hover:bg-ink-800 rounded transition-colors"
+                                    title="Delete Product"
+                                  >
+                                    <Ic.trash className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
                     </tbody>
                   </table>
                 </div>
               </div>
             </div>
           )}
+
+          {/* ===== CATEGORIES CMS ===== */}
+          {tab === "categories" && <CategoriesManager />}
+
+          {/* ===== HEADER & HOME CMS ===== */}
+          {tab === "cms" && <CmsManager />}
+
+          {/* ===== DELHI NCR HUBS ===== */}
+          {tab === "ncr_hubs" && <NcrHubsManager />}
+
+          {/* ===== SEO & AI SEARCH DOMINATION ===== */}
+          {tab === "seo" && <SeoAiManager />}
 
           {/* ===== CUSTOMERS ===== */}
           {tab === "customers" && (
@@ -378,26 +673,312 @@ export default function Admin() {
         </div>
       </div>
 
-      {/* product editor */}
+      {/* Product Editor Modal */}
       {editP && (
         <Modal open onClose={() => setEditP(null)}>
-          <div className="p-8">
-            <p className="font-mono text-[10px] tracking-[0.25em] text-blaze-500 uppercase">{isNew ? "Create product" : `Edit — ${editP.sku}`}</p>
-            <h3 className="font-display text-xl font-bold uppercase mt-1 mb-5">{isNew ? "New product" : editP.name}</h3>
-            <div className="space-y-3">
-              <input value={editP.name} onChange={(e) => setEditP({ ...editP, name: e.target.value })} placeholder="Product name" className="w-full bg-ink-950 border border-ink-600 focus:border-blaze-500 outline-none px-4 py-3 text-sm transition-colors" />
+          <div className="p-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-ink-800 pb-3 mb-5">
+              <div>
+                <p className="font-mono text-[10px] tracking-[0.25em] text-blaze-500 uppercase font-bold">
+                  {isNew ? "✨ New Bakery Item" : `Edit Item — ${editP.sku}`}
+                </p>
+                <h3 className="font-display text-xl font-bold uppercase mt-0.5">
+                  {isNew ? "Add Item to Live Catalog" : editP.name}
+                </h3>
+              </div>
+              <button
+                onClick={() => setEditP(null)}
+                className="p-1.5 text-ink-400 hover:text-ink-100 rounded-lg hover:bg-ink-800 transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4 text-xs">
+              {/* Image Selection & Preview */}
+              <div>
+                <label className="block font-mono text-[10px] tracking-[0.15em] uppercase text-ink-300 font-bold mb-2">
+                  Cake Photo & Media
+                </label>
+                <div className="grid sm:grid-cols-[110px_1fr] gap-4 items-start bg-ink-950 p-3.5 border border-ink-700/60 rounded">
+                  <div className="w-full aspect-square bg-ink-900 border border-ink-700 rounded overflow-hidden relative shadow-inner">
+                    <img
+                      src={editP.img}
+                      alt={editP.name || "Preview"}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src = "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&auto=format&fit=crop&q=80";
+                      }}
+                    />
+                  </div>
+
+                  <div className="space-y-2.5">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="file"
+                        ref={productImageInputRef}
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (evt) => {
+                              if (evt.target?.result) {
+                                setEditP({ ...editP, img: evt.target.result as string });
+                                store.toast("success", "Custom cake photo loaded!");
+                              }
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => productImageInputRef.current?.click()}
+                        className="bg-ink-800 hover:bg-ink-700 text-ink-100 font-mono text-[10px] uppercase px-3 py-1.5 border border-ink-600 rounded flex items-center gap-1.5 transition-colors"
+                      >
+                        📷 Upload Photo
+                      </button>
+                      <span className="text-[10px] text-ink-400 font-mono">or enter direct URL below</span>
+                    </div>
+
+                    <input
+                      value={editP.img}
+                      onChange={(e) => setEditP({ ...editP, img: e.target.value })}
+                      placeholder="https://images.unsplash.com/..."
+                      className="w-full bg-ink-900 border border-ink-700 focus:border-blaze-500 outline-none px-3 py-1.5 text-xs font-mono rounded"
+                    />
+
+                    {/* Quick Preset Selector */}
+                    <div>
+                      <p className="text-[9px] font-mono text-ink-400 uppercase tracking-wider mb-1.5">
+                        Quick Preset Gallery:
+                      </p>
+                      <div className="flex gap-1.5 overflow-x-auto pb-1">
+                        {[
+                          { name: "Raspberry Noir", url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&auto=format&fit=crop&q=80" },
+                          { name: "Belgian Fudge", url: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?w=800&auto=format&fit=crop&q=80" },
+                          { name: "Pistachio Rose", url: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=800&auto=format&fit=crop&q=80" },
+                          { name: "Chantilly Cloud", url: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?w=800&auto=format&fit=crop&q=80" },
+                          { name: "Salted Caramel", url: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?w=800&auto=format&fit=crop&q=80" },
+                          { name: "Red Velvet", url: "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?w=800&auto=format&fit=crop&q=80" },
+                          { name: "Bento Cake", url: "https://images.unsplash.com/photo-1542826438-bd32f43d626f?w=800&auto=format&fit=crop&q=80" },
+                          { name: "Macarons Box", url: "https://images.unsplash.com/photo-1569864358642-9d1684040f43?w=800&auto=format&fit=crop&q=80" },
+                        ].map((preset) => (
+                          <button
+                            key={preset.name}
+                            type="button"
+                            onClick={() => setEditP({ ...editP, img: preset.url })}
+                            className={`w-10 h-10 rounded shrink-0 overflow-hidden border-2 transition-transform hover:scale-105 ${
+                              editP.img === preset.url ? "border-blaze-500 scale-105 shadow-md" : "border-ink-700 opacity-70 hover:opacity-100"
+                            }`}
+                            title={preset.name}
+                          >
+                            <img src={preset.url} alt={preset.name} className="w-full h-full object-cover" />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Title and Category */}
+              <div className="grid sm:grid-cols-3 gap-3">
+                <div className="sm:col-span-2">
+                  <label className="block font-mono text-[9px] tracking-[0.15em] uppercase text-ink-400 font-bold mb-1">
+                    Cake / Product Name *
+                  </label>
+                  <input
+                    value={editP.name}
+                    onChange={(e) => setEditP({ ...editP, name: e.target.value })}
+                    placeholder="e.g. Belgian Truffle Royale 100% Eggless"
+                    className="w-full bg-ink-950 border border-ink-600 focus:border-blaze-500 outline-none px-3.5 py-2.5 text-sm rounded font-medium transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="block font-mono text-[9px] tracking-[0.15em] uppercase text-ink-400 font-bold mb-1">
+                    Category
+                  </label>
+                  <select
+                    value={editP.category}
+                    onChange={(e) => setEditP({ ...editP, category: e.target.value })}
+                    className="w-full bg-ink-950 border border-ink-600 outline-none px-3 py-2.5 text-xs cursor-pointer rounded"
+                  >
+                    {CATEGORIES.map((c) => (
+                      <option key={c.name} value={c.name}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Brand, Pricing & Stock */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div>
+                  <label className="block font-mono text-[9px] tracking-[0.15em] uppercase text-ink-400 font-bold mb-1">
+                    Baker / Brand
+                  </label>
+                  <select
+                    value={editP.brand}
+                    onChange={(e) => setEditP({ ...editP, brand: e.target.value })}
+                    className="w-full bg-ink-950 border border-ink-600 outline-none px-2.5 py-2 text-xs cursor-pointer rounded"
+                  >
+                    {["Noir Collection", "Crumb Lab", "Pâtisserie", "Oven Stories", "CakeUrban Atelier"].map((b) => (
+                      <option key={b} value={b}>{b}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-mono text-[9px] tracking-[0.15em] uppercase text-ink-400 font-bold mb-1">
+                    Price ({store.currency}) *
+                  </label>
+                  <input
+                    type="number"
+                    value={editP.price}
+                    onChange={(e) => setEditP({ ...editP, price: Math.max(1, +e.target.value) })}
+                    className="w-full bg-ink-950 border border-ink-600 focus:border-blaze-500 outline-none px-3 py-2 text-xs rounded font-mono font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block font-mono text-[9px] tracking-[0.15em] uppercase text-ink-400 font-bold mb-1">
+                    MRP / Compare-At
+                  </label>
+                  <input
+                    type="number"
+                    value={editP.compareAt || ""}
+                    onChange={(e) => setEditP({ ...editP, compareAt: e.target.value ? +e.target.value : undefined })}
+                    placeholder="e.g. 45"
+                    className="w-full bg-ink-950 border border-ink-600 focus:border-blaze-500 outline-none px-3 py-2 text-xs rounded font-mono text-ink-400"
+                  />
+                </div>
+                <div>
+                  <label className="block font-mono text-[9px] tracking-[0.15em] uppercase text-ink-400 font-bold mb-1">
+                    Units in Stock
+                  </label>
+                  <input
+                    type="number"
+                    value={editP.stock}
+                    onChange={(e) => setEditP({ ...editP, stock: Math.max(0, +e.target.value) })}
+                    className="w-full bg-ink-950 border border-ink-600 focus:border-blaze-500 outline-none px-3 py-2 text-xs rounded font-mono text-volt-400 font-bold"
+                  />
+                </div>
+              </div>
+
+              {/* Tag / Badge & SKU */}
               <div className="grid grid-cols-2 gap-3">
-                <select value={editP.brand} onChange={(e) => setEditP({ ...editP, brand: e.target.value })} className="bg-ink-950 border border-ink-600 outline-none px-3 py-3 text-sm cursor-pointer">{["VOLTA Lab", "Aeon", "Northline", "Kinetik"].map((b) => <option key={b}>{b}</option>)}</select>
-                <select value={editP.category} onChange={(e) => setEditP({ ...editP, category: e.target.value })} className="bg-ink-950 border border-ink-600 outline-none px-3 py-3 text-sm cursor-pointer">{CATEGORIES.map((c) => <option key={c.name}>{c.name}</option>)}</select>
+                <div>
+                  <label className="block font-mono text-[9px] tracking-[0.15em] uppercase text-ink-400 font-bold mb-1">
+                    Badge Ribbon (Tag)
+                  </label>
+                  <select
+                    value={editP.tag ?? ""}
+                    onChange={(e) => setEditP({ ...editP, tag: e.target.value || undefined })}
+                    className="w-full bg-ink-950 border border-ink-600 outline-none px-3 py-2 text-xs cursor-pointer rounded"
+                  >
+                    <option value="">None</option>
+                    <option value="100% EGGLESS">100% EGGLESS</option>
+                    <option value="BEST SELLER">BEST SELLER</option>
+                    <option value="EXPRESS 30M">EXPRESS 30M</option>
+                    <option value="NEW">NEW</option>
+                    <option value="CHEF SPECIAL">CHEF SPECIAL</option>
+                    <option value="VEGAN">VEGAN</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-mono text-[9px] tracking-[0.15em] uppercase text-ink-400 font-bold mb-1">
+                    SKU Code
+                  </label>
+                  <input
+                    value={editP.sku}
+                    onChange={(e) => setEditP({ ...editP, sku: e.target.value })}
+                    className="w-full bg-ink-950 border border-ink-600 outline-none px-3 py-2 text-xs rounded font-mono text-ink-300"
+                  />
+                </div>
               </div>
-              <div className="grid grid-cols-3 gap-3">
-                <label className="block"><span className="font-mono text-[9px] tracking-[0.2em] uppercase text-ink-500">Price $</span><input type="number" value={editP.price} onChange={(e) => setEditP({ ...editP, price: +e.target.value })} className="w-full bg-ink-950 border border-ink-600 focus:border-blaze-500 outline-none px-3 py-2.5 text-sm mt-1 transition-colors" /></label>
-                <label className="block"><span className="font-mono text-[9px] tracking-[0.2em] uppercase text-ink-500">Stock</span><input type="number" value={editP.stock} onChange={(e) => setEditP({ ...editP, stock: +e.target.value })} className="w-full bg-ink-950 border border-ink-600 focus:border-blaze-500 outline-none px-3 py-2.5 text-sm mt-1 transition-colors" /></label>
-                <label className="block"><span className="font-mono text-[9px] tracking-[0.2em] uppercase text-ink-500">Tag</span><input value={editP.tag ?? ""} onChange={(e) => setEditP({ ...editP, tag: e.target.value || undefined })} placeholder="NEW" className="w-full bg-ink-950 border border-ink-600 focus:border-blaze-500 outline-none px-3 py-2.5 text-sm mt-1 transition-colors" /></label>
+
+              {/* Weight & Size Variants */}
+              <div>
+                <label className="block font-mono text-[9px] tracking-[0.15em] uppercase text-ink-400 font-bold mb-1.5">
+                  Available Weight / Size Options
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {["½ KG", "1 KG", "1.5 KG", "2 KG", "3 KG", "5 KG", "Box of 6", "Box of 12", "Single Piece"].map((sz) => {
+                    const isChecked = (editP.sizes || []).includes(sz);
+                    return (
+                      <button
+                        key={sz}
+                        type="button"
+                        onClick={() => {
+                          const current = editP.sizes || [];
+                          const updated = isChecked ? current.filter((x) => x !== sz) : [...current, sz];
+                          setEditP({ ...editP, sizes: updated });
+                        }}
+                        className={`px-3 py-1 text-[11px] font-mono rounded border transition-colors ${
+                          isChecked
+                            ? "bg-blaze-500 text-ink-950 border-blaze-400 font-bold"
+                            : "bg-ink-900 text-ink-400 border-ink-700 hover:border-ink-500"
+                        }`}
+                      >
+                        {sz} {isChecked ? "✓" : "+"}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-              <textarea value={editP.desc} onChange={(e) => setEditP({ ...editP, desc: e.target.value })} placeholder="Description" rows={2} className="w-full bg-ink-950 border border-ink-600 focus:border-blaze-500 outline-none px-4 py-3 text-sm resize-none transition-colors" />
-              <p className="font-mono text-[9px] text-ink-500 tracking-wide">Variants (size/color/price) · media library · bulk edit available in full build — core fields persisted to the demo DB.</p>
-              <button onClick={() => { if (!editP.name.trim()) { store.toast("error", "Name required"); return; } if (isNew) store.addProduct(editP); else store.updateProduct(editP); setEditP(null); }} className="clip-btn w-full bg-blaze-500 hover:bg-blaze-400 text-ink-50 font-mono text-xs tracking-[0.2em] uppercase py-3.5 transition-colors">{isNew ? "Create" : "Save changes"}</button>
+
+              {/* Description */}
+              <div>
+                <label className="block font-mono text-[9px] tracking-[0.15em] uppercase text-ink-400 font-bold mb-1">
+                  Product Description & Flavor Notes
+                </label>
+                <textarea
+                  value={editP.desc}
+                  onChange={(e) => setEditP({ ...editP, desc: e.target.value })}
+                  placeholder="Describe the layers, cream, cocoa percentage, sponge texture, and special baking techniques…"
+                  rows={3}
+                  className="w-full bg-ink-950 border border-ink-600 focus:border-blaze-500 outline-none px-3.5 py-2.5 text-xs rounded resize-none transition-colors"
+                />
+              </div>
+
+              {/* SEO & Search Engine Optimization helper notes */}
+              <div className="bg-ink-900/80 border border-ink-700 p-3 rounded text-[11px] text-ink-300 font-mono">
+                <p className="text-volt-400 font-bold flex items-center gap-1.5 mb-1">
+                  ⚡ AI & Google Search Optimization
+                </p>
+                <p className="text-ink-400 text-[10px] leading-relaxed">
+                  Products are automatically structured in Schema.org JSON-LD & synced live to Firebase Realtime Database for instantaneous discoverability on Google Search, Gemini, ChatGPT, and Perplexity AI.
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!editP.name.trim()) {
+                      store.toast("error", "Please provide a product name");
+                      return;
+                    }
+                    if (isNew) {
+                      store.addProduct(editP);
+                    } else {
+                      store.updateProduct(editP);
+                    }
+                    setEditP(null);
+                  }}
+                  className="clip-btn flex-1 bg-blaze-500 hover:bg-blaze-400 text-ink-50 font-mono text-xs tracking-[0.15em] uppercase py-3.5 font-bold transition-colors shadow-lg shadow-blaze-500/25 flex items-center justify-center gap-2"
+                >
+                  <Ic.check className="w-4 h-4" /> {isNew ? "Publish Item to Catalog" : "Save Changes"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditP(null)}
+                  className="px-5 py-3.5 bg-ink-800 hover:bg-ink-700 text-ink-300 font-mono text-xs uppercase rounded transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
         </Modal>

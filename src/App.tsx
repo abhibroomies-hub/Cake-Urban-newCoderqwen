@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { StoreProvider, useStore } from "./lib/store";
-import { AuthProvider, Header, CartDrawer, ChatWidget, CookieConsent, Toasts, Footer, MobileBottomNav } from "./components/chrome";
+import { AuthProvider, Header, CartDrawer, ChatWidget, WhatsAppWidget, CookieConsent, Toasts, Footer, MobileBottomNav } from "./components/chrome";
 import { QuickViewProvider, CompareOverlay } from "./components/product";
 import { Ic, ImgX } from "./components/ui";
 import Home from "./pages/home";
@@ -77,7 +77,16 @@ function Shell() {
             <Route path="/policy/:type" element={<PolicyPage />} />
             <Route path="/delivery-locations" element={<DeliveryLocationsIndex />} />
             <Route path="/cakes-in/:citySlug" element={<CityHubPage />} />
-            <Route path="/cake-delivery-in/:areaSlug" element={<AreaLandingPage />} />
+            <Route path="/cake-delivery-in/:areaSlug" element={<AreaLandingPage intent="standard" />} />
+            <Route path="/midnight-cake-delivery-in/:areaSlug" element={<AreaLandingPage intent="midnight" />} />
+            <Route path="/birthday-cake-delivery-in/:areaSlug" element={<AreaLandingPage intent="birthday" />} />
+            <Route path="/eggless-cake-delivery-in/:areaSlug" element={<AreaLandingPage intent="eggless" />} />
+            <Route path="/anniversary-cake-delivery-in/:areaSlug" element={<AreaLandingPage intent="anniversary" />} />
+            <Route path="/photo-cake-delivery-in/:areaSlug" element={<AreaLandingPage intent="photo" />} />
+            <Route path="/custom-cake-delivery-in/:areaSlug" element={<AreaLandingPage intent="custom" />} />
+            <Route path="/chocolate-cake-delivery-in/:areaSlug" element={<AreaLandingPage intent="chocolate" />} />
+            <Route path="/pinata-cake-delivery-in/:areaSlug" element={<AreaLandingPage intent="pinata" />} />
+            <Route path="/same-day-cake-delivery-in/:areaSlug" element={<AreaLandingPage intent="same-day" />} />
             <Route path="*" element={<Home />} />
           </Routes>
         </div>
@@ -88,6 +97,7 @@ function Shell() {
       <CompareTray onOpen={() => setCompareOpen(true)} />
       <CompareOverlay open={compareOpen} onClose={() => { setCompareOpen(false); if (location.pathname === "/compare") nav("/shop"); }} />
       <ChatWidget />
+      <WhatsAppWidget />
       <CookieConsent />
       <Toasts />
     </div>

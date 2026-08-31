@@ -14,8 +14,13 @@ export default function Checkout() {
   const nav = useNavigate();
   const [step, setStep] = useState(0);
   const [info, setInfo] = useState({
-    email: user?.email ?? "", name: user?.name ?? "", phone: "",
-    addr: addresses[0]?.line1 ?? "", city: addresses[0]?.city ?? "", zip: addresses[0]?.zip ?? "", country: addresses[0]?.country ?? "United States",
+    email: user?.email ?? "",
+    name: user?.name ?? "",
+    phone: user?.phone ? user.phone.replace(/\D/g, "").slice(-10) : (addresses[0]?.phone ? addresses[0].phone.replace(/\D/g, "").slice(-10) : ""),
+    addr: addresses[0]?.line1 ?? "",
+    city: addresses[0]?.city ?? "Faridabad",
+    zip: addresses[0]?.zip ?? "121002",
+    country: addresses[0]?.country ?? "India",
   });
   const [shipIdx, setShipIdx] = useState(0);
   const [payTab, setPayTab] = useState<"card" | "razorpay" | "paypal">("card");
@@ -38,7 +43,15 @@ export default function Checkout() {
   const next = () => {
     setErr("");
     if (step === 0) {
-      if (!info.email.includes("@") || !info.name.trim() || !info.addr.trim() || !info.city.trim()) { setErr("Fill email, name, address and city to continue."); return; }
+      const cleanPhone = info.phone.replace(/\D/g, "");
+      if (!info.email.includes("@") || !info.name.trim() || !info.addr.trim() || !info.city.trim()) {
+        setErr("Please fill in your email, full name, street address, and city.");
+        return;
+      }
+      if (cleanPhone.length < 10) {
+        setErr("Mandatory Mobile Number: Please enter a valid 10-digit phone number for live delivery dispatch and WhatsApp tracking.");
+        return;
+      }
     }
     if (step === 1 && shipIdx < 0) { setErr("Pick a delivery method."); return; }
     setStep(step + 1);
@@ -132,16 +145,54 @@ export default function Checkout() {
                     <Ic.user className="w-5 h-5 text-cobalt-300" />
                   </button>
                 )}
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <input className={inp} placeholder="Email *" value={info.email} onChange={(e) => setInfo({ ...info, email: e.target.value })} />
-                  <input className={inp} placeholder="Phone" value={info.phone} onChange={(e) => setInfo({ ...info, phone: e.target.value })} />
+                <div className="p-3.5 bg-emerald-950/40 border border-emerald-500/40 clip-tag flex items-center justify-between gap-3 flex-wrap">
+                  <div className="flex items-center gap-2.5 text-xs text-emerald-200">
+                    <Ic.whatsapp className="w-5 h-5 text-emerald-400 shrink-0" />
+                    <span>Need urgent 30-min delivery slot or custom cake text? WhatsApp: <strong>+91 7318531953</strong></span>
+                  </div>
+                  <a
+                    href="https://wa.me/917318531953?text=Hi%20CakeUrban,%20I%20need%20help%20with%20my%20cake%20checkout%20order"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-mono text-[11px] font-bold text-emerald-400 hover:text-emerald-300 uppercase tracking-wider"
+                  >
+                    Chat Now →
+                  </a>
                 </div>
-                <input className={inp} placeholder="Full name *" value={info.name} onChange={(e) => setInfo({ ...info, name: e.target.value })} />
-                <input className={inp} placeholder="Street address *" value={info.addr} onChange={(e) => setInfo({ ...info, addr: e.target.value })} />
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block font-mono text-[10px] uppercase tracking-wider text-ink-400 mb-1">Email Address *</label>
+                    <input className={inp} type="email" placeholder="you@example.com" value={info.email} onChange={(e) => setInfo({ ...info, email: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="block font-mono text-[10px] uppercase tracking-wider text-ink-400 mb-1">Mobile Phone (Mandatory) *</label>
+                    <div className="flex">
+                      <span className="flex items-center justify-center px-3 bg-ink-900 border border-r-0 border-ink-600 font-mono text-xs text-ink-300 select-none">+91</span>
+                      <input className={inp} type="tel" maxLength={10} placeholder="10-digit mobile number" value={info.phone} onChange={(e) => setInfo({ ...info, phone: e.target.value.replace(/\D/g, "").slice(0, 10) })} />
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <label className="block font-mono text-[10px] uppercase tracking-wider text-ink-400 mb-1">Recipient Full Name *</label>
+                  <input className={inp} placeholder="Full Name" value={info.name} onChange={(e) => setInfo({ ...info, name: e.target.value })} />
+                </div>
+                <div>
+                  <label className="block font-mono text-[10px] uppercase tracking-wider text-ink-400 mb-1">House / Flat / Street Address *</label>
+                  <input className={inp} placeholder="Flat / House / Sector / Landmark" value={info.addr} onChange={(e) => setInfo({ ...info, addr: e.target.value })} />
+                </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                  <input className={inp} placeholder="City *" value={info.city} onChange={(e) => setInfo({ ...info, city: e.target.value })} />
-                  <input className={inp} placeholder="ZIP" value={info.zip} onChange={(e) => setInfo({ ...info, zip: e.target.value })} />
-                  <input className={`${inp} col-span-2 sm:col-span-1`} placeholder="Country" value={info.country} onChange={(e) => setInfo({ ...info, country: e.target.value })} />
+                  <div>
+                    <label className="block font-mono text-[10px] uppercase tracking-wider text-ink-400 mb-1">City / Region *</label>
+                    <input className={inp} placeholder="e.g. Faridabad / Gurgaon" value={info.city} onChange={(e) => setInfo({ ...info, city: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="block font-mono text-[10px] uppercase tracking-wider text-ink-400 mb-1">Pincode *</label>
+                    <input className={inp} placeholder="e.g. 121002" value={info.zip} onChange={(e) => setInfo({ ...info, zip: e.target.value })} />
+                  </div>
+                  <div className="col-span-2 sm:col-span-1">
+                    <label className="block font-mono text-[10px] uppercase tracking-wider text-ink-400 mb-1">Country</label>
+                    <input className={inp} placeholder="Country" value={info.country} onChange={(e) => setInfo({ ...info, country: e.target.value })} />
+                  </div>
                 </div>
               </div>
             )}

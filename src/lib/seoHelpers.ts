@@ -24,9 +24,9 @@ export function generateAreaStructuredData(area: AreaData, options: SchemaOption
         "name": `CakeUrban - ${area.areaName} ${area.cityName}`,
         "description": area.metaDesc,
         "url": `${baseUrl}/cake-delivery-in/${area.slug}`,
-        "telephone": "+91-9876543210",
+        "telephone": "+91-7318531953",
         "priceRange": "₹₹",
-        "servesCuisine": "Artisanal Cakes, Midnight Deliveries, Custom Designer Cakes",
+        "servesCuisine": "100% Pure Eggless Cakes, Artisanal Cakes, Midnight Deliveries, Custom Designer Cakes, Belgian Truffle",
         "areaServed": {
           "@type": "AdministrativeArea",
           "name": `${area.areaName}, ${area.cityName}`

@@ -16,6 +16,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     <AuthCtx.Provider value={{ openAuth: (m = "login") => setMode(m) }}>
       {children}
       <AuthModal mode={mode} onClose={() => setMode(null)} />
+      <PhoneRequirementModal />
     </AuthCtx.Provider>
   );
 }
@@ -24,7 +25,10 @@ function AuthModal({ mode, onClose }: { mode: null | "login" | "signup"; onClose
   const { login, requestSignup, verifySignup, socialLogin, pendingOtp, toast } = useStore();
   const [view, setView] = useState<"form" | "otp" | "forgot">("form");
   const [tab, setTab] = useState<"login" | "signup">("login");
-  const [name, setName] = useState(""); const [email, setEmail] = useState(""); const [pass, setPass] = useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [pass, setPass] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [err, setErr] = useState("");
   const refs = useRef<(HTMLInputElement | null)[]>([]);
@@ -48,8 +52,12 @@ function AuthModal({ mode, onClose }: { mode: null | "login" | "signup"; onClose
       const r = login(email, pass);
       if (r.ok) onClose(); else setErr(r.msg);
     } else {
-      if (!name.trim() || !email.includes("@") || pass.length < 6) { setErr("Enter name, valid email and a 6+ char password."); return; }
-      const r = requestSignup(name, email, pass);
+      const cleanPhone = phone.replace(/\D/g, "");
+      if (!name.trim() || !email.includes("@") || cleanPhone.length < 10 || pass.length < 6) {
+        setErr("Please enter your full name, valid email, mandatory 10-digit mobile number, and a 6+ char password.");
+        return;
+      }
+      const r = requestSignup(name, email, phone, pass);
       if (r.ok) setView("otp"); else setErr(r.msg);
     }
   };
@@ -63,9 +71,9 @@ function AuthModal({ mode, onClose }: { mode: null | "login" | "signup"; onClose
           <div className="relative flex items-center gap-2 text-blaze-500"><Ic.cake className="w-7 h-7" /><span className="font-display font-extrabold tracking-wide">CakeUrban</span></div>
           <div className="relative">
             <p className="font-display text-2xl font-bold leading-tight uppercase">Sweet<br />access</p>
-            <p className="text-sm text-ink-300 mt-3 leading-relaxed">Order tracking, saved flavors, one-tap reorder and first bite on new bakes.</p>
+            <p className="text-sm text-ink-300 mt-3 leading-relaxed">Live GPS order tracking, instant WhatsApp updates, saved addresses, and first bite on new bakes.</p>
           </div>
-          <p className="relative font-mono text-[10px] text-ink-500 tracking-widest">BAKED TO ORDER · OTP VERIFIED · GDPR READY</p>
+          <p className="relative font-mono text-[10px] text-ink-500 tracking-widest">BAKED TO ORDER · OTP & PHONE VERIFIED · 100% SECURE</p>
         </div>
         <div className="p-7 md:p-8">
           {view === "form" && (
@@ -76,9 +84,17 @@ function AuthModal({ mode, onClose }: { mode: null | "login" | "signup"; onClose
                 ))}
               </div>
               <form onSubmit={submit} className="space-y-3">
-                {tab === "signup" && <input className={inp} placeholder="Full name" value={name} onChange={(e) => setName(e.target.value)} />}
-                <input className={inp} type="email" placeholder="Email address" value={email} onChange={(e) => setEmail(e.target.value)} />
-                <input className={inp} type="password" placeholder="Password" value={pass} onChange={(e) => setPass(e.target.value)} />
+                {tab === "signup" && (
+                  <>
+                    <input className={inp} placeholder="Full name *" value={name} onChange={(e) => setName(e.target.value)} required />
+                    <div className="flex gap-2">
+                      <span className="flex items-center justify-center px-3 bg-ink-900 border border-ink-600 font-mono text-xs text-ink-300 select-none">+91</span>
+                      <input className={inp} type="tel" placeholder="Mobile Number (Mandatory 10 digits) *" value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))} required />
+                    </div>
+                  </>
+                )}
+                <input className={inp} type="email" placeholder="Email address *" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                <input className={inp} type="password" placeholder="Password *" value={pass} onChange={(e) => setPass(e.target.value)} required />
                 {tab === "login" && (
                   <button type="button" onClick={() => setView("forgot")} className="font-mono text-[11px] text-ink-400 hover:text-blaze-400 tracking-wide">Forgot password?</button>
                 )}
@@ -105,9 +121,9 @@ function AuthModal({ mode, onClose }: { mode: null | "login" | "signup"; onClose
           )}
           {view === "otp" && (
             <div>
-              <p className="font-mono text-[11px] tracking-[0.25em] text-blaze-500 uppercase">Step 2 — Verify email</p>
+              <p className="font-mono text-[11px] tracking-[0.25em] text-blaze-500 uppercase">Step 2 — Verify email & phone</p>
               <h3 className="font-display text-xl font-bold mt-2">Enter the 6-digit code</h3>
-              <p className="text-sm text-ink-400 mt-1">Sent to <span className="text-ink-200">{pendingOtp?.email}</span>. Check the demo SMS toast.</p>
+              <p className="text-sm text-ink-400 mt-1">Sent to <span className="text-ink-200">{pendingOtp?.email}</span> ({pendingOtp?.phone}). Check demo toast notification.</p>
               <div className="flex gap-2 mt-6">
                 {otp.map((d, i) => (
                   <input key={i} ref={(el) => { refs.current[i] = el; }} value={d} inputMode="numeric" maxLength={1}
@@ -216,7 +232,7 @@ function Bell() {
 
 /* ================= header + mega menu ================= */
 export function Header({ onCart, onCompare }: { onCart: () => void; onCompare: () => void }) {
-  const { t, user, cartCount, wishlist, compare, theme, toggleTheme, lang, set, currency, settings, logout } = useStore();
+  const { t, user, cartCount, wishlist, compare, theme, toggleTheme, lang, set, currency, settings, categories, products, logout } = useStore();
   const { openAuth } = useAuth();
   const [mega, setMega] = useState(false);
   const [search, setSearch] = useState(false);
@@ -229,33 +245,91 @@ export function Header({ onCart, onCompare }: { onCart: () => void; onCompare: (
     return () => window.removeEventListener("scroll", h);
   }, []);
 
+  const headerConfig = settings.header || {
+    brandName: "CakeUrban",
+    brandBadge: "100% EGGLESS PURE VEG",
+    tagline: "Delhi NCR's #1 Eggless Artisan Bakehouse",
+    announcement: settings.announcement,
+    showAnnouncement: true,
+    hotline: "+91 7318531953",
+    whatsappNumber: "+917318531953",
+    showHotline: true,
+    showCityNotice: true,
+    cityNotice: "Faridabad · Noida · Gurgaon · Delhi NCR",
+    banner: { enabled: false, text: "", linkText: "", linkUrl: "/shop", badgeText: "HOT" },
+  };
+
+  const navCategories = categories.filter((c) => c.showInNav !== false);
+
   return (
     <>
-      <header className={`fixed top-0 inset-x-0 z-[70] transition-all duration-300 ${scrolled || mega ? "bg-ink-950/90 dark:bg-ink-950/90 backdrop-blur-lg border-b border-ink-800 shadow-lg shadow-ink-950/40" : "bg-transparent border-b border-transparent"}`}>
-        {/* top utility strip */}
-        <div className="hidden md:flex items-center justify-between px-6 lg:px-10 h-8 border-b border-ink-800/60 font-mono text-[10px] tracking-[0.18em] text-ink-400 uppercase">
-          <span className="truncate">{settings.announcement}</span>
-          <div className="flex items-center gap-4 shrink-0">
-            <select value={currency} onChange={(e) => set({ currency: e.target.value })} aria-label="Currency" className="bg-transparent outline-none cursor-pointer hover:text-blaze-400 transition-colors">
-              {CURRENCIES.map((c) => <option key={c.code} value={c.code} className="bg-ink-900 text-ink-100">{c.code} {c.symbol}</option>)}
-            </select>
-            <span className="text-ink-700">/</span>
-            <select value={lang} onChange={(e) => set({ lang: e.target.value as Lang })} aria-label="Language" className="bg-transparent outline-none cursor-pointer hover:text-blaze-400 transition-colors">
-              <option value="en" className="bg-ink-900 text-ink-100">EN</option>
-              <option value="hi" className="bg-ink-900 text-ink-100">हिं</option>
-              <option value="es" className="bg-ink-900 text-ink-100">ES</option>
-            </select>
-            <span className="text-ink-700">/</span>
-            <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-volt-400" /> Live rates</span>
+      <header className={`fixed top-0 inset-x-0 z-[70] transition-all duration-300 ${scrolled || mega ? "bg-ink-950/95 backdrop-blur-lg border-b border-ink-800 shadow-lg shadow-ink-950/40" : "bg-ink-950/80 backdrop-blur-sm border-b border-ink-800/40"}`}>
+        {/* top promo banner if enabled */}
+        {headerConfig.banner?.enabled && (
+          <div className="bg-blaze-600 text-ink-50 px-4 py-1.5 text-center font-mono text-[11px] tracking-wide flex items-center justify-center gap-3">
+            <span className="bg-ink-950 text-blaze-400 px-2 py-0.5 text-[9px] font-bold rounded">{headerConfig.banner.badgeText || "PROMO"}</span>
+            <span>{headerConfig.banner.text}</span>
+            {headerConfig.banner.linkText && (
+              <Link to={headerConfig.banner.linkUrl || "/shop"} className="underline font-bold hover:text-ink-200 ml-1">
+                {headerConfig.banner.linkText} →
+              </Link>
+            )}
           </div>
-        </div>
+        )}
+
+        {/* top utility strip */}
+        {headerConfig.showAnnouncement && (
+          <div className="hidden md:flex items-center justify-between px-6 lg:px-10 h-8 border-b border-ink-800/60 font-mono text-[10px] tracking-[0.18em] text-ink-400 uppercase">
+            <div className="flex items-center gap-3 truncate">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="truncate">{headerConfig.announcement || settings.announcement}</span>
+              {headerConfig.showCityNotice && (
+                <span className="hidden xl:inline-block px-2 py-0.5 bg-ink-900 border border-ink-700 text-blaze-400 text-[9px] rounded">
+                  📍 {headerConfig.cityNotice || "Faridabad · Noida · Gurgaon · Delhi NCR"}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-4 shrink-0">
+              {headerConfig.showHotline && (
+                <a href={`https://wa.me/${(headerConfig.whatsappNumber || "917318531953").replace(/\D/g, "")}?text=Hi%20CakeUrban,%20I%20want%20to%20order%20a%20fresh%20cake`} target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:text-emerald-300 flex items-center gap-1">
+                  <span>💬 WhatsApp Order:</span>
+                  <span className="font-bold text-ink-200">{headerConfig.hotline || "+91 7318531953"}</span>
+                </a>
+              )}
+              <span className="text-ink-700">/</span>
+              <select value={currency} onChange={(e) => set({ currency: e.target.value })} aria-label="Currency" className="bg-transparent outline-none cursor-pointer hover:text-blaze-400 transition-colors">
+                {CURRENCIES.map((c) => <option key={c.code} value={c.code} className="bg-ink-900 text-ink-100">{c.code} {c.symbol}</option>)}
+              </select>
+              <span className="text-ink-700">/</span>
+              <select value={lang} onChange={(e) => set({ lang: e.target.value as Lang })} aria-label="Language" className="bg-transparent outline-none cursor-pointer hover:text-blaze-400 transition-colors">
+                <option value="en" className="bg-ink-900 text-ink-100">EN</option>
+                <option value="hi" className="bg-ink-900 text-ink-100">हिं</option>
+                <option value="es" className="bg-ink-900 text-ink-100">ES</option>
+              </select>
+            </div>
+          </div>
+        )}
+
         {/* main bar */}
         <div className="flex items-center justify-between px-4 sm:px-6 lg:px-10 h-16">
           <div className="flex items-center gap-8">
-            <Link to="/" className="flex items-center gap-2 text-ink-50">
-              <Ic.cake className="w-7 h-7 text-blaze-500" />
-              <span className="font-display font-extrabold text-lg tracking-wide">CakeUrban</span>
+            <Link to="/" className="flex items-center gap-2.5 text-ink-50 group">
+              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blaze-500 to-blaze-600 flex items-center justify-center shadow-glow text-ink-50">
+                <Ic.cake className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              </div>
+              <div className="flex flex-col">
+                <div className="flex items-center gap-1.5">
+                  <span className="font-display font-black text-xl tracking-wider text-ink-50">{headerConfig.brandName || "CakeUrban"}</span>
+                  <span className="px-1.5 py-0.2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono text-[8px] rounded uppercase font-bold tracking-widest">
+                    {headerConfig.brandBadge || "VEG"}
+                  </span>
+                </div>
+                <span className="font-mono text-[9px] text-ink-400 tracking-wider hidden sm:block">
+                  {headerConfig.tagline || "Artisan Eggless Bakehouse"}
+                </span>
+              </div>
             </Link>
+
             <nav className="hidden lg:flex items-center gap-7 font-mono text-xs tracking-[0.2em] uppercase">
               <div className="relative" onMouseEnter={() => setMega(true)} onMouseLeave={() => setMega(false)}>
                 <Link to="/shop" className={`link-sweep py-2 flex items-center gap-1.5 transition-colors ${mega ? "text-blaze-400" : "text-ink-200 hover:text-ink-50"}`}>
@@ -263,10 +337,12 @@ export function Header({ onCart, onCompare }: { onCart: () => void; onCompare: (
                 </Link>
               </div>
               <Link to="/shop?tag=NEW" className="link-sweep text-ink-200 hover:text-ink-50 transition-colors">{t("nav.new")}</Link>
+              <Link to="/shop?cat=Bento%20Cakes" className="link-sweep text-ink-200 hover:text-ink-50 transition-colors">Bento & Mini</Link>
               <Link to="/blog" className="link-sweep text-ink-200 hover:text-ink-50 transition-colors">{t("nav.blog")}</Link>
-              {user?.role === "admin" && <Link to="/admin" className="link-sweep text-gold-400 hover:text-gold-400">Admin</Link>}
+              {user?.role === "admin" && <Link to="/admin" className="link-sweep text-gold-400 hover:text-gold-400 font-bold">⚙ Admin Panel</Link>}
             </nav>
           </div>
+
           <div className="flex items-center gap-0.5 sm:gap-1.5">
             <button onClick={() => setSearch(true)} aria-label="Search" className="p-2 text-ink-300 hover:text-blaze-500 transition-colors"><Ic.search className="w-5 h-5" /></button>
             <button onClick={toggleTheme} aria-label={t("theme")} className="p-2 text-ink-300 hover:text-blaze-500 transition-colors">
@@ -302,21 +378,22 @@ export function Header({ onCart, onCompare }: { onCart: () => void; onCompare: (
             </button>
           </div>
         </div>
+
         {/* mega menu */}
         <AnimatePresence>
           {mega && (
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.25 }}
               onMouseEnter={() => setMega(true)} onMouseLeave={() => setMega(false)}
-              className="hidden lg:block absolute inset-x-0 top-full bg-ink-950/97 backdrop-blur-xl border-b border-ink-800 shadow-lift">
-              <div className="px-10 py-10 grid grid-cols-[repeat(5,1fr)_1.4fr] gap-8">
-                {CATEGORIES.map((c) => (
+              className="hidden lg:block absolute inset-x-0 top-full bg-ink-950/98 backdrop-blur-xl border-b border-ink-800 shadow-lift">
+              <div className="px-10 py-8 grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))_1.4fr] gap-8">
+                {navCategories.map((c) => (
                   <div key={c.name}>
                     <Link to={`/shop?cat=${encodeURIComponent(c.name)}`} className="font-display font-bold text-sm uppercase tracking-wide text-ink-50 hover:text-blaze-400 transition-colors">{c.name}</Link>
-                    <div className="mt-4 space-y-2.5">
-                      {c.subs.map((s) => (
-                        <Link key={s} to={`/shop?cat=${encodeURIComponent(c.name)}&q=${encodeURIComponent(s)}`} className="block text-sm text-ink-400 hover:text-blaze-400 hover:translate-x-1 transition-all">{s}</Link>
+                    <div className="mt-3 space-y-2">
+                      {c.subs?.map((s) => (
+                        <Link key={s} to={`/shop?cat=${encodeURIComponent(c.name)}&q=${encodeURIComponent(s)}`} className="block text-xs text-ink-400 hover:text-blaze-400 hover:translate-x-1 transition-all">{s}</Link>
                       ))}
-                      <Link to={`/shop?cat=${encodeURIComponent(c.name)}`} className="inline-flex items-center gap-1.5 pt-1 font-mono text-[10px] tracking-[0.2em] uppercase text-blaze-500">All <Ic.arrow className="w-3 h-3" /></Link>
+                      <Link to={`/shop?cat=${encodeURIComponent(c.name)}`} className="inline-flex items-center gap-1.5 pt-1 font-mono text-[10px] tracking-[0.2em] uppercase text-blaze-500">All {c.name} <Ic.arrow className="w-3 h-3" /></Link>
                     </div>
                   </div>
                 ))}
@@ -324,8 +401,9 @@ export function Header({ onCart, onCompare }: { onCart: () => void; onCompare: (
                   <div className="absolute inset-0 grid-lines opacity-50" />
                   <MegaFeatured />
                   <div className="absolute inset-x-0 bottom-0 p-5 bg-gradient-to-t from-ink-950 via-ink-950/60 to-transparent">
-                    <p className="font-mono text-[10px] tracking-[0.25em] text-blaze-400">SIGNATURE · BAKED TO ORDER</p>
-                    <p className="font-display font-bold mt-1 group-hover:text-blaze-400 transition-colors">Raspberry Noir</p>
+                    <p className="font-mono text-[10px] tracking-[0.25em] text-blaze-400">DELHI NCR BESTSELLER</p>
+                    <p className="font-display font-bold mt-1 group-hover:text-blaze-400 transition-colors">Raspberry Noir Truffle</p>
+                    <p className="font-mono text-xs text-ink-300 mt-0.5">30-45 Min Express Delivery</p>
                   </div>
                 </Link>
               </div>
@@ -516,6 +594,277 @@ export function ChatWidget() {
   );
 }
 
+/* ================= WhatsApp Concierge Widget ================= */
+export function WhatsAppWidget() {
+  const { consent } = useStore();
+  const [open, setOpen] = useState(false);
+  const [customMsg, setCustomMsg] = useState("");
+  const WHATSAPP_NUM = "917318531953"; // +91 7318531953
+  const WHATSAPP_DISPLAY = "+91 7318531953";
+
+  const QUICK_PROMPTS = [
+    { label: "⚡ Express 30-Min Delivery Check", text: "Hi CakeUrban! Please check express 30-45 min delivery availability for my address." },
+    { label: "🎂 Custom / Photo Cake Design Quote", text: "Hi CakeUrban team, I want to discuss a custom / photo cake design for an upcoming celebration." },
+    { label: "🌙 Book Midnight Delivery Slot", text: "Hi CakeUrban, I want to book a guaranteed midnight (11:30 PM - 12:00 AM) cake delivery slot." },
+    { label: "🌱 100% Pure Eggless Catalog", text: "Hi, please share details & top-selling flavors from your 100% pure eggless vegetarian cake menu." },
+    { label: "💬 Chat with Head Baker", text: "Hi Head Baker at CakeUrban, I have a special flavor & custom decor requirement." },
+  ];
+
+  const launchWhatsApp = (msgText: string) => {
+    const textToSend = msgText.trim() || "Hi CakeUrban team, I would like to order a fresh cake!";
+    const url = `https://wa.me/${WHATSAPP_NUM}?text=${encodeURIComponent(textToSend)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  return (
+    <>
+      {/* Floating button on bottom right */}
+      <div className={`fixed right-4 md:right-6 z-[76] flex items-center gap-3 transition-all ${consent === "pending" ? "bottom-52" : "bottom-20 md:bottom-6"}`}>
+        {!open && (
+          <motion.div
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 1 }}
+            className="hidden sm:flex items-center gap-2 bg-ink-900/95 border border-emerald-500/40 text-ink-100 text-xs px-3.5 py-2 shadow-lift clip-tag cursor-pointer hover:border-emerald-400"
+            onClick={() => setOpen(true)}
+          >
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+            <span className="font-mono font-medium">WhatsApp Help · <span className="text-emerald-400">{WHATSAPP_DISPLAY}</span></span>
+          </motion.div>
+        )}
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setOpen(!open)}
+          aria-label="Contact on WhatsApp"
+          className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lift text-white transition-all ${open ? "bg-ink-800 border border-ink-600 text-ink-200" : "bg-[#25D366] hover:bg-[#20ba59]"}`}
+        >
+          {open ? <Ic.x className="w-6 h-6" /> : <Ic.whatsapp className="w-7 h-7 fill-current" />}
+        </motion.button>
+      </div>
+
+      {/* WhatsApp Dialog Modal Drawer */}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: 30, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 30, scale: 0.95 }}
+            className={`fixed right-4 md:right-6 z-[77] w-[min(92vw,380px)] bg-ink-900 border border-ink-700 shadow-lift flex flex-col clip-tile overflow-hidden ${consent === "pending" ? "bottom-68" : "bottom-24 md:bottom-22"}`}
+          >
+            {/* Header with WhatsApp brand color */}
+            <div className="px-5 py-4 bg-gradient-to-r from-[#075E54] to-[#128C7E] text-white flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="relative w-10 h-10 rounded-full bg-white/10 grid place-items-center border border-white/30 text-white">
+                  <Ic.whatsapp className="w-6 h-6 fill-current" />
+                  <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-400 rounded-full border-2 border-[#075E54]" />
+                </div>
+                <div>
+                  <h4 className="font-display text-sm font-bold tracking-wide">CakeUrban WhatsApp</h4>
+                  <p className="font-mono text-[10px] text-emerald-200">● {WHATSAPP_DISPLAY} · Online</p>
+                </div>
+              </div>
+              <button onClick={() => setOpen(false)} className="text-white/80 hover:text-white p-1">
+                <Ic.x className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Content body */}
+            <div className="p-4 space-y-4 max-h-[60vh] overflow-y-auto bg-ink-950">
+              <div className="p-3.5 bg-ink-900 border border-ink-800 text-xs text-ink-200 leading-relaxed clip-tag">
+                <p className="font-semibold text-emerald-400 mb-1 flex items-center gap-1.5">
+                  <Ic.sparkle className="w-3.5 h-3.5" /> Instant Baker & Dispatch Desk
+                </p>
+                Hello! Need instant cake booking, custom photo design, or 30-min express slot? Tap below or write your message:
+              </div>
+
+              {/* Quick Prompts */}
+              <div className="space-y-2">
+                <p className="font-mono text-[10px] uppercase tracking-wider text-ink-500">Quick 1-Tap Inquiries</p>
+                {QUICK_PROMPTS.map((q, i) => (
+                  <button
+                    key={i}
+                    onClick={() => { launchWhatsApp(q.text); setOpen(false); }}
+                    className="w-full text-left text-xs p-2.5 bg-ink-900 hover:bg-ink-850 border border-ink-800 hover:border-emerald-500/50 text-ink-200 hover:text-ink-50 transition-colors clip-tag flex items-center justify-between group"
+                  >
+                    <span>{q.label}</span>
+                    <span className="text-emerald-400 opacity-0 group-hover:opacity-100 font-mono text-[10px]">TAP →</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Custom message box */}
+              <div className="pt-2 border-t border-ink-800">
+                <label className="block font-mono text-[10px] uppercase tracking-wider text-ink-400 mb-1.5">Type custom inquiry</label>
+                <textarea
+                  rows={2}
+                  value={customMsg}
+                  onChange={(e) => setCustomMsg(e.target.value)}
+                  placeholder="e.g. Need 1kg Chocolate Truffle cake in Sector 15 Faridabad by 8 PM..."
+                  className="w-full bg-ink-900 border border-ink-700 focus:border-emerald-400 outline-none p-2.5 text-xs text-ink-100 placeholder:text-ink-500 transition-colors resize-none clip-tag"
+                />
+                <button
+                  onClick={() => { launchWhatsApp(customMsg); setOpen(false); }}
+                  className="w-full mt-2.5 py-3 bg-[#25D366] hover:bg-[#20ba59] text-white font-mono text-xs tracking-wider uppercase flex items-center justify-center gap-2 clip-btn transition-colors font-bold shadow-md"
+                >
+                  <Ic.whatsapp className="w-4 h-4 fill-current" /> Open in WhatsApp
+                </button>
+              </div>
+
+              {/* Direct call footer */}
+              <div className="pt-2 text-center">
+                <a href="tel:+917318531953" className="inline-flex items-center gap-1.5 text-[11px] font-mono text-ink-400 hover:text-emerald-400">
+                  <Ic.phone className="w-3.5 h-3.5" /> Call directly: +91 7318531953
+                </a>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+
+/* ================= Mandatory Phone Profile Modal (for Google/Missing phone) ================= */
+export function PhoneRequirementModal() {
+  const { user, updateProfile, logout } = useStore();
+  const [phone, setPhone] = useState("");
+  const [name, setName] = useState("");
+  const [photoURL, setPhotoURL] = useState("");
+  const [err, setErr] = useState("");
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+
+  const isPhoneMissing = Boolean(user && (!user.phone || user.phone.replace(/\D/g, "").length < 10));
+
+  useEffect(() => {
+    if (user) {
+      setName(user.name || "");
+      setPhone(user.phone ? user.phone.replace(/\D/g, "").slice(0, 10) : "");
+      setPhotoURL(user.photoURL || "");
+      setAvatarPreview(user.photoURL || null);
+    }
+  }, [user]);
+
+  if (!isPhoneMissing) return null;
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      setErr("Image file must be under 2MB.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const b64 = reader.result as string;
+      setAvatarPreview(b64);
+      setPhotoURL(b64);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSave = (e: React.FormEvent) => {
+    e.preventDefault();
+    setErr("");
+    const cleanPhone = phone.replace(/\D/g, "");
+    if (cleanPhone.length < 10) {
+      setErr("A valid 10-digit mobile number is mandatory for cake delivery updates and WhatsApp receipts.");
+      return;
+    }
+    if (!name.trim()) {
+      setErr("Please enter your full name.");
+      return;
+    }
+    updateProfile({
+      name: name.trim(),
+      phone: `+91 ${cleanPhone.slice(-10)}`,
+      photoURL: photoURL || undefined,
+    });
+  };
+
+  return (
+    <Modal open={isPhoneMissing} onClose={() => { /* mandatory, prevent silent dismiss */ }}>
+      <div className="p-6 md:p-8 max-w-lg mx-auto">
+        <div className="flex items-center gap-2 text-blaze-500 mb-2">
+          <Ic.phone className="w-5 h-5" />
+          <p className="font-mono text-xs tracking-widest uppercase">Mandatory Profile Completion</p>
+        </div>
+        <h3 className="font-display text-2xl font-bold uppercase leading-tight">Complete Your Details</h3>
+        <p className="text-sm text-ink-300 mt-2 leading-relaxed">
+          Welcome to CakeUrban! To receive live rider GPS updates, cake preview photos on WhatsApp, and OTP order verification, please enter your mobile number.
+        </p>
+
+        <form onSubmit={handleSave} className="mt-6 space-y-4">
+          {/* Profile Photo Avatar Preview */}
+          <div className="flex items-center gap-4 p-3 bg-ink-950 border border-ink-800 clip-tag">
+            <div className="relative w-14 h-14 rounded-full overflow-hidden bg-ink-800 border-2 border-blaze-500/50 shrink-0 grid place-items-center">
+              {avatarPreview ? (
+                <img src={avatarPreview} alt={name || "User"} className="w-full h-full object-cover" />
+              ) : (
+                <Ic.user className="w-7 h-7 text-ink-400" />
+              )}
+            </div>
+            <div className="flex-1">
+              <p className="text-xs font-medium text-ink-200">Profile Photo (Optional)</p>
+              <label className="inline-flex items-center gap-1.5 mt-1 cursor-pointer font-mono text-[11px] text-blaze-400 hover:text-blaze-300">
+                <Ic.camera className="w-3.5 h-3.5" /> Upload Image
+                <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label className="block font-mono text-[11px] uppercase tracking-wider text-ink-400 mb-1">Full Name *</label>
+            <input
+              type="text"
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full bg-ink-950 border border-ink-600 focus:border-blaze-500 outline-none px-4 py-3 text-sm text-ink-100 transition-colors"
+              placeholder="e.g. Abhi Kumar"
+            />
+          </div>
+
+          <div>
+            <label className="block font-mono text-[11px] uppercase tracking-wider text-ink-400 mb-1">Mobile Phone Number (Mandatory) *</label>
+            <div className="flex gap-2">
+              <span className="flex items-center justify-center px-4 bg-ink-900 border border-ink-600 font-mono text-sm text-ink-200 select-none">+91</span>
+              <input
+                type="tel"
+                required
+                maxLength={10}
+                value={phone}
+                onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                className="flex-1 bg-ink-950 border border-ink-600 focus:border-blaze-500 outline-none px-4 py-3 font-mono text-sm text-ink-100 transition-colors placeholder:text-ink-500 placeholder:font-body"
+                placeholder="10-digit mobile number"
+              />
+            </div>
+            <p className="font-mono text-[10px] text-ink-500 mt-1">We send order confirmations and WhatsApp tracking to this number.</p>
+          </div>
+
+          {err && <p className="text-danger-400 text-xs font-mono">{err}</p>}
+
+          <div className="pt-2 flex flex-col gap-2">
+            <button
+              type="submit"
+              className="clip-btn w-full bg-blaze-500 hover:bg-blaze-400 text-ink-50 font-mono text-sm tracking-[0.2em] uppercase py-3.5 transition-colors font-bold"
+            >
+              Save Details & Continue
+            </button>
+            <button
+              type="button"
+              onClick={logout}
+              className="font-mono text-xs text-ink-500 hover:text-ink-300 py-1 transition-colors"
+            >
+              Sign out instead
+            </button>
+          </div>
+        </form>
+      </div>
+    </Modal>
+  );
+}
+
 /* ================= toasts + cookie consent + policy ================= */
 export function Toasts() {
   const { toasts, dismissToast } = useStore();
@@ -593,8 +942,8 @@ export function Footer() {
       {/* link columns */}
       <div className="max-w-7xl mx-auto px-6 lg:px-10 py-14 grid grid-cols-2 md:grid-cols-5 gap-10">
         <div className="col-span-2 md:col-span-2">
-          <div className="flex items-center gap-2 text-ink-50"><Ic.bolt className="w-7 h-7 text-blaze-500" /><span className="font-display font-extrabold text-lg">VOLTA</span></div>
-          <p className="text-sm text-ink-400 mt-4 max-w-xs leading-relaxed">Performance gear engineered in our propulsion lab. Tested at race pace, delivered in 48 hours, backed for life.</p>
+          <div className="flex items-center gap-2 text-ink-50"><Ic.cake className="w-7 h-7 text-blaze-500" /><span className="font-display font-extrabold text-lg">CakeUrban</span></div>
+          <p className="text-sm text-ink-400 mt-4 max-w-xs leading-relaxed">Delhi NCR's artisanal bakery & express cake delivery network. 100% fresh baked on order with 30-45 mins delivery & guaranteed midnight slots.</p>
           <div className="flex gap-2 mt-6">
             {[settings.socials.instagram, settings.socials.twitter, settings.socials.youtube].map((s, i) => (
               <a key={i} href={`https://${s}`} target="_blank" rel="noreferrer" className="w-9 h-9 grid place-items-center border border-ink-700 hover:border-blaze-500 hover:text-blaze-400 text-ink-400 transition-colors font-mono text-[10px]">{["IG", "X", "YT"][i]}</a>
@@ -602,9 +951,9 @@ export function Footer() {
           </div>
         </div>
         {[
-          { h: t("nav.shop"), links: [["All gear", "/shop"], ["Footwear", "/shop?cat=Footwear"], ["Audio", "/shop?cat=Audio"], ["Wearables", "/shop?cat=Wearables"], ["Compare", "/compare"]] },
-          { h: "Company", links: [["Journal", "/blog"], ["About", "/blog"], ["Delivery Hubs", "/delivery-locations"], ["Order tracking", "/account?tab=orders"]] },
-          { h: "Legal", links: [["Privacy Policy", "privacy"], ["Terms", "terms"], ["GDPR", "gdpr"], ["Sitemap", "/"]] },
+          { h: "Bakery Menu", links: [["All Cakes", "/shop"], ["Birthday Specials", "/birthday-cake-delivery-in/sector-15-faridabad"], ["100% Eggless", "/eggless-cake-delivery-in/dlf-phase-gurgaon"], ["Midnight Delivery", "/midnight-cake-delivery-in/sector-18-noida"], ["3D Custom Cake", "/builder"]] },
+          { h: "NCR City Hubs", links: [["Faridabad Hub", "/cakes-in/faridabad"], ["Gurgaon Hub", "/cakes-in/gurgaon"], ["Noida Hub", "/cakes-in/noida"], ["Delhi Hub", "/cakes-in/delhi"], ["Ghaziabad Hub", "/cakes-in/ghaziabad"]] },
+          { h: "Company & Legal", links: [["Delivery Locations", "/delivery-locations"], ["Journal / Blog", "/blog"], ["Privacy Policy", "privacy"], ["Terms of Service", "terms"], ["XML Sitemap", "/sitemap.xml"]] },
         ].map((col) => (
           <div key={col.h}>
             <p className="font-mono text-[10px] tracking-[0.25em] text-ink-500 uppercase mb-4">{col.h}</p>
@@ -625,9 +974,9 @@ export function Footer() {
       {/* bottom bar */}
       <div className="border-t border-ink-800">
         <div className="max-w-7xl mx-auto px-6 lg:px-10 py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="font-mono text-[10px] tracking-[0.15em] text-ink-500 uppercase">© {year} VOLTA Supply Co. — {t("footerRights")}</p>
+          <p className="font-mono text-[10px] tracking-[0.15em] text-ink-500 uppercase">© {year} CakeUrban Bakery Network — {t("footerRights")}</p>
           <div className="flex items-center gap-2">
-            {["VISA", "MC", "AMEX", "PayPal", "Razorpay", "UPI"].map((pm) => (
+            {["UPI", "Cards", "NetBanking", "COD", "Razorpay"].map((pm) => (
               <span key={pm} className="px-2.5 py-1 border border-ink-700 font-mono text-[9px] tracking-wider text-ink-400">{pm}</span>
             ))}
           </div>

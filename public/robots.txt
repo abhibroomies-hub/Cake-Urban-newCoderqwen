@@ -1,4 +1,40 @@
+# CakeUrban Search & AI Crawler Directives
 User-agent: *
 Allow: /
 
+# Explicit AI Search Engines & LLM Agents
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# Sitemaps & Knowledge Graph
 Sitemap: https://www.cakeurban.com/sitemap.xml
+Sitemap: https://www.cakeurban.com/sitemap-main.xml
+Sitemap: https://www.cakeurban.com/sitemap-faridabad.xml
+Sitemap: https://www.cakeurban.com/sitemap-gurgaon.xml
+Sitemap: https://www.cakeurban.com/sitemap-noida.xml
+Sitemap: https://www.cakeurban.com/sitemap-delhi.xml
+Sitemap: https://www.cakeurban.com/sitemap-occasions.xml

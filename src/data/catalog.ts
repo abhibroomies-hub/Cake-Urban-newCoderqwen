@@ -32,12 +32,45 @@ export const LIFESTYLE_IMG = IMG.hero;
 /* quadrant positions for the 2×2 sheet images */
 export const CROP = { TL: "0% 0%", TR: "100% 0%", BL: "0% 100%", BR: "100% 100%" };
 
-export const CATEGORIES = [
-  { name: "Cakes", subs: ["Celebration", "Layer", "Drip", "Wedding"], img: IMG.cakes },
-  { name: "Cookies", subs: ["Choc Chip", "Macaron", "Brownie", "Thumbprint"], img: IMG.cookies },
-  { name: "Pastries & Bars", subs: ["Brownie", "Bars", "Croissant"], img: IMG.cookies, crop: CROP.BL },
-  { name: "Gift Boxes", subs: ["Hampers", "Party Packs", "Corporate"], img: IMG.hero },
-  { name: "Seasonal & Events", subs: ["Birthdays", "Weddings", "Anniversaries"], img: IMG.cakes, crop: CROP.TR },
+export type Category = {
+  id: string;
+  name: string;
+  subs: string[];
+  img: string;
+  crop?: string;
+  tag?: string;
+  desc?: string;
+  showOnHome: boolean;
+  showInNav: boolean;
+};
+
+export const CATEGORIES: Category[] = [
+  { id: "cat-cakes", name: "Cakes", subs: ["Celebration", "Layer", "Drip", "Wedding"], img: IMG.cakes, showOnHome: true, showInNav: true, tag: "POPULAR", desc: "100% Pure eggless Belgian chocolate & fresh berry artisan cakes" },
+  { id: "cat-cookies", name: "Cookies", subs: ["Choc Chip", "Macaron", "Brownie", "Thumbprint"], img: IMG.cookies, showOnHome: true, showInNav: true, desc: "72-hour cold-fermented cookie dough with molten centers" },
+  { id: "cat-pastries", name: "Pastries & Bars", subs: ["Brownie", "Bars", "Croissant"], img: IMG.cookies, crop: CROP.BL, showOnHome: true, showInNav: true, desc: "Fudge brownies, tarts and single-serve layered slices" },
+  { id: "cat-gifts", name: "Gift Boxes", subs: ["Hampers", "Party Packs", "Corporate"], img: IMG.hero, showOnHome: true, showInNav: true, tag: "GIFTING", desc: "Curated celebration hampers with luxury gift tin packaging" },
+  { id: "cat-seasonal", name: "Seasonal & Events", subs: ["Birthdays", "Weddings", "Anniversaries"], img: IMG.cakes, crop: CROP.TR, showOnHome: true, showInNav: true, desc: "Custom celebration tiers and festive specials" },
+];
+
+export type NcrHub = {
+  id: string;
+  city: string;
+  zone: string;
+  time: string;
+  minOrder: number;
+  active: boolean;
+  topAreas: string;
+  badge: string;
+  phone: string;
+};
+
+export const SEED_NCR_HUBS: NcrHub[] = [
+  { id: "hub-faridabad", city: "Faridabad", zone: "HQ Kitchen Hub", time: "30-40 Mins", minOrder: 299, active: true, topAreas: "NIT 1-5, Sector 14, 15, 16, 21C, Greenfield, Charmwood, Neharpar, Greater Faridabad", badge: "KITCHEN HQ · ULTRA EXPRESS", phone: "+91 7318531953" },
+  { id: "hub-noida", city: "Noida & Gr. Noida", zone: "Express Route 1", time: "35-45 Mins", minOrder: 349, active: true, topAreas: "Sector 18, 50, 62, 75, 76, 128, 137, Noida Ext / Gaur City, Pari Chowk", badge: "MIDNIGHT AVAILABLE", phone: "+91 7318531953" },
+  { id: "hub-gurgaon", city: "Gurgaon (Gurugram)", zone: "Cyber Hub Route", time: "40-50 Mins", minOrder: 399, active: true, topAreas: "DLF Phase 1-5, Cyber City, Golf Course Road, Sohna Road, Sector 56, 57, 43, 29", badge: "CORPORATE & MIDNIGHT", phone: "+91 7318531953" },
+  { id: "hub-delhi-south", city: "South Delhi", zone: "Express Route 2", time: "35-45 Mins", minOrder: 349, active: true, topAreas: "GK 1 & 2, Saket, Hauz Khas, Defence Colony, Vasant Kunj, Lajpat Nagar, Kalkaji", badge: "FASTEST TRANSIT", phone: "+91 7318531953" },
+  { id: "hub-delhi-east", city: "East & Central Delhi", zone: "Express Route 3", time: "45-55 Mins", minOrder: 399, active: true, topAreas: "Connaught Place, Mayur Vihar, Preet Vihar, Laxmi Nagar, Karol Bagh, Chanakyapuri", badge: "SAME DAY EXPRESS", phone: "+91 7318531953" },
+  { id: "hub-ghaziabad", city: "Ghaziabad", zone: "Indirapuram Hub", time: "45-55 Mins", minOrder: 399, active: true, topAreas: "Indirapuram, Vaishali, Vasundhara, Raj Nagar Extension, Crossings Republik", badge: "EXPRESS AVAILABLE", phone: "+91 7318531953" },
 ];
 
 export const BRANDS = ["Noir Collection", "Crumb Lab", "Pâtisserie", "Oven Stories"];

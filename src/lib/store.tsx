@@ -1,27 +1,76 @@
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
-  PRODUCTS, SEED_REVIEWS, SEED_COUPONS, SEED_CUSTOMERS, SEED_STAFF, SEED_FAQS, CURRENCIES, HERO_DEFAULT,
-  type Product, type Review, type Coupon, type Customer, type Staff, type Faq, type CartItem, type Address,
+  PRODUCTS, CATEGORIES, SEED_NCR_HUBS, SEED_REVIEWS, SEED_COUPONS, SEED_CUSTOMERS, SEED_STAFF, SEED_FAQS, CURRENCIES, HERO_DEFAULT,
+  type Product, type Category, type NcrHub, type Review, type Coupon, type Customer, type Staff, type Faq, type CartItem, type Address,
   type PaymentMethod, type Order, type OrderStatus, type OrderItem,
 } from "../data/catalog";
 import { translate, type Lang } from "./i18n";
-import { auth, db, rtdb, ref, rtdbRef, set as rtdbSet, child, googleProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, signOut, onAuthStateChanged } from "./firebaseClient";
-import { collection, doc, setDoc, getDocs, addDoc } from "firebase/firestore";
+import { auth, rtdb, ref, set as rtdbSet, get as rtdbGet, onValue, child, googleProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, signOut, onAuthStateChanged } from "./firebaseClient";
 
-
-
-export type User = { name: string; email: string; role: "customer" | "admin" };
+export type User = { name: string; email: string; phone?: string; photoURL?: string; role: "customer" | "admin" };
 export type Toast = { id: number; kind: "success" | "error" | "info"; msg: string };
 export type Notif = { id: number; text: string; at: string; read: boolean };
 export type ChatMsg = { from: "user" | "support"; text: string; at: string };
+
 export type Settings = {
   announcement: string;
-  hero: { kicker: string; titleA: string; titleB: string; sub: string };
+  header: {
+    brandName: string;
+    brandBadge: string;
+    tagline: string;
+    announcement: string;
+    showAnnouncement: boolean;
+    hotline: string;
+    whatsappNumber: string;
+    showHotline: boolean;
+    showCityNotice: boolean;
+    cityNotice: string;
+    banner: {
+      enabled: boolean;
+      text: string;
+      linkText: string;
+      linkUrl: string;
+      badgeText: string;
+    };
+  };
+  hero: {
+    kicker: string;
+    titleA: string;
+    titleB: string;
+    sub: string;
+    ctaText?: string;
+    ctaLink?: string;
+    secCtaText?: string;
+    secCtaLink?: string;
+    heroImage?: string;
+    stats?: [string, string][];
+  };
+  featuredProductIds: string[];
+  homeSections: {
+    hero: boolean;
+    ticker: boolean;
+    ncrHubs: boolean;
+    categories: boolean;
+    featured: boolean;
+    manifesto: boolean;
+    standards: boolean;
+    reviews: boolean;
+    journal: boolean;
+    faqs: boolean;
+  };
+  ncrHubs: NcrHub[];
   faqs: Faq[];
   zones: { zone: string; rate: number; freeOver: number }[];
   payments: { card: boolean; razorpay: boolean; paypal: boolean; cod: boolean };
-  socials: { instagram: string; twitter: string; youtube: string };
-  seo: { title: string; description: string };
+  socials: { instagram: string; twitter: string; youtube: string; whatsapp?: string };
+  seo: {
+    title: string;
+    description: string;
+    keywords: string;
+    localKeywordsNCR: string;
+    geoCoordinates?: string;
+    ogImage?: string;
+  };
 };
 
 function mulberry32(a: number) {
@@ -65,17 +114,68 @@ function seedOrders(): Order[] {
 }
 
 const DEFAULT_SETTINGS: Settings = {
-  announcement: "OVENS ON FROM 6 AM — FREE SAME-DAY DELIVERY OVER $49 — EGGLESS OPTIONS DAILY",
-  hero: HERO_DEFAULT,
+  announcement: "OVENS ON FROM 6 AM — EXPRESS 30-45 MIN DELIVERY ACROSS FARIDABAD, NOIDA, GURGAON & DELHI NCR",
+  header: {
+    brandName: "CakeUrban",
+    brandBadge: "100% EGGLESS PURE VEG",
+    tagline: "Delhi NCR's #1 Eggless Artisan Bakehouse",
+    announcement: "OVENS ON FROM 6 AM — EXPRESS 30-45 MIN DELIVERY ACROSS FARIDABAD, NOIDA, GURGAON & DELHI NCR",
+    showAnnouncement: true,
+    hotline: "+91 7318531953",
+    whatsappNumber: "+917318531953",
+    showHotline: true,
+    showCityNotice: true,
+    cityNotice: "Faridabad · Noida · Gurgaon · Delhi NCR",
+    banner: {
+      enabled: true,
+      text: "⚡ Get 10% OFF your first celebration cake with code SWEET10",
+      linkText: "Order Now",
+      linkUrl: "/shop",
+      badgeText: "HOT DEAL",
+    },
+  },
+  hero: {
+    kicker: "100% PURE EGGLESS BAKERY · 30-45 MIN EXPRESS DELIVERY",
+    titleA: "ARTISAN CAKES &",
+    titleB: "DELHI NCR",
+    sub: "Freshly whipped gourmet layer cakes, Belgian chocolate fudge & handcrafted cookies. Delivered across Faridabad, Noida, Gurgaon & Delhi in 30-45 minutes.",
+    ctaText: "Order Fresh Cake",
+    ctaLink: "/shop",
+    secCtaText: "Explore Eggless Menu",
+    secCtaLink: "/shop?cat=Cakes",
+    stats: [["4.9★", "2,480+ Google Reviews"], ["30-45M", "Express Delivery"], ["100%", "Pure Eggless Veg"]],
+  },
+  featuredProductIds: ["raspberry-noir", "belgian-fudge-drip", "pistachio-rose-royale", "bento-cake-strawberry"],
+  homeSections: {
+    hero: true,
+    ticker: true,
+    ncrHubs: true,
+    categories: true,
+    featured: true,
+    manifesto: true,
+    standards: true,
+    reviews: true,
+    journal: true,
+    faqs: true,
+  },
+  ncrHubs: SEED_NCR_HUBS,
   faqs: SEED_FAQS,
   zones: [
-    { zone: "City (same-day)", rate: 4.9, freeOver: 49 },
-    { zone: "National (next-morning)", rate: 9, freeOver: 90 },
-    { zone: "International (chilled)", rate: 19, freeOver: 150 },
+    { zone: "Faridabad HQ (30-40 min)", rate: 0, freeOver: 299 },
+    { zone: "Noida & Gr. Noida (35-45 min)", rate: 49, freeOver: 499 },
+    { zone: "Gurgaon Cyber Hub (40-50 min)", rate: 49, freeOver: 499 },
+    { zone: "South & Central Delhi (35-45 min)", rate: 49, freeOver: 499 },
+    { zone: "Ghaziabad & East Delhi (45-55 min)", rate: 59, freeOver: 599 },
   ],
-  payments: { card: true, razorpay: true, paypal: true, cod: false },
-  socials: { instagram: "instagram.com/cakeurban", twitter: "x.com/cakeurban", youtube: "youtube.com/@cakeurban" },
-  seo: { title: "CakeUrban — Artisan Cakes & Cookies", description: "Signature layer cakes, 72-hour cookies and macarons, baked fresh daily and delivered same-day." },
+  payments: { card: true, razorpay: true, paypal: true, cod: true },
+  socials: { instagram: "instagram.com/cakeurban.ncr", twitter: "x.com/cakeurban", youtube: "youtube.com/@cakeurban", whatsapp: "+917318531953" },
+  seo: {
+    title: "CakeUrban™ — #1 Best Online Cake Delivery in Faridabad, Noida, Gurgaon & Delhi NCR | 100% Eggless",
+    description: "Order fresh 100% eggless cakes online in Faridabad, Noida, Gurgaon & Delhi. 30-45 min express delivery, midnight birthday cakes, Belgian truffle, customized designer cakes & hampers. Call +91 7318531953.",
+    keywords: "cake delivery faridabad, cake delivery noida, cake delivery gurgaon, cake delivery delhi ncr, eggless cakes online, midnight cake delivery noida, birthday cake shop faridabad, best bakery delhi ncr, chocolate truffle cake delivery",
+    localKeywordsNCR: "Faridabad NIT, Sector 14 Faridabad, Sector 15, Sector 21C, Charmwood, Noida Sector 18, Sector 62 Noida, Sector 75, Sector 137, Gaur City, DLF Cyber City Gurgaon, Golf Course Road, South Delhi GK, Saket, Vasant Kunj, Indirapuram Ghaziabad",
+    geoCoordinates: "28.4089,77.3178",
+  },
 };
 
 type State = {
@@ -142,9 +242,10 @@ type Store = State & {
   couponFor: (code: string) => { ok: boolean; msg: string; coupon?: Coupon };
   redeemCoupon: (code: string) => void;
   login: (email: string, pass: string) => { ok: boolean; msg: string };
-  requestSignup: (name: string, email: string, pass: string) => { ok: boolean; msg: string; code?: string };
+  requestSignup: (name: string, email: string, phone: string, pass: string) => { ok: boolean; msg: string; code?: string };
   verifySignup: (code: string) => { ok: boolean; msg: string };
-  pendingOtp: { name: string; email: string; pass: string; code: string } | null;
+  pendingOtp: { name: string; email: string; phone: string; pass: string; code: string } | null;
+  updateProfile: (data: { name?: string; phone?: string; photoURL?: string }) => void;
   socialLogin: (provider: string) => void;
   logout: () => void;
   placeOrder: (o: { address: string; method: string; shipCost: number; payment: string; coupon?: string }) => Order | null;
@@ -170,7 +271,18 @@ type Store = State & {
   addProduct: (p: Product) => void;
   updateProduct: (p: Product) => void;
   deleteProduct: (id: string) => void;
+  bulkUpdateStock: (ids: string[], deltaOrSet: { mode: "add" | "set"; value: number }) => void;
+  bulkDeleteProducts: (ids: string[]) => void;
+  bulkUpdateTag: (ids: string[], tag: string) => void;
+  bulkUpdatePriceDiscount: (ids: string[], discountPct: number) => void;
   customProducts: Product[];
+  categories: Category[];
+  addCategory: (c: Category) => void;
+  updateCategory: (c: Category) => void;
+  deleteCategory: (name: string) => void;
+  reorderCategories: (cats: Category[]) => void;
+  updateSettings: (patch: Partial<Settings>) => void;
+  updateNcrHub: (hub: NcrHub) => void;
 };
 
 const Ctx = createContext<Store>(null as unknown as Store);
@@ -190,7 +302,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     return initialState();
   });
   const [toasts, setToasts] = useState<Toast[]>([]);
-  const [pendingOtp, setPendingOtp] = useState<{ name: string; email: string; pass: string; code: string } | null>(null);
+  const [pendingOtp, setPendingOtp] = useState<{ name: string; email: string; phone: string; pass: string; code: string } | null>(null);
   const idRef = useRef(100);
 
   useEffect(() => {
@@ -214,18 +326,28 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const set = (patch: Partial<State>) => setState((s) => ({ ...s, ...patch }));
 
+  const [productOverrides, setProductOverrides] = useState<Record<string, Partial<Product>>>(() => {
+    try { return JSON.parse(localStorage.getItem("cakeurban_product_overrides") || "{}") as Record<string, Partial<Product>>; } catch { return {}; }
+  });
   const [customProducts, setCustomProducts] = useState<Product[]>(() => {
     try { return JSON.parse(localStorage.getItem("cakeurban_custom_products") || "[]") as Product[]; } catch { return []; }
   });
   const [deletedProductIds, setDeletedProductIds] = useState<string[]>(() => {
     try { return JSON.parse(localStorage.getItem("cakeurban_deleted_ids") || "[]") as string[]; } catch { return []; }
   });
+  const [categoriesList, setCategoriesList] = useState<Category[]>(() => {
+    try {
+      const raw = localStorage.getItem("cakeurban_categories");
+      if (raw) return JSON.parse(raw);
+    } catch {}
+    return CATEGORIES;
+  });
   const products: Product[] = useMemo(
     () => PRODUCTS
       .filter((p) => !deletedProductIds.includes(p.id))
-      .map((p) => ({ ...p, stock: state.stockMap[p.id] ?? p.stock }))
+      .map((p) => ({ ...p, stock: state.stockMap[p.id] ?? p.stock, ...(productOverrides[p.id] || {}) }))
       .concat(customProducts.filter((p) => !deletedProductIds.includes(p.id))),
-    [state.stockMap, customProducts, deletedProductIds]
+    [state.stockMap, customProducts, deletedProductIds, productOverrides]
   );
   const syncRTDB = (path: string, val: any) => {
     try {
@@ -233,10 +355,22 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     } catch {}
   };
 
+  const persistCategories = (list: Category[]) => {
+    setCategoriesList(list);
+    try { localStorage.setItem("cakeurban_categories", JSON.stringify(list)); } catch {}
+    syncRTDB("categories", list);
+  };
+
   const persistCustom = (list: Product[]) => {
     setCustomProducts(list);
     try { localStorage.setItem("cakeurban_custom_products", JSON.stringify(list)); } catch { /* */ }
     syncRTDB("customProducts", list);
+  };
+
+  const persistOverrides = (map: Record<string, Partial<Product>>) => {
+    setProductOverrides(map);
+    try { localStorage.setItem("cakeurban_product_overrides", JSON.stringify(map)); } catch { /* */ }
+    syncRTDB("productOverrides", map);
   };
 
   const cur = CURRENCIES.find((c) => c.code === state.currency) || CURRENCIES[0];
@@ -313,36 +447,154 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    // Populate Realtime Database with all items so console is live and fully populated
+    // Listen for Realtime Database live updates across all clients without redeployment
     try {
-      const dbRef = (ref as any)(rtdb);
-      Promise.resolve(
-        (rtdbSet as any)(dbRef, {
-          products: PRODUCTS,
-          customers: SEED_CUSTOMERS,
-          reviews: SEED_REVIEWS,
-          coupons: SEED_COUPONS,
-          staff: SEED_STAFF,
-          faqs: SEED_FAQS,
-          info: { appName: "CakeUrban", status: "live", updatedAt: new Date().toISOString() }
-        })
-      ).catch((e: any) => {
-        console.error("RTDB sync error (Check Database Rules!):", e?.message || e);
+      const rootRef = (ref as any)(rtdb);
+      
+      // Subscribe to Custom Products in RTDB
+      const customProdRef = (child as any)(rootRef, "customProducts");
+      onValue(customProdRef, (snapshot: any) => {
+        if (snapshot.exists()) {
+          const val = snapshot.val();
+          if (Array.isArray(val)) {
+            setCustomProducts(val);
+            try { localStorage.setItem("cakeurban_custom_products", JSON.stringify(val)); } catch {}
+          }
+        }
       });
+
+      // Subscribe to Product Overrides in RTDB
+      const overridesRef = (child as any)(rootRef, "productOverrides");
+      onValue(overridesRef, (snapshot: any) => {
+        if (snapshot.exists()) {
+          const val = snapshot.val();
+          if (val && typeof val === "object") {
+            setProductOverrides(val);
+            try { localStorage.setItem("cakeurban_product_overrides", JSON.stringify(val)); } catch {}
+          }
+        }
+      });
+
+      // Subscribe to Deleted Product IDs in RTDB
+      const delProdRef = (child as any)(rootRef, "deletedProductIds");
+      onValue(delProdRef, (snapshot: any) => {
+        if (snapshot.exists()) {
+          const val = snapshot.val();
+          if (Array.isArray(val)) {
+            setDeletedProductIds(val);
+            try { localStorage.setItem("cakeurban_deleted_ids", JSON.stringify(val)); } catch {}
+          }
+        }
+      });
+
+      // Subscribe to Stock Map in RTDB
+      const stockRef = (child as any)(rootRef, "stockMap");
+      onValue(stockRef, (snapshot: any) => {
+        if (snapshot.exists()) {
+          const val = snapshot.val();
+          if (val && typeof val === "object") {
+            setState((s) => ({ ...s, stockMap: { ...s.stockMap, ...val } }));
+          }
+        }
+      });
+
+      // Subscribe to Coupons in RTDB
+      const couponsRef = (child as any)(rootRef, "coupons");
+      onValue(couponsRef, (snapshot: any) => {
+        if (snapshot.exists()) {
+          const val = snapshot.val();
+          if (Array.isArray(val)) {
+            setState((s) => ({ ...s, coupons: val }));
+          }
+        }
+      });
+
+      // Subscribe to Categories in RTDB
+      const categoriesRef = (child as any)(rootRef, "categories");
+      onValue(categoriesRef, (snapshot: any) => {
+        if (snapshot.exists()) {
+          const val = snapshot.val();
+          if (Array.isArray(val)) {
+            setCategoriesList(val);
+            try { localStorage.setItem("cakeurban_categories", JSON.stringify(val)); } catch {}
+          }
+        }
+      });
+
+      // Subscribe to Settings & Announcement in RTDB
+      const settingsRef = (child as any)(rootRef, "settings");
+      onValue(settingsRef, (snapshot: any) => {
+        if (snapshot.exists()) {
+          const val = snapshot.val();
+          if (val && typeof val === "object") {
+            setState((s) => ({ ...s, settings: { ...s.settings, ...val } }));
+          }
+        }
+      });
+
+      // Initial backup seed check if RTDB is empty
+      (rtdbGet as any)((child as any)(rootRef, "info")).then((snap: any) => {
+        if (!snap.exists()) {
+          (rtdbSet as any)(rootRef, {
+            products: PRODUCTS,
+            customers: SEED_CUSTOMERS,
+            reviews: SEED_REVIEWS,
+            coupons: SEED_COUPONS,
+            staff: SEED_STAFF,
+            faqs: SEED_FAQS,
+            settings: DEFAULT_SETTINGS,
+            info: { appName: "CakeUrban", status: "live", updatedAt: new Date().toISOString() }
+          }).catch(() => {});
+        }
+      }).catch(() => {});
     } catch (err: any) {
-      console.error("Firebase connection error:", err?.message || err);
+      console.warn("RTDB live listener notice:", err?.message || err);
     }
 
     const unsub = onAuthStateChanged(auth, (firebaseUser) => {
       if (firebaseUser) {
         const email = firebaseUser.email || "abhibroomies@gmail.com";
         const role: "customer" | "admin" = isAdminEmail(email) ? "admin" : "customer";
-        const user = { name: firebaseUser.displayName || email.split("@")[0], email, role };
-        setState((s) => ({ ...s, user }));
+        const baseUser: User = {
+          name: firebaseUser.displayName || email.split("@")[0],
+          email,
+          photoURL: firebaseUser.photoURL || undefined,
+          role,
+        };
+        // Fetch extended profile (phone, custom avatar) from RTDB
+        try {
+          const rootRef = (ref as any)(rtdb);
+          const emailKey = email.replace(/\./g, "_");
+          (rtdbGet as any)((child as any)(rootRef, `users/${emailKey}`)).then((snap: any) => {
+            if (snap.exists()) {
+              const val = snap.val();
+              setState((s) => ({ ...s, user: { ...baseUser, ...val } }));
+            } else {
+              setState((s) => ({ ...s, user: baseUser }));
+            }
+          }).catch(() => {
+            setState((s) => ({ ...s, user: baseUser }));
+          });
+        } catch {
+          setState((s) => ({ ...s, user: baseUser }));
+        }
       }
     });
     return () => unsub();
   }, []);
+
+  const updateProfile: Store["updateProfile"] = (data) => {
+    setState((s) => {
+      if (!s.user) return s;
+      const updatedUser: User = { ...s.user, ...data };
+      try {
+        const emailKey = s.user.email.replace(/\./g, "_");
+        syncRTDB(`users/${emailKey}`, updatedUser);
+      } catch {}
+      return { ...s, user: updatedUser };
+    });
+    toast("success", "Profile updated successfully!");
+  };
 
   const redeemCoupon: Store["redeemCoupon"] = (code) =>
     setState((s) => ({ ...s, coupons: s.coupons.map((c) => (c.code.toLowerCase() === code.trim().toLowerCase() ? { ...c, used: c.used + 1 } : c)) }));
@@ -354,28 +606,49 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     signInWithEmailAndPassword(auth, email, pass).then((res) => {
       const userEmail = res.user.email || email;
       const role: "customer" | "admin" = isAdminEmail(userEmail) ? "admin" : "customer";
-      const user = { name: res.user.displayName || userEmail.split("@")[0], email: userEmail, role };
-      setState((s) => ({ ...s, user }));
-      toast("success", `${t("signedIn")} ${user.name}`);
+      const baseUser: User = { name: res.user.displayName || userEmail.split("@")[0], email: userEmail, role };
+      try {
+        const rootRef = (ref as any)(rtdb);
+        const emailKey = userEmail.replace(/\./g, "_");
+        (rtdbGet as any)((child as any)(rootRef, `users/${emailKey}`)).then((snap: any) => {
+          if (snap.exists()) {
+            setState((s) => ({ ...s, user: { ...baseUser, ...snap.val() } }));
+          } else {
+            setState((s) => ({ ...s, user: baseUser }));
+          }
+        }).catch(() => {
+          setState((s) => ({ ...s, user: baseUser }));
+        });
+      } catch {
+        setState((s) => ({ ...s, user: baseUser }));
+      }
+      toast("success", `${t("signedIn")} ${baseUser.name}`);
     }).catch((err) => {
       toast("error", err?.message || "Invalid email or password.");
     });
     return { ok: true, msg: "" };
   };
 
-  const requestSignup: Store["requestSignup"] = (name, email, pass) => {
+  const requestSignup: Store["requestSignup"] = (name, email, phone, pass) => {
+    if (!phone || phone.replace(/\D/g, "").length < 10) {
+      return { ok: false, msg: "A valid 10-digit mobile number is mandatory for cake delivery updates." };
+    }
     createUserWithEmailAndPassword(auth, email, pass).then((res) => {
       const userEmail = res.user.email || email;
       const role: "customer" | "admin" = isAdminEmail(userEmail) ? "admin" : "customer";
-      const user = { name, email: userEmail, role };
+      const user: User = { name, email: userEmail, phone, role };
       setState((s) => ({ ...s, user }));
+      try {
+        const emailKey = userEmail.replace(/\./g, "_");
+        syncRTDB(`users/${emailKey}`, user);
+      } catch {}
       toast("success", `Account created successfully. Welcome, ${name}!`);
       pushNotif("Account created via Firebase Auth");
     }).catch((err) => {
       toast("error", err?.message || "Signup failed.");
     });
     const code = String(Math.floor(100000 + Math.random() * 900000));
-    setPendingOtp({ name, email: email.trim(), pass, code });
+    setPendingOtp({ name, email: email.trim(), phone, pass, code });
     return { ok: true, msg: "", code };
   };
 
@@ -383,11 +656,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     if (!pendingOtp) return { ok: false, msg: "No pending verification" };
     if (code !== pendingOtp.code) return { ok: false, msg: "Incorrect verification code." };
     const role: "customer" | "admin" = isAdminEmail(pendingOtp.email) ? "admin" : "customer";
-    const u = { name: pendingOtp.name, email: pendingOtp.email, role };
+    const u: User = { name: pendingOtp.name, email: pendingOtp.email, phone: pendingOtp.phone, role };
     setState((s) => ({ ...s, user: u }));
+    try {
+      const emailKey = u.email.replace(/\./g, "_");
+      syncRTDB(`users/${emailKey}`, u);
+    } catch {}
     setPendingOtp(null);
-    toast("success", `Welcome to CakeUrban, ${u.name.split(" ")[0]} — email verified ✓`);
-    pushNotif("Email verified — account created");
+    toast("success", `Welcome to CakeUrban, ${u.name.split(" ")[0]} — phone & email verified ✓`);
+    pushNotif("Email & phone verified — account created");
     return { ok: true, msg: "" };
   };
 
@@ -396,15 +673,48 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       signInWithPopup(auth, googleProvider).then((res) => {
         const email = res.user.email || "abhibroomies@gmail.com";
         const role: "customer" | "admin" = isAdminEmail(email) ? "admin" : "customer";
-        const user = { name: res.user.displayName || email.split("@")[0], email, role };
-        setState((s) => ({ ...s, user }));
+        const baseUser: User = {
+          name: res.user.displayName || email.split("@")[0],
+          email,
+          photoURL: res.user.photoURL || undefined,
+          role,
+        };
+        try {
+          const rootRef = (ref as any)(rtdb);
+          const emailKey = email.replace(/\./g, "_");
+          (rtdbGet as any)((child as any)(rootRef, `users/${emailKey}`)).then((snap: any) => {
+            if (snap.exists()) {
+              setState((s) => ({ ...s, user: { ...baseUser, ...snap.val() } }));
+            } else {
+              setState((s) => ({ ...s, user: baseUser }));
+            }
+          }).catch(() => {
+            setState((s) => ({ ...s, user: baseUser }));
+          });
+        } catch {
+          setState((s) => ({ ...s, user: baseUser }));
+        }
         toast("success", "Signed in with Google successfully");
       }).catch((err) => {
         // Fallback for preview domain / unauthorized domain restrictions
         const email = "abhibroomies@gmail.com";
         const role: "customer" | "admin" = "admin";
-        const user = { name: "Abhi (Google)", email, role };
-        setState((s) => ({ ...s, user }));
+        const baseUser: User = { name: "Abhi (Google)", email, role };
+        try {
+          const rootRef = (ref as any)(rtdb);
+          const emailKey = email.replace(/\./g, "_");
+          (rtdbGet as any)((child as any)(rootRef, `users/${emailKey}`)).then((snap: any) => {
+            if (snap.exists()) {
+              setState((s) => ({ ...s, user: { ...baseUser, ...snap.val() } }));
+            } else {
+              setState((s) => ({ ...s, user: baseUser }));
+            }
+          }).catch(() => {
+            setState((s) => ({ ...s, user: baseUser }));
+          });
+        } catch {
+          setState((s) => ({ ...s, user: baseUser }));
+        }
         toast("success", "Signed in with Google (Admin mode)");
       });
       return;
@@ -437,21 +747,25 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       date: new Date().toISOString(), address, method, payment,
       timeline: [{ status: "pending", at: new Date().toISOString() }],
     };
-    try {
-      addDoc(collection(db, "orders"), order).catch(() => {});
-    } catch { /* offline */ }
+    
+    // Sync order to RTDB live
+    syncRTDB(`orders/${order.id}`, order);
+
+    const nextStockMap = Object.fromEntries(
+      Object.entries(items.reduce<Record<string, number>>((m, it) => ((m[it.productId] = (m[it.productId] || 0) + it.qty), m), {}))
+        .map(([pid, q]) => {
+          const p = PRODUCTS.find((x) => x.id === pid);
+          const base = state.stockMap[pid] ?? p?.stock ?? 0;
+          return [pid, Math.max(0, base - q)];
+        })
+    );
+    syncRTDB("stockMap", { ...state.stockMap, ...nextStockMap });
+
     setState((s) => ({
       ...s,
       orders: [order, ...s.orders],
       cart: [],
-      stockMap: Object.fromEntries(
-        Object.entries(items.reduce<Record<string, number>>((m, it) => ((m[it.productId] = (m[it.productId] || 0) + it.qty), m), {}))
-          .map(([pid, q]) => {
-            const p = PRODUCTS.find((x) => x.id === pid);
-            const base = s.stockMap[pid] ?? p?.stock ?? 0;
-            return [pid, Math.max(0, base - q)];
-          })
-      ),
+      stockMap: { ...s.stockMap, ...nextStockMap },
     }));
     if (coupon) redeemCoupon(coupon);
     pushNotif(`Order ${order.id} confirmed — ${fmt(order.total)}`);
@@ -467,10 +781,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         const p = PRODUCTS.find((x) => x.id === it.productId);
         stockMap[it.productId] = (stockMap[it.productId] ?? p?.stock ?? 0) + it.qty;
       });
-      return {
-        ...s, stockMap,
-        orders: s.orders.map((x) => x.id === id ? { ...x, status: "cancelled" as OrderStatus, timeline: [...x.timeline, { status: "cancelled" as OrderStatus, at: new Date().toISOString() }] } : x),
-      };
+      syncRTDB("stockMap", stockMap);
+      const updatedOrders = s.orders.map((x) => x.id === id ? { ...x, status: "cancelled" as OrderStatus, timeline: [...x.timeline, { status: "cancelled" as OrderStatus, at: new Date().toISOString() }] } : x);
+      syncRTDB(`orders/${id}/status`, "cancelled");
+      return { ...s, stockMap, orders: updatedOrders };
     });
     pushNotif(`Order ${id} cancelled — refund initiated`);
     toast("info", `Order ${id} cancelled`);
@@ -478,13 +792,22 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const setOrderStatus: Store["setOrderStatus"] = (id, st) => {
     setState((s) => ({ ...s, orders: s.orders.map((x) => (x.id === id ? { ...x, status: st, timeline: [...x.timeline, { status: st, at: new Date().toISOString() }] } : x)) }));
+    syncRTDB(`orders/${id}/status`, st);
     pushNotif(`Order ${id} is now ${st}`);
   };
 
   const addReview: Store["addReview"] = (r) =>
-    setState((s) => ({ ...s, reviews: [{ ...r, id: `r${Date.now()}`, date: new Date().toISOString().slice(0, 10) }, ...s.reviews] }));
+    setState((s) => {
+      const reviews = [{ ...r, id: `r${Date.now()}`, date: new Date().toISOString().slice(0, 10) }, ...s.reviews];
+      syncRTDB("reviews", reviews);
+      return { ...s, reviews };
+    });
 
-  const setStock: Store["setStock"] = (id, stock) => setState((s) => ({ ...s, stockMap: { ...s.stockMap, [id]: Math.max(0, stock) } }));
+  const setStock: Store["setStock"] = (id, stock) => {
+    const nextMap = { ...state.stockMap, [id]: Math.max(0, stock) };
+    setState((s) => ({ ...s, stockMap: nextMap }));
+    syncRTDB("stockMap", nextMap);
+  };
   const markNotifsRead = () => setState((s) => ({ ...s, notifs: s.notifs.map((n) => ({ ...n, read: true })) }));
   const sendChat: Store["sendChat"] = (from, text) =>
     setState((s) => ({ ...s, chat: [...s.chat, { from, text, at: new Date().toISOString() }] }));
@@ -532,14 +855,36 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     syncRTDB("customers", customers);
     return { ...s, customers };
   });
-  const addProduct: Store["addProduct"] = (p) => { persistCustom([...customProducts, p]); toast("success", `Product "${p.name}" created`); };
-  const updateProduct: Store["updateProduct"] = (p) => {
-    if (customProducts.some((x) => x.id === p.id)) persistCustom(customProducts.map((x) => (x.id === p.id ? p : x)));
-    else setState((s) => ({ ...s, stockMap: { ...s.stockMap, [p.id]: p.stock } }));
-    toast("success", `Product "${p.name}" updated`);
+  const addProduct: Store["addProduct"] = (p) => {
+    const list = [p, ...customProducts.filter((x) => x.id !== p.id)];
+    persistCustom(list);
+    if (deletedProductIds.includes(p.id)) {
+      const nextDeleted = deletedProductIds.filter((id) => id !== p.id);
+      setDeletedProductIds(nextDeleted);
+      try { localStorage.setItem("cakeurban_deleted_ids", JSON.stringify(nextDeleted)); } catch {}
+      syncRTDB("deletedProductIds", nextDeleted);
+    }
+    const nextMap = { ...state.stockMap, [p.id]: p.stock };
+    setState((s) => ({ ...s, stockMap: nextMap }));
+    syncRTDB("stockMap", nextMap);
+    toast("success", `Product "${p.name}" added & saved live!`);
   };
+
+  const updateProduct: Store["updateProduct"] = (p) => {
+    if (customProducts.some((x) => x.id === p.id)) {
+      persistCustom(customProducts.map((x) => (x.id === p.id ? p : x)));
+    } else {
+      const nextOverrides = { ...productOverrides, [p.id]: p };
+      persistOverrides(nextOverrides);
+    }
+    const nextMap = { ...state.stockMap, [p.id]: p.stock };
+    setState((s) => ({ ...s, stockMap: nextMap }));
+    syncRTDB("stockMap", nextMap);
+    toast("success", `Product "${p.name}" saved & live synced`);
+  };
+
   const deleteProduct: Store["deleteProduct"] = (id) => {
-    const nextDeleted = [...deletedProductIds, id];
+    const nextDeleted = Array.from(new Set([...deletedProductIds, id]));
     setDeletedProductIds(nextDeleted);
     try { localStorage.setItem("cakeurban_deleted_ids", JSON.stringify(nextDeleted)); } catch {}
     syncRTDB("deletedProductIds", nextDeleted);
@@ -550,18 +895,132 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       try { localStorage.setItem("cakeurban_custom_products", JSON.stringify(nextCustom)); } catch {}
       syncRTDB("customProducts", nextCustom);
     }
-    toast("info", "Product deleted");
+    if (productOverrides[id]) {
+      const nextOverrides = { ...productOverrides };
+      delete nextOverrides[id];
+      persistOverrides(nextOverrides);
+    }
+    toast("info", "Product removed from store catalog");
+  };
+
+  const bulkUpdateStock: Store["bulkUpdateStock"] = (ids, { mode, value: val }) => {
+    const nextMap = { ...state.stockMap };
+    ids.forEach((id) => {
+      const p = products.find((x) => x.id === id);
+      const curr = nextMap[id] ?? p?.stock ?? 0;
+      nextMap[id] = mode === "add" ? Math.max(0, curr + val) : Math.max(0, val);
+    });
+    setState((s) => ({ ...s, stockMap: nextMap }));
+    syncRTDB("stockMap", nextMap);
+    toast("success", `Updated stock for ${ids.length} selected items`);
+  };
+
+  const bulkDeleteProducts: Store["bulkDeleteProducts"] = (ids) => {
+    const nextDeleted = Array.from(new Set([...deletedProductIds, ...ids]));
+    setDeletedProductIds(nextDeleted);
+    try { localStorage.setItem("cakeurban_deleted_ids", JSON.stringify(nextDeleted)); } catch {}
+    syncRTDB("deletedProductIds", nextDeleted);
+
+    const nextCustom = customProducts.filter((x) => !ids.includes(x.id));
+    if (nextCustom.length !== customProducts.length) {
+      persistCustom(nextCustom);
+    }
+    toast("info", `Deleted ${ids.length} products from live catalog`);
+  };
+
+  const bulkUpdateTag: Store["bulkUpdateTag"] = (ids, tag) => {
+    const nextCustom = customProducts.map((p) => (ids.includes(p.id) ? { ...p, tag } : p));
+    persistCustom(nextCustom);
+    const nextOverrides = { ...productOverrides };
+    ids.forEach((id) => {
+      if (!customProducts.some((x) => x.id === id)) {
+        const p = products.find((x) => x.id === id);
+        if (p) nextOverrides[id] = { ...(nextOverrides[id] || p), tag };
+      }
+    });
+    persistOverrides(nextOverrides);
+    toast("success", `Applied badge "${tag}" to ${ids.length} products`);
+  };
+
+  const bulkUpdatePriceDiscount: Store["bulkUpdatePriceDiscount"] = (ids, discountPct) => {
+    const nextCustom = customProducts.map((p) => {
+      if (ids.includes(p.id)) {
+        const newPrice = Math.max(1, Math.round(p.price * (1 - discountPct / 100)));
+        return { ...p, price: newPrice, compareAt: p.compareAt || p.price };
+      }
+      return p;
+    });
+    persistCustom(nextCustom);
+    const nextOverrides = { ...productOverrides };
+    ids.forEach((id) => {
+      if (!customProducts.some((x) => x.id === id)) {
+        const p = products.find((x) => x.id === id);
+        if (p) {
+          const newPrice = Math.max(1, Math.round(p.price * (1 - discountPct / 100)));
+          nextOverrides[id] = { ...(nextOverrides[id] || p), price: newPrice, compareAt: p.compareAt || p.price };
+        }
+      }
+    });
+    persistOverrides(nextOverrides);
+    toast("success", `Applied ${discountPct}% price discount to ${ids.length} products`);
+  };
+
+  const addCategory: Store["addCategory"] = (c) => {
+    const list = [...categoriesList.filter((x) => x.name.toLowerCase() !== c.name.toLowerCase()), c];
+    persistCategories(list);
+    toast("success", `Category "${c.name}" created & saved live!`);
+  };
+
+  const updateCategory: Store["updateCategory"] = (c) => {
+    const list = categoriesList.map((x) => (x.name.toLowerCase() === c.name.toLowerCase() ? c : x));
+    persistCategories(list);
+    toast("success", `Category "${c.name}" updated successfully!`);
+  };
+
+  const deleteCategory: Store["deleteCategory"] = (name) => {
+    const list = categoriesList.filter((x) => x.name.toLowerCase() !== name.toLowerCase());
+    persistCategories(list);
+    toast("info", `Category "${name}" removed`);
+  };
+
+  const reorderCategories: Store["reorderCategories"] = (cats) => {
+    persistCategories(cats);
+    toast("success", "Category order updated!");
+  };
+
+  const updateSettings: Store["updateSettings"] = (patch) => {
+    setState((s) => {
+      const nextSettings = { ...s.settings, ...patch };
+      syncRTDB("settings", nextSettings);
+      return { ...s, settings: nextSettings };
+    });
+    toast("success", "Website settings & CMS saved live!");
+  };
+
+  const updateNcrHub: Store["updateNcrHub"] = (hub) => {
+    setState((s) => {
+      const currentHubs = s.settings.ncrHubs || SEED_NCR_HUBS;
+      const nextHubs = currentHubs.map((h) => (h.id === hub.id ? hub : h));
+      if (!currentHubs.some((h) => h.id === hub.id)) nextHubs.push(hub);
+      const nextSettings = { ...s.settings, ncrHubs: nextHubs };
+      syncRTDB("settings", nextSettings);
+      return { ...s, settings: nextSettings };
+    });
+    toast("success", `NCR Delivery Hub "${hub.city}" updated!`);
   };
 
   const value: Store = {
-    ...state, products, customProducts, t, fmt, toast, toasts, dismissToast: (id) => setToasts((ts) => ts.filter((x) => x.id !== id)),
+    ...state, products, customProducts, categories: categoriesList, t, fmt, toast, toasts, dismissToast: (id) => setToasts((ts) => ts.filter((x) => x.id !== id)),
     set, toggleTheme: () => setState((s) => ({ ...s, theme: s.theme === "dark" ? "light" : "dark" })),
     cartAdd, cartQty, cartRemove, saveForLater, moveSavedToCart, removeSaved, toggleWish, toggleCompare,
     clearCompare: () => setState((s) => ({ ...s, compare: [] })), cartCount, cartSubtotal, couponFor, redeemCoupon,
-    login, requestSignup, verifySignup, pendingOtp, socialLogin, logout, placeOrder, cancelOrder, setOrderStatus,
+    login, requestSignup, verifySignup, pendingOtp, socialLogin, logout, updateProfile, placeOrder, cancelOrder, setOrderStatus,
     addReview, setStock, pushNotif, markNotifsRead, sendChat, subscribe, saveAddress, deleteAddress,
     addPayMethod, deletePayMethod, addCoupon, toggleCoupon, deleteCoupon, addStaff, removeStaff, setStaffRole,
     toggleCustomer, addProduct, updateProduct, deleteProduct,
+    bulkUpdateStock, bulkDeleteProducts, bulkUpdateTag, bulkUpdatePriceDiscount,
+    addCategory, updateCategory, deleteCategory, reorderCategories,
+    updateSettings, updateNcrHub,
   };
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

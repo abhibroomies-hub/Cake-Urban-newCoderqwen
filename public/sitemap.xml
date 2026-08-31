@@ -1,153 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://www.cakeurban.com/</loc>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap>
+    <loc>https://www.cakeurban.com/sitemap-main.xml</loc>
     <lastmod>2026-08-31T00:00:00+00:00</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>https://www.cakeurban.com/shop</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://www.cakeurban.com/sitemap-faridabad.xml</loc>
     <lastmod>2026-08-31T00:00:00+00:00</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://www.cakeurban.com/delivery-locations</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://www.cakeurban.com/sitemap-gurgaon.xml</loc>
     <lastmod>2026-08-31T00:00:00+00:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.cakeurban.com/builder</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://www.cakeurban.com/sitemap-noida.xml</loc>
     <lastmod>2026-08-31T00:00:00+00:00</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.cakeurban.com/contact</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://www.cakeurban.com/sitemap-delhi.xml</loc>
     <lastmod>2026-08-31T00:00:00+00:00</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <!-- City Hubs -->
-  <url>
-    <loc>https://www.cakeurban.com/cakes-in/faridabad</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://www.cakeurban.com/sitemap-ghaziabad.xml</loc>
     <lastmod>2026-08-31T00:00:00+00:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.cakeurban.com/cakes-in/gurgaon</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://www.cakeurban.com/sitemap-occasions.xml</loc>
     <lastmod>2026-08-31T00:00:00+00:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.cakeurban.com/cakes-in/noida</loc>
-    <lastmod>2026-08-31T00:00:00+00:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.cakeurban.com/cakes-in/delhi</loc>
-    <lastmod>2026-08-31T00:00:00+00:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.cakeurban.com/cakes-in/ghaziabad</loc>
-    <lastmod>2026-08-31T00:00:00+00:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <!-- Faridabad Areas -->
-  <url>
-    <loc>https://www.cakeurban.com/cake-delivery-in/sector-15-faridabad</loc>
-    <lastmod>2026-08-31T00:00:00+00:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://www.cakeurban.com/cake-delivery-in/sector-16-faridabad</loc>
-    <lastmod>2026-08-31T00:00:00+00:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://www.cakeurban.com/cake-delivery-in/sector-21-faridabad</loc>
-    <lastmod>2026-08-31T00:00:00+00:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://www.cakeurban.com/cake-delivery-in/nit-faridabad</loc>
-    <lastmod>2026-08-31T00:00:00+00:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <!-- Gurgaon Areas -->
-  <url>
-    <loc>https://www.cakeurban.com/cake-delivery-in/dlf-phase-gurgaon</loc>
-    <lastmod>2026-08-31T00:00:00+00:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://www.cakeurban.com/cake-delivery-in/golf-course-road-gurgaon</loc>
-    <lastmod>2026-08-31T00:00:00+00:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://www.cakeurban.com/cake-delivery-in/sector-29-gurgaon</loc>
-    <lastmod>2026-08-31T00:00:00+00:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <!-- Noida Areas -->
-  <url>
-    <loc>https://www.cakeurban.com/cake-delivery-in/sector-18-noida</loc>
-    <lastmod>2026-08-31T00:00:00+00:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://www.cakeurban.com/cake-delivery-in/sector-62-noida</loc>
-    <lastmod>2026-08-31T00:00:00+00:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://www.cakeurban.com/cake-delivery-in/sector-76-noida</loc>
-    <lastmod>2026-08-31T00:00:00+00:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <!-- Delhi Areas -->
-  <url>
-    <loc>https://www.cakeurban.com/cake-delivery-in/dwarka-delhi</loc>
-    <lastmod>2026-08-31T00:00:00+00:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://www.cakeurban.com/cake-delivery-in/south-delhi</loc>
-    <lastmod>2026-08-31T00:00:00+00:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <!-- Ghaziabad Areas -->
-  <url>
-    <loc>https://www.cakeurban.com/cake-delivery-in/indirapuram-ghaziabad</loc>
-    <lastmod>2026-08-31T00:00:00+00:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://www.cakeurban.com/cake-delivery-in/vaishali-ghaziabad</loc>
-    <lastmod>2026-08-31T00:00:00+00:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-</urlset>
+  </sitemap>
+</sitemapindex>
