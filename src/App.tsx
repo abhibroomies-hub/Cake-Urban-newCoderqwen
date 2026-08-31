@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { HashRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { StoreProvider, useStore } from "./lib/store";
 import { AuthProvider, Header, CartDrawer, ChatWidget, CookieConsent, Toasts, Footer, MobileBottomNav } from "./components/chrome";
 import { QuickViewProvider, CompareOverlay } from "./components/product";
@@ -140,10 +140,10 @@ export default function App() {
     <StoreProvider>
       <AuthProvider>
         <QuickViewProvider>
-          <HashRouter>
+          <BrowserRouter>
             <ScrollToTop />
             <Shell />
-          </HashRouter>
+          </BrowserRouter>
         </QuickViewProvider>
       </AuthProvider>
     </StoreProvider>
