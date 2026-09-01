@@ -147,15 +147,15 @@ function ComparePage() {
 
 export default function App() {
   return (
-    <StoreProvider>
-      <AuthProvider>
-        <QuickViewProvider>
-          <BrowserRouter>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <StoreProvider>
+        <AuthProvider>
+          <QuickViewProvider>
             <ScrollToTop />
             <Shell />
-          </BrowserRouter>
-        </QuickViewProvider>
-      </AuthProvider>
-    </StoreProvider>
+          </QuickViewProvider>
+        </AuthProvider>
+      </StoreProvider>
+    </BrowserRouter>
   );
 }

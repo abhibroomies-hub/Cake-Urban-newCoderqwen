@@ -132,16 +132,16 @@ export function Modal({ open, onClose, children, wide = false }: { open: boolean
     if (!open) return;
     const h = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", h);
-    document.body.style.overflow = "hidden";
-    return () => { window.removeEventListener("keydown", h); document.body.style.overflow = ""; };
+    return () => { window.removeEventListener("keydown", h); };
   }, [open, onClose]);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-[90] flex items-center justify-center p-4 sm:p-8">
-      <div className="absolute inset-0 bg-ink-950/80 backdrop-blur-sm anim-fade-in" onClick={onClose} />
-      <div className={`relative anim-zoom w-full ${wide ? "max-w-5xl" : "max-w-lg"} max-h-[92vh] overflow-y-auto bg-ink-900 dark:bg-ink-900 border border-ink-700/60 shadow-lift clip-tile`}>
+    <div className="fixed inset-0 z-[90] overflow-y-auto flex items-center justify-center p-4 sm:p-8 bg-ink-950/80 backdrop-blur-sm anim-fade-in" onClick={onClose}>
+      <div className={`relative anim-zoom w-full ${wide ? "max-w-5xl" : "max-w-lg"} my-auto bg-ink-900 dark:bg-ink-900 border border-ink-700/60 shadow-lift clip-tile`} onClick={(e) => e.stopPropagation()}>
         <button onClick={onClose} aria-label="Close" className="absolute top-4 right-4 z-10 p-2 text-ink-300 hover:text-blaze-500 transition-colors"><Ic.x className="w-5 h-5" /></button>
-        {children}
+        <div className="max-h-[85vh] overflow-y-auto p-1">
+          {children}
+        </div>
       </div>
     </div>
   );

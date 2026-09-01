@@ -408,6 +408,92 @@ export default function Home() {
         </section>
       )}
 
+      {/* ============ REGULAR CAKES SECTION ============ */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 pb-16">
+        <div className="flex items-end justify-between pb-4 border-b border-ink-800">
+          <div>
+            <p className="font-mono text-[10px] tracking-[0.25em] text-blaze-500 uppercase font-bold">Daily Favorites</p>
+            <h2 className="font-display font-bold text-2xl sm:text-3xl uppercase mt-1 text-ink-50">Regular Cakes & Daily Slices</h2>
+          </div>
+          <Link to="/shop?cat=Cakes" className="font-mono text-xs text-blaze-400 hover:underline uppercase tracking-wider flex items-center gap-1">
+            View All Cakes →
+          </Link>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mt-6">
+          {products.filter(p => p.category === "Cakes" && !p.tag?.includes("BEST")).slice(0, 4).map((p, i) => (
+            <div key={p.id} className="h-full">
+              <ProductCard p={p} index={i} />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ============ BIRTHDAY CAKES SECTION ============ */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 pb-16">
+        <div className="flex items-end justify-between pb-4 border-b border-ink-800">
+          <div>
+            <p className="font-mono text-[10px] tracking-[0.25em] text-volt-400 uppercase font-bold">Celebration Specials</p>
+            <h2 className="font-display font-bold text-2xl sm:text-3xl uppercase mt-1 text-ink-50">Birthday Cakes & Midnight Surprises</h2>
+          </div>
+          <Link to="/shop?tag=BEST" className="font-mono text-xs text-volt-400 hover:underline uppercase tracking-wider flex items-center gap-1">
+            Explore Birthday Specials →
+          </Link>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mt-6">
+          {products.filter(p => p.tag === "BEST SELLER" || p.tag === "NEW" || p.price >= 45).slice(0, 4).map((p, i) => (
+            <div key={p.id} className="h-full">
+              <ProductCard p={p} index={i} />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ============ EXPLORE MORE SECTION ============ */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 pb-16">
+        <div className="text-center max-w-2xl mx-auto mb-10">
+          <p className="font-mono text-[10px] tracking-[0.25em] text-blaze-500 uppercase font-bold">Discover More</p>
+          <h2 className="font-display font-bold text-3xl sm:text-4xl uppercase mt-1 text-ink-50">Explore More CakeUrban Experiences</h2>
+          <p className="text-sm text-ink-300 mt-2">Dive deeper into our artisanal collections, bespoke builder, gift hampers, and Delhi NCR stories.</p>
+        </div>
+        <div className="grid sm:grid-cols-3 gap-6">
+          <Link to="/builder" className="group relative bg-ink-900 border border-ink-700 p-6 clip-tile hover:border-blaze-500 transition-all flex flex-col justify-between overflow-hidden shadow-lg">
+            <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-blaze-500/10 rounded-full blur-xl group-hover:bg-blaze-500/20 transition-all" />
+            <div>
+              <span className="w-10 h-10 rounded bg-blaze-500/20 text-blaze-400 flex items-center justify-center font-bold text-lg mb-4">🎂</span>
+              <h3 className="font-display font-bold text-xl text-ink-50 uppercase group-hover:text-blaze-400 transition-colors">Custom Cake Builder</h3>
+              <p className="text-xs text-ink-300 mt-2 leading-relaxed">Design your dream tier cake, choose sponge layers, fillings, drip color, and write custom messages.</p>
+            </div>
+            <div className="mt-6 flex items-center gap-2 font-mono text-xs text-blaze-400 font-bold uppercase">
+              <span>Start Designing</span> <span>→</span>
+            </div>
+          </Link>
+
+          <Link to="/shop?cat=Gift Boxes" className="group relative bg-ink-900 border border-ink-700 p-6 clip-tile hover:border-blaze-500 transition-all flex flex-col justify-between overflow-hidden shadow-lg">
+            <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-volt-500/10 rounded-full blur-xl group-hover:bg-volt-500/20 transition-all" />
+            <div>
+              <span className="w-10 h-10 rounded bg-volt-500/20 text-volt-400 flex items-center justify-center font-bold text-lg mb-4">🎁</span>
+              <h3 className="font-display font-bold text-xl text-ink-50 uppercase group-hover:text-volt-400 transition-colors">Gift Boxes & Hampers</h3>
+              <p className="text-xs text-ink-300 mt-2 leading-relaxed">Luxurious matte-black tins filled with assorted macarons, choc-chip cookies, and artisan brownies.</p>
+            </div>
+            <div className="mt-6 flex items-center gap-2 font-mono text-xs text-volt-400 font-bold uppercase">
+              <span>Browse Hampers</span> <span>→</span>
+            </div>
+          </Link>
+
+          <Link to="/blog" className="group relative bg-ink-900 border border-ink-700 p-6 clip-tile hover:border-blaze-500 transition-all flex flex-col justify-between overflow-hidden shadow-lg">
+            <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-emerald-500/10 rounded-full blur-xl group-hover:bg-emerald-500/20 transition-all" />
+            <div>
+              <span className="w-10 h-10 rounded bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-lg mb-4">📖</span>
+              <h3 className="font-display font-bold text-xl text-ink-50 uppercase group-hover:text-emerald-400 transition-colors">Bakehouse Journal</h3>
+              <p className="text-xs text-ink-300 mt-2 leading-relaxed">Read stories about 72-hour cold fermentation, Belgian couverture sourcing, and midnight NCR dispatch.</p>
+            </div>
+            <div className="mt-6 flex items-center gap-2 font-mono text-xs text-emerald-400 font-bold uppercase">
+              <span>Read Journal</span> <span>→</span>
+            </div>
+          </Link>
+        </div>
+      </section>
+
       {/* ============ NCR EXPRESS HUBS (INTERACTIVE CITY SELECTOR) ============ */}
       {homeSections.ncrHubs !== false && hubs.length > 0 && (
         <section className="max-w-7xl mx-auto px-6 lg:px-10 pb-16">

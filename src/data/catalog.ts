@@ -20,6 +20,9 @@ export type Product = {
   desc: string;
   specs: [string, string][];
   featured?: boolean;
+  seoTitle?: string;
+  seoDesc?: string;
+  seoKeywords?: string;
 };
 
 const IMG = {

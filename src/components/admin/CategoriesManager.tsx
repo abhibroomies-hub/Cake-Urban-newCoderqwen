@@ -234,12 +234,6 @@ export function CategoriesManager() {
                   {isNew ? "Create Store Category" : editingCat.name}
                 </h3>
               </div>
-              <button
-                onClick={() => setEditingCat(null)}
-                className="p-1.5 text-ink-400 hover:text-ink-100 rounded-lg hover:bg-ink-800 transition-colors"
-              >
-                ✕
-              </button>
             </div>
 
             <div className="space-y-4 text-xs">

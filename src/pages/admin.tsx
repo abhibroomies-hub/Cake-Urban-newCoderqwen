@@ -134,6 +134,30 @@ export default function Admin() {
     reader.readAsText(file);
   };
 
+  const handleAiAutoFill = () => {
+    if (!editP) return;
+    const name = editP.name || "Artisan Cake";
+    const cat = editP.category || "Cakes";
+    const desc = `100% Pure Eggless ${name} handcrafted with premium Belgian couverture chocolate and velvety vanilla bean buttercream. Slow-baked to perfection in our Delhi NCR artisan bakehouse with rich moist sponge layers.`;
+    const seoTitle = `${name} | 100% Eggless ${cat} Online Delivery | CakeUrban`;
+    const seoDesc = `Order ${name} online at CakeUrban. Freshly baked 100% pure vegetarian artisan ${cat.toLowerCase()} with 30-45 mins express delivery across Delhi NCR.`;
+    const seoKeywords = `${name}, order ${name} online, eggless ${cat.toLowerCase()}, cake delivery Delhi NCR, CakeUrban`;
+    setEditP({
+      ...editP,
+      desc,
+      seoTitle,
+      seoDesc,
+      seoKeywords,
+      specs: [
+        ["Dietary", "100% Pure Eggless Vegetarian"],
+        ["Baking", "Handcrafted Fresh on Order"],
+        ["Delivery", "30-45 Mins Express Delhi NCR"],
+        ["Quality", "Belgian Couverture & Fresh Butter"]
+      ]
+    });
+    store.toast("success", "✨ AI description and SEO metadata auto-filled successfully!");
+  };
+
   const filteredOrders = orders.filter((o) => (o.id + o.email).toLowerCase().includes(q.toLowerCase()));
   const inv = orders.find((o) => o.id === invoice);
 
@@ -716,12 +740,6 @@ export default function Admin() {
                   {isNew ? "Add Item to Live Catalog" : editP.name}
                 </h3>
               </div>
-              <button
-                onClick={() => setEditP(null)}
-                className="p-1.5 text-ink-400 hover:text-ink-100 rounded-lg hover:bg-ink-800 transition-colors"
-              >
-                ✕
-              </button>
             </div>
 
             <div className="space-y-4 text-xs">
@@ -957,11 +975,20 @@ export default function Admin() {
                 </div>
               </div>
 
-              {/* Description */}
+              {/* Description & AI Auto-Fill */}
               <div>
-                <label className="block font-mono text-[9px] tracking-[0.15em] uppercase text-ink-400 font-bold mb-1">
-                  Product Description & Flavor Notes
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block font-mono text-[9px] tracking-[0.15em] uppercase text-ink-400 font-bold">
+                    Product Description & Flavor Notes
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleAiAutoFill}
+                    className="clip-tag bg-blaze-500/20 text-blaze-300 hover:bg-blaze-500 hover:text-ink-50 font-mono text-[10px] uppercase px-2.5 py-1 flex items-center gap-1.5 transition-colors font-bold border border-blaze-500/40"
+                  >
+                    ✨ AI Auto-Fill & SEO Magic
+                  </button>
+                </div>
                 <textarea
                   value={editP.desc}
                   onChange={(e) => setEditP({ ...editP, desc: e.target.value })}
@@ -971,14 +998,48 @@ export default function Admin() {
                 />
               </div>
 
-              {/* SEO & Search Engine Optimization helper notes */}
-              <div className="bg-ink-900/80 border border-ink-700 p-3 rounded text-[11px] text-ink-300 font-mono">
-                <p className="text-volt-400 font-bold flex items-center gap-1.5 mb-1">
-                  ⚡ AI & Google Search Optimization
+              {/* Real-time SEO Meta Fields */}
+              <div className="bg-ink-950 p-3.5 border border-ink-700/60 rounded space-y-3">
+                <p className="text-volt-400 font-bold font-mono text-[11px] flex items-center gap-1.5">
+                  ⚡ Real-Time SEO & AI Search Domination
                 </p>
-                <p className="text-ink-400 text-[10px] leading-relaxed">
-                  Products are automatically structured in Schema.org JSON-LD & synced live to Firebase Realtime Database for instantaneous discoverability on Google Search, Gemini, ChatGPT, and Perplexity AI.
-                </p>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-mono text-[9px] text-ink-400 uppercase mb-1">SEO Title (Google / AI)</label>
+                    <input
+                      value={editP.seoTitle || `${editP.name} | 100% Eggless ${editP.category} | CakeUrban`}
+                      onChange={(e) => setEditP({ ...editP, seoTitle: e.target.value })}
+                      className="w-full bg-ink-900 border border-ink-700 px-3 py-1.5 text-xs rounded font-mono"
+                      placeholder="SEO Title..."
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-mono text-[9px] text-ink-400 uppercase mb-1">SEO Keywords</label>
+                    <input
+                      value={editP.seoKeywords || `${editP.name}, eggless ${editP.category.toLowerCase()}, cake delivery Delhi NCR`}
+                      onChange={(e) => setEditP({ ...editP, seoKeywords: e.target.value })}
+                      className="w-full bg-ink-900 border border-ink-700 px-3 py-1.5 text-xs rounded font-mono"
+                      placeholder="Keywords..."
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block font-mono text-[9px] text-ink-400 uppercase mb-1">SEO Meta Description</label>
+                  <input
+                    value={editP.seoDesc || editP.desc}
+                    onChange={(e) => setEditP({ ...editP, seoDesc: e.target.value })}
+                    className="w-full bg-ink-900 border border-ink-700 px-3 py-1.5 text-xs rounded font-mono"
+                    placeholder="Meta description for search engines..."
+                  />
+                </div>
+
+                {/* Live Google & AI Search Snippet Preview */}
+                <div className="bg-ink-900 p-3 rounded border border-ink-800 text-[11px] space-y-1">
+                  <p className="font-mono text-[9px] text-ink-500 uppercase tracking-wider">Live Google & ChatGPT Search Snippet Preview:</p>
+                  <p className="text-cobalt-400 font-medium truncate">https://cakeurban.com/product/{editP.id || "item"}</p>
+                  <p className="text-blaze-400 font-bold text-xs truncate">{editP.seoTitle || `${editP.name} | CakeUrban`}</p>
+                  <p className="text-ink-300 text-[10px] line-clamp-2">{editP.seoDesc || editP.desc || "Fresh artisan pastry..."}</p>
+                </div>
               </div>
 
               {/* Action Buttons */}
