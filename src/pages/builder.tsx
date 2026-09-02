@@ -57,19 +57,19 @@ export default function CustomBuilder() {
   const totalPrice = size.price + base.add + cream.add + filling.add + style.add;
 
   const handleAddToCart = () => {
-    const customName = `Custom ${size.name} Cake (${base.name} + ${style.name})`;
+    const customName = `Custom ${size.name} Hamper (${base.name} + ${style.name})`;
     // We add as a custom item
-    cartAdd("custom-cake", cream.name, size.name, 1);
-    toast("success", "Custom masterpiece added to cart!");
+    cartAdd("custom-hamper", cream.name, size.name, 1);
+    toast("success", "Custom gift hamper added to cart!");
     nav("/checkout");
   };
 
   return (
     <div className="max-w-7xl mx-auto px-6 lg:px-10 py-12">
       <div className="text-center max-w-2xl mx-auto mb-12">
-        <p className="font-mono text-[11px] tracking-[0.3em] text-blaze-500 uppercase">Bespoke Atelier</p>
-        <h1 className="font-display text-4xl sm:text-5xl font-black uppercase mt-2">Custom Cake Builder</h1>
-        <p className="text-ink-300 text-sm mt-3">Design your dream celebration cake step by step. Handcrafted in our urban bakehouse.</p>
+        <p className="font-mono text-[11px] tracking-[0.3em] text-blaze-500 uppercase">Bespoke Gifting Atelier</p>
+        <h1 className="font-display text-4xl sm:text-5xl font-black uppercase mt-2">Custom Hamper & Cookie Box Builder</h1>
+        <p className="text-ink-300 text-sm mt-3">Design your dream celebration gift hamper step by step. Curated fresh in our luxury bakehouse.</p>
       </div>
 
       <div className="grid lg:grid-cols-[1fr_420px] gap-10 items-start">

@@ -26,74 +26,74 @@ export interface CityHubData {
 
 export const SEO_INTENTS: Record<string, { label: string; prefix: string; heading: string; badge: string; desc: string }> = {
   "standard": {
-    label: "All Cakes",
+    label: "All Hampers & Cookies",
     prefix: "cake-delivery-in",
-    heading: "Fresh Cake Delivery in",
+    heading: "Luxury Gift Hamper & Cookie Delivery in",
     badge: "⚡ 30-45 Mins Express",
-    desc: "Order freshly baked artisanal cakes, gourmet cheesecakes & party cakes delivered right to your doorstep."
+    desc: "Order exquisite luxury gift hampers, gourmet cookies & crispy namkeens delivered right to your doorstep."
   },
   "midnight": {
     label: "Midnight Delivery",
     prefix: "midnight-cake-delivery-in",
-    heading: "Midnight Surprise Cake Delivery in",
+    heading: "Midnight Surprise Gift Hamper Delivery in",
     badge: "🌙 Guaranteed 12 AM Delivery",
-    desc: "Make birthdays & anniversaries unforgettable with guaranteed midnight cake delivery between 11:00 PM and 12:30 AM."
+    desc: "Make birthdays & anniversaries unforgettable with guaranteed midnight gift hamper delivery between 11:00 PM and 12:30 AM."
   },
   "birthday": {
-    label: "Birthday Cakes",
+    label: "Birthday Hampers",
     prefix: "birthday-cake-delivery-in",
-    heading: "Birthday Cake Delivery in",
+    heading: "Birthday Gift Hamper & Cookie Delivery in",
     badge: "🎉 Birthday Special",
-    desc: "Celebrate special milestones with handcrafted birthday cakes, photo cakes, customized tier cakes & complimentary party kit."
+    desc: "Celebrate special milestones with handcrafted birthday gift boxes, gourmet cookies, candles and personalized notes."
   },
   "eggless": {
-    label: "100% Eggless",
+    label: "Anniversary & Romance",
     prefix: "eggless-cake-delivery-in",
-    heading: "100% Eggless Cake Delivery in",
-    badge: "🌱 Pure Vegetarian & Eggless",
-    desc: "Indulge in ultra-moist, velvety 100% eggless cakes baked in dedicated clean vegetarian ovens with Belgian chocolate & dairy cream."
+    heading: "Anniversary Gift Box & Macaron Delivery in",
+    badge: "❤️ Romantic Milestone Specials",
+    desc: "Express love with premium anniversary gift hampers, French macarons, red rose boxes & keepsake tins."
   },
   "anniversary": {
-    label: "Anniversary Cakes",
+    label: "Corporate Gifting",
     prefix: "anniversary-cake-delivery-in",
-    heading: "Romantic Anniversary Cake Delivery in",
-    badge: "❤️ Romantic Milestone Specials",
-    desc: "Express love with heart-shaped velvet cakes, red rose bouquets combo & elegant multi-tier designer anniversary creations."
+    heading: "Corporate Gifting & Executive Hamper Delivery in",
+    badge: "🏢 Bulk & Custom Branding",
+    desc: "Impress clients, partners, and employees with premium corporate gift boxes featuring cookies, nuts and custom sleeves."
   },
   "photo": {
-    label: "Photo Cakes",
+    label: "Marriage Shagun",
     prefix: "photo-cake-delivery-in",
-    heading: "Edible Photo Print Cake Delivery in",
-    badge: "📸 High-Res Edible Sugar Sheet",
-    desc: "Turn cherished memories into edible art! High-definition photo cakes printed on premium sugar sheets with edible vegetable inks."
+    heading: "Marriage Shagun & Trousseau Hamper Delivery in",
+    badge: "💍 Traditional Wedding Gifting",
+    desc: "Exquisite wedding trousseau and shagun gift hampers crafted for Indian weddings, engagement ceremonies, and return favors."
   },
   "custom": {
-    label: "Designer & Custom",
+    label: "Return Favors",
     prefix: "custom-cake-delivery-in",
-    heading: "Custom Designer Fondant Cake Delivery in",
-    badge: "🎨 Bespoke Handcrafted",
-    desc: "Bespoke theme cakes, 3D fondant sculptures, cartoon characters, superhero & corporate logo cakes tailored to your celebration."
+    heading: "Party Return Gift Pack Delivery in",
+    badge: "🎁 Guest Favors & Pouches",
+    desc: "Delight your party guests with beautifully packaged return gift pouches, mini cookies, and crunchy namkeens."
   },
   "chocolate": {
-    label: "Belgian Chocolate",
+    label: "Gourmet Cookies",
     prefix: "chocolate-cake-delivery-in",
-    heading: "Pure Belgian Chocolate Cake Delivery in",
-    badge: "🍫 55% Dark Belgian Truffle",
-    desc: "Decadent Dutch chocolate truffle, hazelnut praline, molten lava & triple chocolate fudge cakes baked with 100% pure cocoa butter."
+    heading: "Artisanal Choc-Chip Cookie Delivery in",
+    badge: "🍪 72-Hour Cold-Fermented",
+    desc: "Decadent choc-chip cookie stacks, molten centers, butter shortbread and macaron boxes baked with pure butter."
   },
   "pinata": {
-    label: "Pinata Smash Cakes",
+    label: "Crispy Namkeens",
     prefix: "pinata-cake-delivery-in",
-    heading: "Hammer Pinata Smash Cake Delivery in",
-    badge: "🔨 Wooden Hammer Included",
-    desc: "Trending smash cakes encased in rich chocolate shells filled with gems, chocolates & cake sponge, complete with customized hammer."
+    heading: "Royal Bhujia & Roasted Makhana Delivery in",
+    badge: "🔥 Traditional Crunch",
+    desc: "Crispy Bikaner bhujia, peri-peri roasted makhana, dry fruit shahi mixture and flaky methi mathri."
   },
   "same-day": {
     label: "Same Day Express",
     prefix: "same-day-cake-delivery-in",
-    heading: "Same Day 35-Min Rush Cake Delivery in",
+    heading: "Same Day 35-Min Rush Hamper Delivery in",
     badge: "🚀 Immediate Express Dispatch",
-    desc: "Last-minute cake emergency? Our express delivery riders deliver freshly baked celebration cakes to your door within 35-45 minutes."
+    desc: "Last-minute gifting emergency? Our express delivery riders deliver luxury gift hampers and gourmet cookies within 35-45 minutes."
   }
 };
 

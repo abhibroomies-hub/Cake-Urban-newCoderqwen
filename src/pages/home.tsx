@@ -58,8 +58,8 @@ function HeroRing() {
 export default function Home() {
   const { products, categories, settings, fmt, toast } = useStore();
   const { t } = useStore();
-  const titleA = useScramble(settings.hero?.titleA || "ARTISAN CAKES &");
-  const titleB = useScramble(settings.hero?.titleB || "DELHI NCR");
+  const titleA = useScramble("COOKIES &");
+  const titleB = useScramble("HAMPERS");
   const plx = useParallax();
   const [selectedHub, setSelectedHub] = useState<string>("faridabad");
   const [activeQuickFilter, setActiveQuickFilter] = useState<string>("ALL");
@@ -174,7 +174,7 @@ export default function Home() {
               </h1>
 
               <p className="text-ink-300 text-base sm:text-lg max-w-xl mt-6 leading-relaxed anim-fade-up" style={{ animationDelay: "240ms" }}>
-                {settings.hero?.sub || "Freshly whipped gourmet layer cakes, Belgian chocolate fudge & handcrafted cookies. Delivered across Faridabad, Noida, Gurgaon & Delhi in 30-45 minutes."}
+                {settings.hero?.sub || "Exquisite luxury gift hampers for birthdays, anniversaries, corporate events, marriages, and return gifts — paired with gourmet cookies and crispy traditional namkeens."}
               </p>
 
               {/* Instant Action CTA Buttons */}
@@ -408,19 +408,19 @@ export default function Home() {
         </section>
       )}
 
-      {/* ============ REGULAR CAKES SECTION ============ */}
+      {/* ============ COOKIES & NAMKEENS SECTION ============ */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 pb-16">
         <div className="flex items-end justify-between pb-4 border-b border-ink-800">
           <div>
             <p className="font-mono text-[10px] tracking-[0.25em] text-blaze-500 uppercase font-bold">Daily Favorites</p>
-            <h2 className="font-display font-bold text-2xl sm:text-3xl uppercase mt-1 text-ink-50">Regular Cakes & Daily Slices</h2>
+            <h2 className="font-display font-bold text-2xl sm:text-3xl uppercase mt-1 text-ink-50">Gourmet Cookies & Crispy Namkeens</h2>
           </div>
-          <Link to="/shop?cat=Cakes" className="font-mono text-xs text-blaze-400 hover:underline uppercase tracking-wider flex items-center gap-1">
-            View All Cakes →
+          <Link to="/shop?cat=Cookies" className="font-mono text-xs text-blaze-400 hover:underline uppercase tracking-wider flex items-center gap-1">
+            View All Cookies & Namkeens →
           </Link>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mt-6">
-          {products.filter(p => p.category === "Cakes" && !p.tag?.includes("BEST")).slice(0, 4).map((p, i) => (
+          {products.filter(p => p.category === "Cookies" || p.category === "Namkeens").slice(0, 4).map((p, i) => (
             <div key={p.id} className="h-full">
               <ProductCard p={p} index={i} />
             </div>
@@ -428,19 +428,19 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ============ BIRTHDAY CAKES SECTION ============ */}
+      {/* ============ GIFT HAMPERS SECTION ============ */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 pb-16">
         <div className="flex items-end justify-between pb-4 border-b border-ink-800">
           <div>
             <p className="font-mono text-[10px] tracking-[0.25em] text-volt-400 uppercase font-bold">Celebration Specials</p>
-            <h2 className="font-display font-bold text-2xl sm:text-3xl uppercase mt-1 text-ink-50">Birthday Cakes & Midnight Surprises</h2>
+            <h2 className="font-display font-bold text-2xl sm:text-3xl uppercase mt-1 text-ink-50">Birthday, Anniversary & Corporate Hampers</h2>
           </div>
-          <Link to="/shop?tag=BEST" className="font-mono text-xs text-volt-400 hover:underline uppercase tracking-wider flex items-center gap-1">
-            Explore Birthday Specials →
+          <Link to="/shop?cat=Gift Hampers" className="font-mono text-xs text-volt-400 hover:underline uppercase tracking-wider flex items-center gap-1">
+            Explore Luxury Hampers →
           </Link>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mt-6">
-          {products.filter(p => p.tag === "BEST SELLER" || p.tag === "NEW" || p.price >= 45).slice(0, 4).map((p, i) => (
+          {products.filter(p => p.category === "Gift Hampers").slice(0, 4).map((p, i) => (
             <div key={p.id} className="h-full">
               <ProductCard p={p} index={i} />
             </div>

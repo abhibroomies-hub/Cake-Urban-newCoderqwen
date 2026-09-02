@@ -135,15 +135,15 @@ const DEFAULT_SETTINGS: Settings = {
     },
   },
   hero: {
-    kicker: "100% PURE EGGLESS BAKERY · 30-45 MIN EXPRESS DELIVERY",
-    titleA: "ARTISAN CAKES &",
-    titleB: "DELHI NCR",
-    sub: "Freshly whipped gourmet layer cakes, Belgian chocolate fudge & handcrafted cookies. Delivered across Faridabad, Noida, Gurgaon & Delhi in 30-45 minutes.",
-    ctaText: "Order Fresh Cake",
-    ctaLink: "/shop",
-    secCtaText: "Explore Eggless Menu",
-    secCtaLink: "/shop?cat=Cakes",
-    stats: [["4.9★", "2,480+ Google Reviews"], ["30-45M", "Express Delivery"], ["100%", "Pure Eggless Veg"]],
+    kicker: "LUXURY GIFTING & GOURMET BAKESHOUSE — SAME DAY DELIVERIES",
+    titleA: "COOKIES &",
+    titleB: "HAMPERS",
+    sub: "Exquisite luxury gift hampers for birthdays, anniversaries, corporate events, marriages, and return gifts — paired with gourmet cookies and crispy traditional namkeens.",
+    ctaText: "Explore Gift Hampers",
+    ctaLink: "/shop?cat=Gift Hampers",
+    secCtaText: "View Cookies & Namkeens",
+    secCtaLink: "/shop?cat=Cookies",
+    stats: [["4.9★", "2,480+ Reviews"], ["Same-Day", "Express Delivery NCR"], ["100%", "Artisanal Crafted"]],
   },
   featuredProductIds: ["raspberry-noir", "belgian-fudge-drip", "pistachio-rose-royale", "bento-cake-strawberry"],
   homeSections: {
@@ -288,7 +288,7 @@ type Store = State & {
 const Ctx = createContext<Store>(null as unknown as Store);
 export const useStore = () => useContext(Ctx);
 
-const LS_KEY = "cakeurban_state_v1";
+const LS_KEY = "cakeurban_state_v2";
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<State>(() => {
@@ -296,7 +296,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       const raw = localStorage.getItem(LS_KEY);
       if (raw) {
         const saved = JSON.parse(raw);
-        return { ...initialState(), ...saved, settings: { ...DEFAULT_SETTINGS, ...saved.settings } };
+        const mergedSettings = { ...DEFAULT_SETTINGS, ...saved.settings };
+        // Force hero to luxury gifting hampers
+        mergedSettings.hero = DEFAULT_SETTINGS.hero;
+        return { ...initialState(), ...saved, settings: mergedSettings };
       }
     } catch { /* fresh */ }
     return initialState();
@@ -671,10 +674,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const socialLogin: Store["socialLogin"] = (provider) => {
     if (provider === "Google") {
       signInWithPopup(auth, googleProvider).then((res) => {
-        const email = res.user.email || "abhibroomies@gmail.com";
+        const email = res.user.email || "";
         const role: "customer" | "admin" = isAdminEmail(email) ? "admin" : "customer";
         const baseUser: User = {
-          name: res.user.displayName || email.split("@")[0],
+          name: res.user.displayName || email.split("@")[0] || "User",
           email,
           photoURL: res.user.photoURL || undefined,
           role,
@@ -696,26 +699,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         }
         toast("success", "Signed in with Google successfully");
       }).catch((err) => {
-        // Fallback for preview domain / unauthorized domain restrictions
-        const email = "abhibroomies@gmail.com";
-        const role: "customer" | "admin" = "admin";
-        const baseUser: User = { name: "Abhi (Google)", email, role };
-        try {
-          const rootRef = (ref as any)(rtdb);
-          const emailKey = email.replace(/\./g, "_");
-          (rtdbGet as any)((child as any)(rootRef, `users/${emailKey}`)).then((snap: any) => {
-            if (snap.exists()) {
-              setState((s) => ({ ...s, user: { ...baseUser, ...snap.val() } }));
-            } else {
-              setState((s) => ({ ...s, user: baseUser }));
-            }
-          }).catch(() => {
-            setState((s) => ({ ...s, user: baseUser }));
-          });
-        } catch {
-          setState((s) => ({ ...s, user: baseUser }));
+        if (err?.code === "auth/unauthorized-domain") {
+          toast("error", "Google Sign-In domain requires authorization in Firebase Console. Please use Email / Password login.");
+        } else {
+          toast("error", err?.message || "Google sign-in failed. Please check your Firebase configuration or network.");
         }
-        toast("success", "Signed in with Google (Admin mode)");
       });
       return;
     }

@@ -26,7 +26,7 @@ export function generateAreaStructuredData(area: AreaData, options: SchemaOption
         "url": `${baseUrl}/cake-delivery-in/${area.slug}`,
         "telephone": "+91-7318531953",
         "priceRange": "₹₹",
-        "servesCuisine": "100% Pure Eggless Cakes, Artisanal Cakes, Midnight Deliveries, Custom Designer Cakes, Belgian Truffle",
+        "servesCuisine": "Luxury Gift Hampers, Gourmet Cookies, Crispy Namkeens, Birthday Gifting, Anniversary Boxes, Corporate Hampers",
         "areaServed": {
           "@type": "AdministrativeArea",
           "name": `${area.areaName}, ${area.cityName}`

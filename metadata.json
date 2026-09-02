@@ -1,6 +1,6 @@
 {
   "name": "CakeUrban",
-  "description": "Artisan cakes and small-batch cookies, handcrafted in an urban bakehouse and delivered fresh.",
+  "description": "Gourmet cookies, traditional crispy namkeens, and luxury gift hampers for birthdays, anniversaries, corporate events, marriages, and return gifts.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
