@@ -204,13 +204,26 @@ type State = {
   blogHidden: string[];
 };
 
+function detectInitialCurrency(): string {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const lang = navigator.language;
+    if (tz?.includes("Kolkata") || tz?.includes("Calcutta") || lang?.includes("IN")) {
+      return "INR";
+    }
+    return "USD";
+  } catch {
+    return "INR";
+  }
+}
+
 function initialState(): State {
   return {
-    theme: "dark", lang: "en", currency: "USD", user: null,
+    theme: "dark", lang: "en", currency: detectInitialCurrency(), user: null,
     users: [],
     cart: [], saved: [], wishlist: ["raspberry-noir"], compare: [],
-    orders: seedOrders(), reviews: SEED_REVIEWS, coupons: SEED_COUPONS,
-    customers: SEED_CUSTOMERS, staff: SEED_STAFF,
+    orders: [], reviews: [], coupons: SEED_COUPONS,
+    customers: [], staff: SEED_STAFF,
     addresses: [{ id: "a1", label: "Home", name: "Jordan Miles", line1: "88 Meridian Ave", city: "Austin", zip: "73301", country: "United States", phone: "+1 512 555 0188" }],
     payMethods: [{ id: "p1", brand: "VISA", last4: "4242", exp: "09/28" }],
     notifs: [{ id: 1, text: "Welcome to CakeUrban — your 10% code is WELCOME10", at: new Date().toISOString(), read: false }],
@@ -249,6 +262,7 @@ type Store = State & {
   socialLogin: (provider: string) => void;
   logout: () => void;
   placeOrder: (o: { address: string; method: string; shipCost: number; payment: string; coupon?: string; email?: string; customerName?: string; customerPhone?: string }) => Order | null;
+  addManualOrder: (data: { customerName: string; email: string; phone: string; address: string; cakeName: string; cakeImg: string; size: string; qty: number; price: number; payment: string }) => Order;
   cancelOrder: (id: string) => void;
   setOrderStatus: (id: string, s: OrderStatus) => void;
   addReview: (r: Omit<Review, "id" | "date">) => void;
@@ -288,7 +302,7 @@ type Store = State & {
 const Ctx = createContext<Store>(null as unknown as Store);
 export const useStore = () => useContext(Ctx);
 
-const LS_KEY = "cakeurban_state_v2";
+const LS_KEY = "cakeurban_state_v3";
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<State>(() => {
@@ -299,7 +313,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         const mergedSettings = { ...DEFAULT_SETTINGS, ...saved.settings };
         // Force hero to luxury gifting hampers
         mergedSettings.hero = DEFAULT_SETTINGS.hero;
-        return { ...initialState(), ...saved, settings: mergedSettings };
+        return {
+          ...initialState(),
+          ...saved,
+          settings: mergedSettings,
+          orders: [],
+          customers: [],
+          reviews: [],
+        };
       }
     } catch { /* fresh */ }
     return initialState();
@@ -730,8 +751,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
     const shipping = coupon === "FREESHIP" ? 0 : shipCost;
     const orderEmail = email || state.user?.email || "guest@cakeurban.com";
+
+    const existingNums = state.orders.map(o => {
+      const m = o.id.match(/CU-(\d+)/);
+      return m ? parseInt(m[1], 10) : 0;
+    });
+    const maxNum = existingNums.length ? Math.max(...existingNums) : 0;
+    const orderId = `CU-${String(maxNum + 1).padStart(3, '0')}`;
+
     const order: Order = {
-      id: `CU-${Math.floor(10000 + Math.random() * 89999)}`,
+      id: orderId,
       email: orderEmail,
       items, subtotal, discount, shipping, total: subtotal - discount + shipping, status: "pending",
       date: new Date().toISOString(), address, method, payment,
@@ -786,6 +815,77 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }));
     if (coupon) redeemCoupon(coupon);
     pushNotif(`Order ${order.id} confirmed — ${fmt(order.total)}`);
+    return order;
+  };
+
+  const addManualOrder: Store["addManualOrder"] = ({ customerName, email, phone, address, cakeName, cakeImg, size, qty, price, payment }) => {
+    const existingNums = state.orders.map(o => {
+      const m = o.id.match(/CU-(\d+)/);
+      return m ? parseInt(m[1], 10) : 0;
+    });
+    const maxNum = existingNums.length ? Math.max(...existingNums) : 0;
+    const orderId = `CU-${String(maxNum + 1).padStart(3, '0')}`;
+
+    const subtotal = price * qty;
+    const order: Order = {
+      id: orderId,
+      email: email || "customer@cakeurban.com",
+      items: [{
+        productId: "manual-item",
+        name: cakeName,
+        img: cakeImg || PRODUCTS[0].img,
+        color: "Custom",
+        size: size || "1 KG",
+        qty: qty || 1,
+        price: price,
+      }],
+      subtotal,
+      discount: 0,
+      shipping: 0,
+      total: subtotal,
+      status: "processing",
+      date: new Date().toISOString(),
+      address: address || "Delhi NCR",
+      method: "Manual Admin Entry",
+      payment: payment || "Paid / Cash",
+      timeline: [
+        { status: "pending", at: new Date().toISOString() },
+        { status: "processing", at: new Date().toISOString() }
+      ],
+    };
+
+    syncRTDB(`orders/${orderId}`, order);
+
+    const existingCustIdx = state.customers.findIndex((c) => c.email.toLowerCase() === order.email.toLowerCase());
+    let nextCustomers = [...state.customers];
+    if (existingCustIdx >= 0) {
+      nextCustomers[existingCustIdx] = {
+        ...nextCustomers[existingCustIdx],
+        orders: nextCustomers[existingCustIdx].orders + 1,
+        spend: nextCustomers[existingCustIdx].spend + order.total,
+        phone: phone || nextCustomers[existingCustIdx].phone,
+        name: customerName || nextCustomers[existingCustIdx].name,
+      };
+    } else {
+      nextCustomers.unshift({
+        id: `c_${Date.now()}`,
+        name: customerName || "Valued Patron",
+        email: order.email,
+        phone: phone || "+91 98765 43210",
+        orders: 1,
+        spend: order.total,
+        joined: new Date().toISOString().slice(0, 10),
+        blocked: false,
+      });
+    }
+    syncRTDB("customers", nextCustomers);
+
+    setState((s) => ({
+      ...s,
+      orders: [order, ...s.orders],
+      customers: nextCustomers,
+    }));
+    toast("success", `Manual Order ${orderId} created successfully!`);
     return order;
   };
 
@@ -1031,7 +1131,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     set, toggleTheme: () => setState((s) => ({ ...s, theme: s.theme === "dark" ? "light" : "dark" })),
     cartAdd, cartQty, cartRemove, saveForLater, moveSavedToCart, removeSaved, toggleWish, toggleCompare,
     clearCompare: () => setState((s) => ({ ...s, compare: [] })), cartCount, cartSubtotal, couponFor, redeemCoupon,
-    login, requestSignup, verifySignup, pendingOtp, socialLogin, logout, updateProfile, placeOrder, cancelOrder, setOrderStatus,
+    login, requestSignup, verifySignup, pendingOtp, socialLogin, logout, updateProfile, placeOrder, addManualOrder, cancelOrder, setOrderStatus,
     addReview, setStock, pushNotif, markNotifsRead, sendChat, subscribe, saveAddress, deleteAddress,
     addPayMethod, deletePayMethod, addCoupon, toggleCoupon, deleteCoupon, addStaff, removeStaff, setStaffRole,
     toggleCustomer, addProduct, updateProduct, deleteProduct,

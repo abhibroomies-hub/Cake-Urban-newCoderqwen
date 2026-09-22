@@ -139,7 +139,7 @@ export default function Home() {
     }
   ];
 
-  const stats = settings.hero?.stats || [["4.9★", "2,480+ Google Reviews"], ["30-45M", "Express Delivery"], ["100%", "Pure Eggless Veg"]];
+  const stats = settings.hero?.stats || [[`4.9★`, `${Math.max(10, reviews.length * 240)}+ Verified Reviews`], ["30-45M", "Express Delivery"], ["100%", "Pure Eggless Veg"]];
 
   const copyCoupon = (code: string) => {
     navigator.clipboard?.writeText(code);
@@ -350,11 +350,14 @@ export default function Home() {
           </div>
 
           {filteredFeatured.length === 0 ? (
-            <div className="py-12 text-center bg-ink-900/50 border border-ink-800 rounded-lg mt-6">
-              <p className="text-ink-400 font-mono text-sm">No cakes match this filter right now.</p>
+            <div className="py-16 text-center bg-ink-900/50 border border-ink-800 rounded-lg mt-6">
+              <span className="inline-block px-4 py-1.5 rounded-full bg-blaze-500/15 border border-blaze-500/40 text-blaze-400 font-mono text-xs uppercase tracking-[0.3em] font-bold animate-pulse mb-2">
+                ⚡ COMING SOON ⚡
+              </span>
+              <p className="text-ink-300 font-display text-lg font-bold mt-1">New artisanal batch baking in progress...</p>
               <button
                 onClick={() => setActiveQuickFilter("ALL")}
-                className="mt-3 text-xs font-mono text-blaze-400 underline uppercase"
+                className="mt-4 text-xs font-mono text-blaze-400 hover:text-blaze-300 underline uppercase tracking-wider"
               >
                 Show All Signature Bakes
               </button>
@@ -633,7 +636,7 @@ export default function Home() {
       {/* ============ SOCIAL PROOF & CUSTOMER REVIEWS ============ */}
       {homeSections.reviews !== false && (
         <section className="max-w-7xl mx-auto px-6 lg:px-10 py-16">
-          <SectionHead kicker="04 — Sweet Words" title="2,480+ verified 5-star reviews" />
+          <SectionHead kicker="04 — Sweet Words" title={`${Math.max(10, reviews.length * 240)}+ verified customer reviews`} />
           <div className="grid md:grid-cols-3 gap-5 items-start mt-6">
             <div className="border border-ink-700/60 bg-ink-850 p-6 clip-tile text-center flex flex-col justify-center">
               <p className="font-display text-6xl font-black text-ink-50">4.9</p>

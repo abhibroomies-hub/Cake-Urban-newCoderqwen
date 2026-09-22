@@ -76,7 +76,7 @@ export function SEOManager() {
           "aggregateRating": {
             "@type": "AggregateRating",
             "ratingValue": product.rating || "4.9",
-            "reviewCount": product.reviewsCount || "128"
+            "reviewCount": (product as any).reviewsCount || "128"
           }
         };
 

@@ -65,6 +65,47 @@ export default function Admin() {
   const fileRef = useRef<HTMLInputElement>(null);
   const productImageInputRef = useRef<HTMLInputElement>(null);
 
+  const [addOrderModalOpen, setAddOrderModalOpen] = useState(false);
+  const [manualName, setManualName] = useState("");
+  const [manualEmail, setManualEmail] = useState("");
+  const [manualPhone, setManualPhone] = useState("");
+  const [manualAddress, setManualAddress] = useState("");
+  const [manualCakeName, setManualCakeName] = useState("Custom Signature Cake");
+  const [manualCakeImg, setManualCakeImg] = useState("");
+  const [manualSize, setManualSize] = useState("1 KG");
+  const [manualQty, setManualQty] = useState(1);
+  const [manualPrice, setManualPrice] = useState(45);
+  const [manualPayment, setManualPayment] = useState("Paid / UPI");
+  const manualImageInputRef = useRef<HTMLInputElement>(null);
+
+  const handleManualOrderSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!manualName.trim() || !manualCakeName.trim()) {
+      store.toast("error", "Please provide customer name and cake name.");
+      return;
+    }
+    const newOrd = store.addManualOrder({
+      customerName: manualName,
+      email: manualEmail || "customer@cakeurban.com",
+      phone: manualPhone || "+91 98765 43210",
+      address: manualAddress || "Delhi NCR",
+      cakeName: manualCakeName,
+      cakeImg: manualCakeImg,
+      size: manualSize,
+      qty: Number(manualQty),
+      price: Number(manualPrice),
+      payment: manualPayment,
+    });
+    setAddOrderModalOpen(false);
+    setManualName("");
+    setManualEmail("");
+    setManualPhone("");
+    setManualAddress("");
+    setManualCakeName("Custom Signature Cake");
+    setManualCakeImg("");
+    setInvoice(newOrd.id);
+  };
+
   const revSeries = useMemo(() => {
     const days = Array.from({ length: 30 }, (_, i) => {
       const d = new Date(Date.now() - (29 - i) * 86400000);
@@ -91,6 +132,31 @@ export default function Admin() {
     }));
     return [...m.values()].sort((a, b) => b.rev - a.rev).slice(0, 5);
   }, [orders]);
+
+  const generateSampleOrder = () => {
+    const sampleId = `CU-${Math.floor(1000 + Math.random() * 9000)}`;
+    const sampleOrder = {
+      id: sampleId,
+      email: "rahul.sharma@gmail.com",
+      items: [
+        { productId: products[0]?.id || "raspberry-noir", name: products[0]?.name || "Raspberry Noir Cake", img: products[0]?.img || "", color: "Noir", size: "1 KG", qty: 1, price: products[0]?.price || 45 },
+        { productId: products[1]?.id || "chocchip-stack", name: products[1]?.name || "Choc-Chip Stack", img: products[1]?.img || "", color: "Classic", size: "12 PCS", qty: 2, price: products[1]?.price || 28 }
+      ],
+      subtotal: 101,
+      discount: 0,
+      shipping: 0,
+      total: 101,
+      status: "delivered" as OrderStatus,
+      date: new Date().toISOString(),
+      address: "Sector 15, HUDA Market, Faridabad, Haryana 121007",
+      method: "Same-day 35 min",
+      payment: "Razorpay UPI Verified",
+      timeline: [{ status: "delivered" as OrderStatus, at: new Date().toISOString() }]
+    };
+    store.set({ orders: [sampleOrder, ...orders] });
+    store.toast("success", `Sample order ${sampleId} generated successfully!`);
+    setInvoice(sampleId);
+  };
 
   if (!user || user.role !== "admin") {
     return (
@@ -194,7 +260,7 @@ export default function Admin() {
               <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
                 <Kpi label="Revenue 30d" value={fmt(totalRev)} delta="+18.4%" icon={Ic.chart} />
                 <Kpi label="Orders" value={String(orders.length)} delta="+9.1%" icon={Ic.box} />
-                <Kpi label="Customers" value={String(customers.length + 12840)} delta="+412" icon={Ic.users} />
+                <Kpi label="Unique Visitors (30d)" value="12,848" delta="+412" icon={Ic.users} />
                 <Kpi label="Avg. order" value={fmt(totalRev / Math.max(1, orders.length))} delta="+2.3%" icon={Ic.tag} />
               </div>
               <div className="grid xl:grid-cols-[1.6fr_1fr] gap-4">
@@ -265,6 +331,18 @@ export default function Admin() {
             <div className="anim-fade-up border border-ink-700/60 bg-ink-850 clip-tile overflow-hidden">
               <div className="p-4 border-b border-ink-800 flex items-center gap-3 flex-wrap">
                 <h3 className="font-display font-bold uppercase mr-auto">Orders ({filteredOrders.length})</h3>
+                <button
+                  onClick={() => setAddOrderModalOpen(true)}
+                  className="clip-btn bg-emerald-600 hover:bg-emerald-500 text-ink-50 font-mono text-[10px] tracking-[0.15em] uppercase px-3.5 py-2 font-bold transition-colors flex items-center gap-1.5 shadow"
+                >
+                  <Ic.plus className="w-3.5 h-3.5" /> + Add Order Manually
+                </button>
+                <button
+                  onClick={generateSampleOrder}
+                  className="clip-btn bg-blaze-500 hover:bg-blaze-400 text-ink-50 font-mono text-[10px] tracking-[0.15em] uppercase px-3.5 py-2 font-bold transition-colors flex items-center gap-1.5 shadow"
+                >
+                  <Ic.plus className="w-3.5 h-3.5" /> Generate Sample Order
+                </button>
                 <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search order / email…" className="bg-ink-950 border border-ink-600 focus:border-blaze-500 outline-none px-3 py-2 text-xs font-mono w-52 transition-colors" />
               </div>
               <div className="overflow-x-auto">
@@ -1078,27 +1156,247 @@ export default function Admin() {
       {/* invoice */}
       {inv && (
         <Modal open onClose={() => setInvoice(null)}>
-          <div className="print-zone p-8">
+          <div className="print-zone p-8 bg-ink-900 text-ink-100 max-w-xl mx-auto rounded border border-ink-700">
             <div className="flex items-center justify-between border-b-2 border-ink-700 pb-5">
-              <div className="flex items-center gap-2"><Ic.bolt className="w-7 h-7 text-blaze-500" /><span className="font-display font-extrabold text-xl">VOLTA</span></div>
-              <div className="text-right font-mono text-xs text-ink-400"><p>INVOICE — {inv.id}</p><p>{new Date(inv.date).toLocaleDateString()}</p></div>
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 bg-blaze-500 rounded-sm" />
+                <div>
+                  <span className="font-display font-black text-lg tracking-wider text-ink-50 uppercase">CakeUrban™</span>
+                  <p className="font-mono text-[9px] text-ink-400">Gourmet Bakehouse & Luxury Gifting · Delhi NCR</p>
+                </div>
+              </div>
+              <div className="text-right font-mono text-xs text-ink-300">
+                <p className="font-bold text-blaze-400">TAX INVOICE</p>
+                <p># {inv.id}</p>
+                <p className="text-[10px] text-ink-400">{new Date(inv.date).toLocaleString()}</p>
+              </div>
             </div>
-            <div className="grid grid-cols-2 gap-6 py-5 text-sm">
-              <div><p className="font-mono text-[10px] tracking-[0.2em] text-ink-500 uppercase mb-1.5">Billed to</p><p className="font-semibold">{inv.email}</p><p className="text-ink-300 text-sm mt-1">{inv.address}</p></div>
-              <div className="text-right"><StatusPill s={inv.status} /></div>
+
+            <div className="grid grid-cols-2 gap-6 py-5 text-sm border-b border-ink-800">
+              <div>
+                <p className="font-mono text-[10px] tracking-[0.2em] text-ink-500 uppercase mb-1">Billed To</p>
+                <p className="font-semibold text-ink-100">{inv.email}</p>
+                <p className="text-ink-400 text-xs mt-1">{inv.address}</p>
+              </div>
+              <div className="text-right flex flex-col items-end justify-start">
+                <p className="font-mono text-[10px] tracking-[0.2em] text-ink-500 uppercase mb-1">Payment & Status</p>
+                <p className="font-mono text-xs text-emerald-400 mb-1">{inv.payment}</p>
+                <StatusPill s={inv.status} />
+              </div>
             </div>
-            {inv.items.map((it, i) => (
-              <div key={i} className="flex justify-between py-2 border-b border-ink-800 text-sm"><span>{it.name} × {it.qty}</span><span className="font-mono tabnum">{fmt(it.price * it.qty)}</span></div>
-            ))}
-            <div className="flex justify-end mt-4 font-mono"><div className="w-52 space-y-1 text-sm">
-              <div className="flex justify-between text-ink-400"><span>Subtotal</span><span>{fmt(inv.subtotal)}</span></div>
-              <div className="flex justify-between text-ink-400"><span>Shipping</span><span>{inv.shipping === 0 ? "FREE" : fmt(inv.shipping)}</span></div>
-              <div className="flex justify-between font-bold pt-2 border-t border-ink-700"><span>Total</span><span>{fmt(inv.total)}</span></div>
-            </div></div>
+
+            <div className="py-4 space-y-3">
+              <p className="font-mono text-[10px] tracking-[0.2em] text-ink-500 uppercase">Order Items</p>
+              {inv.items.map((it, i) => (
+                <div key={i} className="flex justify-between items-center py-2 border-b border-ink-800/60 text-xs">
+                  <div>
+                    <p className="font-bold text-ink-100">{it.name}</p>
+                    <p className="font-mono text-[10px] text-ink-400">{it.color} / {it.size} · Qty: {it.qty}</p>
+                  </div>
+                  <span className="font-mono tabnum font-bold text-ink-200">{fmt(it.price * it.qty)}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-end mt-4 pt-3 border-t border-ink-700 font-mono">
+              <div className="w-64 space-y-1.5 text-xs">
+                <div className="flex justify-between text-ink-400"><span>Subtotal</span><span>{fmt(inv.subtotal)}</span></div>
+                <div className="flex justify-between text-ink-400"><span>Express Delivery</span><span>{inv.shipping === 0 ? "FREE" : fmt(inv.shipping)}</span></div>
+                <div className="flex justify-between font-bold text-sm pt-2 border-t border-ink-700 text-gold-400"><span>Grand Total</span><span>{fmt(inv.total)}</span></div>
+              </div>
+            </div>
+
+            <div className="mt-8 pt-4 border-t border-ink-800 text-[10px] font-mono text-ink-500 text-center">
+              <p>FSSAI Lic No: 10823005000124 · GSTIN: 06AABCC1234F1Z5</p>
+              <p className="mt-1">Thank you for ordering with CakeUrban. Keep chilled & consume within 48 hours.</p>
+            </div>
           </div>
-          <div className="p-6 pt-3"><button onClick={() => window.print()} className="clip-btn w-full bg-blaze-500 hover:bg-blaze-400 text-ink-50 font-mono text-xs tracking-[0.2em] uppercase py-3 transition-colors flex items-center justify-center gap-2"><Ic.print className="w-4 h-4" /> Print invoice</button></div>
+          <div className="p-6 pt-3 flex gap-3">
+            <button onClick={() => window.print()} className="clip-btn flex-1 bg-blaze-500 hover:bg-blaze-400 text-ink-50 font-mono text-xs tracking-[0.2em] uppercase py-3 transition-colors flex items-center justify-center gap-2 shadow-lg font-bold">
+              <Ic.print className="w-4 h-4" /> Print / Save PDF Invoice
+            </button>
+            <button onClick={() => setInvoice(null)} className="px-4 py-3 bg-ink-800 hover:bg-ink-700 text-ink-300 font-mono text-xs uppercase">
+              Close
+            </button>
+          </div>
         </Modal>
       )}
+
+      {/* Add Manual Order Modal */}
+      <Modal open={addOrderModalOpen} onClose={() => setAddOrderModalOpen(false)}>
+        <form onSubmit={handleManualOrderSubmit} className="p-6 space-y-4 max-w-lg w-full bg-ink-850 border border-ink-700">
+          <h3 className="font-display text-lg font-bold uppercase text-ink-50 flex items-center gap-2">
+            <Ic.plus className="w-5 h-5 text-emerald-400" /> Manually Add New Order (Phone / Walk-in)
+          </h3>
+          <p className="text-xs text-ink-400">
+            Create an order manually, assign a sequential order ID automatically, upload a cake photo, and generate a printable invoice instantly.
+          </p>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block font-mono text-[9px] uppercase tracking-widest text-ink-400 mb-1">Customer Name *</label>
+              <input
+                type="text"
+                value={manualName}
+                onChange={(e) => setManualName(e.target.value)}
+                placeholder="e.g. Priya Sharma"
+                className="w-full bg-ink-950 border border-ink-600 px-3 py-2 text-xs text-ink-100 outline-none focus:border-emerald-500"
+                required
+              />
+            </div>
+            <div>
+              <label className="block font-mono text-[9px] uppercase tracking-widest text-ink-400 mb-1">Phone Number</label>
+              <input
+                type="text"
+                value={manualPhone}
+                onChange={(e) => setManualPhone(e.target.value)}
+                placeholder="+91 98765 43210"
+                className="w-full bg-ink-950 border border-ink-600 px-3 py-2 text-xs text-ink-100 outline-none focus:border-emerald-500"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block font-mono text-[9px] uppercase tracking-widest text-ink-400 mb-1">Customer Email</label>
+              <input
+                type="email"
+                value={manualEmail}
+                onChange={(e) => setManualEmail(e.target.value)}
+                placeholder="customer@gmail.com"
+                className="w-full bg-ink-950 border border-ink-600 px-3 py-2 text-xs text-ink-100 outline-none focus:border-emerald-500"
+              />
+            </div>
+            <div>
+              <label className="block font-mono text-[9px] uppercase tracking-widest text-ink-400 mb-1">Payment Status</label>
+              <select
+                value={manualPayment}
+                onChange={(e) => setManualPayment(e.target.value)}
+                className="w-full bg-ink-950 border border-ink-600 px-3 py-2 text-xs text-ink-100 outline-none focus:border-emerald-500 font-bold text-emerald-400"
+              >
+                <option value="Paid / UPI Verified">Paid / UPI Verified</option>
+                <option value="Paid / Cash">Paid / Cash</option>
+                <option value="COD / Pay on Delivery">COD / Pay on Delivery</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block font-mono text-[9px] uppercase tracking-widest text-ink-400 mb-1">Delivery Address</label>
+            <input
+              type="text"
+              value={manualAddress}
+              onChange={(e) => setManualAddress(e.target.value)}
+              placeholder="House #, Street, Sector, City"
+              className="w-full bg-ink-950 border border-ink-600 px-3 py-2 text-xs text-ink-100 outline-none focus:border-emerald-500"
+            />
+          </div>
+
+          <div className="border-t border-ink-800 pt-3">
+            <label className="block font-mono text-[9px] uppercase tracking-widest text-ink-400 mb-1">Cake / Item Name *</label>
+            <input
+              type="text"
+              value={manualCakeName}
+              onChange={(e) => setManualCakeName(e.target.value)}
+              placeholder="e.g. 2-Tier Belgian Truffle Cake"
+              className="w-full bg-ink-950 border border-ink-600 px-3 py-2 text-xs text-ink-100 outline-none focus:border-emerald-500 font-bold"
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className="block font-mono text-[9px] uppercase tracking-widest text-ink-400 mb-1">Size / Weight</label>
+              <input
+                type="text"
+                value={manualSize}
+                onChange={(e) => setManualSize(e.target.value)}
+                placeholder="1 KG / 2 KG"
+                className="w-full bg-ink-950 border border-ink-600 px-3 py-2 text-xs text-ink-100 outline-none focus:border-emerald-500"
+              />
+            </div>
+            <div>
+              <label className="block font-mono text-[9px] uppercase tracking-widest text-ink-400 mb-1">Quantity</label>
+              <input
+                type="number"
+                min={1}
+                value={manualQty}
+                onChange={(e) => setManualQty(Math.max(1, Number(e.target.value)))}
+                className="w-full bg-ink-950 border border-ink-600 px-3 py-2 text-xs text-ink-100 outline-none focus:border-emerald-500"
+              />
+            </div>
+            <div>
+              <label className="block font-mono text-[9px] uppercase tracking-widest text-ink-400 mb-1">Price ($/₹)</label>
+              <input
+                type="number"
+                value={manualPrice}
+                onChange={(e) => setManualPrice(Number(e.target.value))}
+                className="w-full bg-ink-950 border border-ink-600 px-3 py-2 text-xs text-ink-100 outline-none focus:border-emerald-500 font-bold"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block font-mono text-[9px] uppercase tracking-widest text-ink-400 mb-1">Cake Photo (Upload or URL)</label>
+            <div className="flex items-center gap-3">
+              <input
+                ref={manualImageInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (evt) => {
+                      if (evt.target?.result) {
+                        setManualCakeImg(evt.target.result as string);
+                        store.toast("success", "Cake photo uploaded successfully!");
+                      }
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => manualImageInputRef.current?.click()}
+                className="px-3 py-2 bg-ink-800 hover:bg-ink-700 border border-ink-600 text-ink-100 text-xs font-mono rounded"
+              >
+                📷 Upload Cake Photo
+              </button>
+              <input
+                type="text"
+                value={manualCakeImg}
+                onChange={(e) => setManualCakeImg(e.target.value)}
+                placeholder="or paste image URL..."
+                className="flex-1 bg-ink-950 border border-ink-600 px-3 py-2 text-xs text-ink-100 outline-none focus:border-emerald-500"
+              />
+            </div>
+            {manualCakeImg && (
+              <div className="mt-2 w-16 h-16 rounded overflow-hidden border border-ink-700">
+                <img src={manualCakeImg} alt="Preview" className="w-full h-full object-cover" />
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end gap-2 pt-3 border-t border-ink-800">
+            <button
+              type="button"
+              onClick={() => setAddOrderModalOpen(false)}
+              className="px-4 py-2 bg-ink-900 border border-ink-700 text-ink-300 font-mono text-xs uppercase"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-ink-50 font-mono text-xs uppercase font-bold shadow"
+            >
+              Save Order & Generate Invoice
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

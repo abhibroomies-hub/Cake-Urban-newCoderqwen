@@ -235,10 +235,11 @@ export function Header({ onCart, onCompare }: { onCart: () => void; onCompare: (
   const { t, user, cartCount, wishlist, compare, theme, toggleTheme, lang, set, currency, settings, categories, products, logout } = useStore();
   const { openAuth } = useAuth();
   const [mega, setMega] = useState(false);
+  const [cakesMega, setCakesMega] = useState(false);
   const [search, setSearch] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const loc = useLocation();
-  useEffect(() => setMega(false), [loc.pathname]);
+  useEffect(() => { setMega(false); setCakesMega(false); }, [loc.pathname]);
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 24);
     h(); window.addEventListener("scroll", h);
@@ -336,6 +337,11 @@ export function Header({ onCart, onCompare }: { onCart: () => void; onCompare: (
                   {t("nav.shop")} <Ic.chev className={`w-3.5 h-3.5 transition-transform ${mega ? "rotate-180" : ""}`} />
                 </Link>
               </div>
+              <div className="relative" onMouseEnter={() => setCakesMega(true)} onMouseLeave={() => setCakesMega(false)}>
+                <Link to="/shop?cat=Signature%20Cakes" className={`link-sweep py-2 flex items-center gap-1.5 transition-colors ${cakesMega ? "text-blaze-400" : "text-ink-200 hover:text-ink-50"}`}>
+                  Cakes <Ic.chev className={`w-3.5 h-3.5 transition-transform ${cakesMega ? "rotate-180" : ""}`} />
+                </Link>
+              </div>
               <Link to="/shop?tag=NEW" className="link-sweep text-ink-200 hover:text-ink-50 transition-colors">{t("nav.new")}</Link>
               <Link to="/shop?cat=Bento%20Cakes" className="link-sweep text-ink-200 hover:text-ink-50 transition-colors">Bento & Mini</Link>
               <Link to="/blog" className="link-sweep text-ink-200 hover:text-ink-50 transition-colors">{t("nav.blog")}</Link>
@@ -404,6 +410,73 @@ export function Header({ onCart, onCompare }: { onCart: () => void; onCompare: (
                     <p className="font-mono text-[10px] tracking-[0.25em] text-blaze-400">DELHI NCR BESTSELLER</p>
                     <p className="font-display font-bold mt-1 group-hover:text-blaze-400 transition-colors">Raspberry Noir Truffle</p>
                     <p className="font-mono text-xs text-ink-300 mt-0.5">30-45 Min Express Delivery</p>
+                  </div>
+                </Link>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* cakes theme & occasion mega menu */}
+        <AnimatePresence>
+          {cakesMega && (
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.25 }}
+              onMouseEnter={() => setCakesMega(true)} onMouseLeave={() => setCakesMega(false)}
+              className="hidden lg:block absolute inset-x-0 top-full bg-ink-950/98 backdrop-blur-xl border-b border-ink-800 shadow-lift">
+              <div className="px-8 py-8 max-w-7xl mx-auto grid grid-cols-4 gap-8">
+                <div className="flex flex-col">
+                  <p className="font-display font-bold text-sm uppercase tracking-wider text-blaze-400 border-b border-ink-800 pb-2 mb-3">🎨 Theme-Wise Cakes</p>
+                  <div className="space-y-2.5">
+                    {[
+                      { name: "Belgian Truffle & Noir", q: "Truffle" },
+                      { name: "Bouncing Bento Cakes", cat: "Bento Cakes" },
+                      { name: "Pinata & Bomb Cakes", q: "Pinata" },
+                      { name: "Photo & Custom Designer", q: "Photo" },
+                      { name: "Jar Cakes & Cupcakes", cat: "Jar Cakes" },
+                    ].map((item) => (
+                      <Link key={item.name} to={`/shop?${item.cat ? `cat=${encodeURIComponent(item.cat)}` : `q=${encodeURIComponent(item.q!)}`}`} className="block text-xs text-ink-300 hover:text-blaze-400 hover:translate-x-1 transition-all">
+                        {item.name}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex flex-col">
+                  <p className="font-display font-bold text-sm uppercase tracking-wider text-emerald-400 border-b border-ink-800 pb-2 mb-3">🎉 Occasion-Wise Cakes</p>
+                  <div className="space-y-2.5">
+                    {[
+                      { name: "Birthday Celebrations", q: "Birthday" },
+                      { name: "Anniversary & Romance", q: "Anniversary" },
+                      { name: "Kids Special & Cartoon", q: "Kids" },
+                      { name: "Wedding & 2-Tier Luxury", q: "Tier" },
+                      { name: "Midnight Express Bakes", q: "Express" },
+                    ].map((item) => (
+                      <Link key={item.name} to={`/shop?q=${encodeURIComponent(item.q)}`} className="block text-xs text-ink-300 hover:text-emerald-400 hover:translate-x-1 transition-all">
+                        {item.name}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex flex-col">
+                  <p className="font-display font-bold text-sm uppercase tracking-wider text-gold-400 border-b border-ink-800 pb-2 mb-3">⚡ Quick Delivery</p>
+                  <div className="space-y-2.5">
+                    <Link to="/shop?q=35" className="block text-xs text-ink-300 hover:text-gold-400">Same-Day 35 Min Delivery</Link>
+                    <Link to="/shop?q=Eggless" className="block text-xs text-ink-300 hover:text-gold-400">100% Pure Eggless Guarantee</Link>
+                    <Link to="/shop?q=Custom" className="block text-xs text-ink-300 hover:text-gold-400">Custom Message Card Free</Link>
+                    <Link to="/delivery-locations" className="block text-xs text-ink-300 hover:text-gold-400">Delhi NCR Hubs & Radius</Link>
+                  </div>
+                </div>
+
+                <Link to="/builder" className="relative clip-tile overflow-hidden group border border-ink-700/60 bg-ink-850 p-6 flex flex-col justify-between">
+                  <div className="absolute inset-0 grid-lines opacity-50" />
+                  <div className="relative z-10">
+                    <span className="px-2 py-1 bg-blaze-500/20 text-blaze-400 font-mono text-[9px] rounded font-bold">CUSTOM 3D STUDIO</span>
+                    <p className="font-display font-bold text-lg mt-3 text-ink-50 group-hover:text-blaze-400 transition-colors">Design Your Own Dream Cake</p>
+                    <p className="font-mono text-xs text-ink-400 mt-1">Choose layers, frosting, toppers & live preview.</p>
+                  </div>
+                  <div className="relative z-10 pt-4 flex items-center gap-1.5 font-mono text-xs text-blaze-400 uppercase font-bold">
+                    <span>Launch 3D Studio</span> <span>→</span>
                   </div>
                 </Link>
               </div>
