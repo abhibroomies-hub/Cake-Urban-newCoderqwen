@@ -4,6 +4,7 @@ import { StoreProvider, useStore } from "./lib/store";
 import { AuthProvider, Header, CartDrawer, ChatWidget, WhatsAppWidget, CookieConsent, Toasts, Footer, MobileBottomNav } from "./components/chrome";
 import { QuickViewProvider, CompareOverlay } from "./components/product";
 import { Ic, ImgX } from "./components/ui";
+import { SEOManager } from "./components/SEOManager";
 import Home from "./pages/home";
 import Shop, { WishlistPage } from "./pages/shop";
 import ProductPage from "./pages/product";
@@ -58,6 +59,7 @@ function Shell() {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOManager />
       <Header onCart={() => setCartOpen(true)} onCompare={() => setCompareOpen(true)} />
       <main className="flex-1 pb-20 md:pb-0" key={location.pathname}>
         <div className="page-enter">
