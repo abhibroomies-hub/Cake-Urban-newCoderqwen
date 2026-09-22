@@ -16,6 +16,7 @@ import Contact from "./pages/contact";
 import CustomBuilder from "./pages/builder";
 import PolicyPage from "./pages/policies";
 import { DeliveryLocationsIndex, CityHubPage, AreaLandingPage } from "./pages/local-seo";
+import { CookiesLocationPage } from "./pages/cookies-location";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -76,6 +77,11 @@ function Shell() {
             <Route path="/builder" element={<CustomBuilder />} />
             <Route path="/policy/:type" element={<PolicyPage />} />
             <Route path="/delivery-locations" element={<DeliveryLocationsIndex />} />
+            <Route path="/cookies-delhi" element={<CookiesLocationPage />} />
+            <Route path="/cookies-faridabad" element={<CookiesLocationPage />} />
+            <Route path="/cookies-noida" element={<CookiesLocationPage />} />
+            <Route path="/cookies-gurgaon" element={<CookiesLocationPage />} />
+            <Route path="/cookies-ghaziabad" element={<CookiesLocationPage />} />
             <Route path="/cakes-in/:citySlug" element={<CityHubPage />} />
             <Route path="/cake-delivery-in/:areaSlug" element={<AreaLandingPage intent="standard" />} />
             <Route path="/midnight-cake-delivery-in/:areaSlug" element={<AreaLandingPage intent="midnight" />} />

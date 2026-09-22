@@ -239,6 +239,50 @@ export type BlogPost = { slug: string; title: string; tag: string; date: string;
 
 export const BLOG_POSTS: BlogPost[] = [
   {
+    slug: "best-gourmet-cookies-delhi-ncr-2025", title: "Best Gourmet Cookies in Delhi NCR 2025", tag: "DELHI NCR SEO", date: "2026-02-15", read: "8 min",
+    excerpt: "Discover where to buy the finest artisan choc-chip cookies, molten centers and 72-hour cold-fermented bakes across Faridabad, Noida, Gurgaon and South Delhi.",
+    img: IMG.cookies, crop: CROP.TL,
+    body: [
+      "The culinary scene across Delhi NCR has experienced a massive shift towards artisanal, small-batch bakes. Gone are the days of mass-produced supermarket biscuits; today's dessert lovers across Faridabad, Noida, Gurgaon, and South Delhi demand authentic, butter-rich gourmet cookies.",
+      "At CakeUrban, our approach to baking cookies relies on science and patience. By utilizing a strict 72-hour cold-fermentation process, our cookie dough develops deep toffee undertones, crisp edges, and a decadent molten center that melts in your mouth.",
+      "Whether you are hosting a high-tea in DLF Phase 5 Gurgaon, searching for birthday treats in Sector 15 Faridabad, or ordering midnight sweet cravings in Sector 18 Noida, our express 35-minute delivery fleet ensures your bakes arrive warm, fresh, and pristine.",
+      "Explore our signature Choc-Chip Stacks, French Macarons, and Butter Shortbreads today. Ordered fresh, delivered fast across all major NCR hubs."
+    ],
+  },
+  {
+    slug: "top-10-gift-hampers-diwali-faridabad", title: "Top 10 Gift Hampers for Diwali in Faridabad", tag: "FARIDABAD HAMPERS", date: "2026-02-10", read: "9 min",
+    excerpt: "Looking for the ultimate luxury gift hamper in Faridabad? Here are the top 10 curated boxes featuring gourmet cookies, dry fruits, and crispy namkeens.",
+    img: IMG.hero,
+    body: [
+      "Festivals and celebrations in Faridabad are incomplete without exquisite gifting. Whether it's Diwali, Bhai Dooj, weddings, or corporate milestones, presenting a thoughtfully curated luxury gift hamper speaks volumes.",
+      "Our top 10 gift hampers in Faridabad combine traditional elegance with modern gourmet indulgence. From matte-black luxury boxes packed with royal Bikaneri bhujia and roasted peri-peri makhana to gold-foiled celebration chests filled with Belgian chocolate cookies, we craft experiences.",
+      "Delivering across all Faridabad sectors including Sector 14, 15, 16, 21, Greenfields, Charmwood, and Neharpar with express same-day and midnight slots.",
+      "Make your next celebration unforgettable with CakeUrban's bespoke gift boxes, personalized notes, and premium packaging."
+    ],
+  },
+  {
+    slug: "where-to-buy-premium-namkeen-online-noida", title: "Where to Buy Premium Namkeen Online in Noida", tag: "NOIDA SNACKS", date: "2026-01-28", read: "7 min",
+    excerpt: "Craving traditional crunch? Discover Noida's favorite destination for royal bhujia, roasted makhana, spicy shahi mixtures, and flaky mathri delivered in 35 mins.",
+    img: IMG.cookies, crop: CROP.BL,
+    body: [
+      "Tea-time in Noida just got an upgrade. While packaged snacks often taste stale and overly salted, authentic traditional namkeens require artisan spice blends and premium cold-pressed oils.",
+      "At CakeUrban Noida, our namkeen collection is crafted for connoisseurs. From spicy Shahi Mixures and crunchy Bikaneri Bhujia to roasted Peri-Peri Makhana and flaky Methi Mathri, every batch is sealed fresh.",
+      "Serving Noida Sector 18, Sector 62, Sector 137, Noida Extension, and Gaur City with lightning-fast 35-minute delivery straight to your doorstep.",
+      "Order online today and experience traditional crunch like never before."
+    ],
+  },
+  {
+    slug: "corporate-gifting-ideas-gurgaon", title: "Corporate Gifting Ideas Gurgaon", tag: "GURGAON CORPORATE", date: "2026-01-18", read: "10 min",
+    excerpt: "Elevate your corporate gifting in Cyber City and DLF Phase 5 Gurgaon with custom-branded luxury hampers, gourmet cookies, and executive snack boxes.",
+    img: IMG.cakes, crop: CROP.TR,
+    body: [
+      "Corporate gifting in Gurgaon's bustling business hubs like Cyber City, Udyog Vihar, and Golf Course Road demands sophistication and reliability. Standard gift baskets often fail to leave a lasting impression on valued clients and hard-working employees.",
+      "CakeUrban offers bespoke corporate gifting solutions featuring executive charcoal and navy gift boxes, assorted gourmet cookies, premium dry fruits, and custom company logo sleeves for bulk orders.",
+      "With reliable pan-NCR dispatch and priority delivery across Gurgaon, we make employee onboarding, Diwali gifting, and client appreciation seamless.",
+      "Connect with our corporate gifting desk today for customized catalogs and bulk pricing."
+    ],
+  },
+  {
     slug: "the-72-hour-dough", title: "Why Our Cookie Dough Rests for 72 Hours", tag: "CRAFT", date: "2026-02-08", read: "6 min",
     excerpt: "Flour hydrates slowly. Flavour compounds develop slowly. Everything good about our choc-chip cookie happens while nobody is watching.",
     img: IMG.cookies, crop: CROP.TL,
