@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 /* ---------------- custom inline icon set ---------------- */
 type IconProps = { className?: string; strokeWidth?: number };
@@ -16,6 +17,7 @@ export const Ic = {
   scale: (p: IconProps) => <S {...p} d="M4 7h16M7 7v11.5h10V7M12 7V4.5M9 4.5h6M9.5 14.5 8 11h3l-1.5 3.5zm5 0L13 11h3l-1.5 3.5z" />,
   search: (p: IconProps) => <S {...p} d="M10.5 17.5a7 7 0 1 1 0-14 7 7 0 0 1 0 14Zm9 3-4.3-4.3" />,
   star: (p: IconProps) => <S {...p} fill d="m12 2.8 2.7 5.8 6.3.7-4.7 4.3 1.3 6.2L12 16.6l-5.6 3.2 1.3-6.2L3 9.3l6.3-.7L12 2.8z" />,
+  menu: (p: IconProps) => <S {...p} d="M4 6h16M4 12h16M4 18h16" />,
   x: (p: IconProps) => <S {...p} d="M6 6l12 12M18 6 6 18" />,
   plus: (p: IconProps) => <S {...p} d="M12 5v14M5 12h14" />,
   minus: (p: IconProps) => <S {...p} d="M5 12h14" />,
@@ -89,18 +91,75 @@ export function Reveal({ children, className = "", delay = 0, as: Tag = "div" }:
   );
 }
 
-/* ---------------- 3D tilt ---------------- */
-export function Tilt({ children, className = "", max = 10 }: { children: React.ReactNode; className?: string; max?: number }) {
+/* ---------------- 3D tilt with dynamic light sheen & touch support ---------------- */
+export function Tilt({
+  children,
+  className = "",
+  max = 14,
+  glare = true,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  max?: number;
+  glare?: boolean;
+}) {
   const ref = useRef<HTMLDivElement>(null);
-  const onMove = (e: React.MouseEvent) => {
-    const el = ref.current; if (!el) return;
+  const glareRef = useRef<HTMLDivElement>(null);
+
+  const applyTilt = (clientX: number, clientY: number) => {
+    if (typeof window !== "undefined" && !window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+      return;
+    }
+    const el = ref.current;
+    if (!el) return;
     const r = el.getBoundingClientRect();
-    const px = (e.clientX - r.left) / r.width - 0.5;
-    const py = (e.clientY - r.top) / r.height - 0.5;
-    el.style.transform = `perspective(900px) rotateY(${px * max}deg) rotateX(${-py * max}deg) translateZ(0)`;
+    const x = clientX - r.left;
+    const y = clientY - r.top;
+    const px = x / r.width - 0.5;
+    const py = y / r.height - 0.5;
+
+    el.style.transition = "transform 0.08s ease-out, box-shadow 0.2s ease-out";
+    el.style.transform = `perspective(1000px) rotateY(${px * max}deg) rotateX(${-py * max}deg) translateY(-4px) translateZ(8px)`;
+    el.style.boxShadow = "0 20px 40px -15px rgba(226, 62, 95, 0.25)";
+
+    if (glare && glareRef.current) {
+      const glareX = (x / r.width) * 100;
+      const glareY = (y / r.height) * 100;
+      glareRef.current.style.background = `radial-gradient(circle at ${glareX}% ${glareY}%, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0.08) 40%, transparent 75%)`;
+      glareRef.current.style.opacity = "1";
+    }
   };
-  const onLeave = () => { if (ref.current) ref.current.style.transform = "perspective(900px) rotateY(0deg) rotateX(0deg)"; };
-  return <div ref={ref} onMouseMove={onMove} onMouseLeave={onLeave} className={`tilt-wrap will-change-transform ${className}`}>{children}</div>;
+
+  const resetTilt = () => {
+    if (ref.current) {
+      ref.current.style.transition = "transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.5s ease-out";
+      ref.current.style.transform = "perspective(1000px) rotateY(0deg) rotateX(0deg) translateY(0px) translateZ(0px)";
+      ref.current.style.boxShadow = "none";
+    }
+    if (glareRef.current) {
+      glareRef.current.style.opacity = "0";
+    }
+  };
+
+  return (
+    <div
+      ref={ref}
+      onMouseEnter={(e) => applyTilt(e.clientX, e.clientY)}
+      onMouseMove={(e) => applyTilt(e.clientX, e.clientY)}
+      onMouseLeave={resetTilt}
+      className={`tilt-wrap relative will-change-transform ${className}`}
+    >
+      {children}
+      {glare && (
+        <div
+          ref={glareRef}
+          className="pointer-events-none absolute inset-0 z-20 rounded-[inherit] transition-opacity duration-300 hidden md:block"
+          style={{ opacity: 0, mixBlendMode: "screen" }}
+          aria-hidden="true"
+        />
+      )}
+    </div>
+  );
 }
 
 /* ---------------- stars ---------------- */
@@ -132,18 +191,42 @@ export function Modal({ open, onClose, children, wide = false }: { open: boolean
     if (!open) return;
     const h = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", h);
-    return () => { window.removeEventListener("keydown", h); };
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", h);
+      document.body.style.overflow = prevOverflow;
+    };
   }, [open, onClose]);
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-[90] overflow-y-auto flex items-center justify-center p-4 sm:p-8 bg-ink-950/80 backdrop-blur-sm anim-fade-in" onClick={onClose}>
-      <div className={`relative anim-zoom w-full ${wide ? "max-w-5xl" : "max-w-lg"} my-auto bg-ink-900 dark:bg-ink-900 border border-ink-700/60 shadow-lift clip-tile`} onClick={(e) => e.stopPropagation()}>
-        <button onClick={onClose} aria-label="Close" className="absolute top-4 right-4 z-10 p-2 text-ink-300 hover:text-blaze-500 transition-colors"><Ic.x className="w-5 h-5" /></button>
-        <div className="max-h-[85vh] overflow-y-auto p-1">
+
+  if (!open || typeof document === "undefined") return null;
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[120] overflow-y-auto overscroll-contain flex items-center justify-center p-3 sm:p-6 bg-ink-950/85 backdrop-blur-md anim-fade-in"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+    >
+      <div
+        className={`relative anim-zoom w-full ${
+          wide ? "max-w-5xl" : "max-w-lg"
+        } my-auto bg-ink-900 border border-ink-700/80 shadow-2xl clip-tile max-h-[92dvh] flex flex-col`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          aria-label="Close"
+          className="absolute top-3 right-3 sm:top-4 sm:right-4 z-30 p-2 text-ink-300 hover:text-blaze-400 bg-ink-950/80 hover:bg-ink-950 border border-ink-700/70 rounded-full transition-colors active:scale-95 shadow-md"
+        >
+          <Ic.x className="w-4 h-4" />
+        </button>
+        <div className="overflow-y-auto overscroll-contain flex-1">
           {children}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useRef, useState } from "r
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { useStore } from "../lib/store";
-import { CATEGORIES, CURRENCIES, type Product } from "../data/catalog";
+import { CATEGORIES, CURRENCIES, SEED_NCR_HUBS, type Product } from "../data/catalog";
 import type { Lang } from "../lib/i18n";
 import { Ic, ImgX, Modal, PImg, Qty } from "./ui";
 import { useQuickView } from "./product";
@@ -230,157 +230,276 @@ function Bell() {
   );
 }
 
+/* ================= ncr express hub banner ================= */
+export function NcrExpressHubBanner() {
+  const { settings, toast } = useStore();
+  const hubs = settings.ncrHubs && settings.ncrHubs.length > 0 ? settings.ncrHubs : SEED_NCR_HUBS;
+  const [activeHubId, setActiveHubId] = useState(() => {
+    return localStorage.getItem("cu_active_hub") || "hub-faridabad";
+  });
+  const [modalOpen, setModalOpen] = useState(false);
+  const [timeLeft, setTimeLeft] = useState({ min: 14, sec: 32 });
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev.sec > 0) return { ...prev, sec: prev.sec - 1 };
+        if (prev.min > 0) return { min: prev.min - 1, sec: 59 };
+        return { min: 20, sec: 0 };
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const currentHub = hubs.find((h) => h.id === activeHubId) || hubs[0];
+
+  const handleSelect = (id: string) => {
+    setActiveHubId(id);
+    localStorage.setItem("cu_active_hub", id);
+    const chosen = hubs.find((h) => h.id === id);
+    if (chosen) {
+      toast("success", `Delivery set to ${chosen.city} (${chosen.time} express)`);
+    }
+    setModalOpen(false);
+  };
+
+  return (
+    <>
+      <div className="bg-ink-950 border-b border-ink-800/80 text-ink-200 px-4 sm:px-6 lg:px-10 h-8 flex items-center text-[11px] font-mono">
+        <div className="max-w-7xl w-full mx-auto flex items-center justify-between gap-2 overflow-hidden">
+          <div className="flex items-center gap-2 min-w-0 whitespace-nowrap">
+            <span className="text-ink-400 hidden sm:inline">📍 Delivering to:</span>
+            <button
+              type="button"
+              onClick={() => setModalOpen(true)}
+              className="inline-flex items-center gap-1.5 text-ink-50 hover:text-blaze-400 font-bold transition-colors truncate"
+            >
+              <span>{currentHub.city}</span>
+              <span className="text-volt-400 font-normal">({currentHub.time})</span>
+              <span className="text-blaze-400 text-[10px] underline underline-offset-2 ml-0.5">Change ▾</span>
+            </button>
+          </div>
+
+          <div className="flex items-center gap-4 shrink-0 whitespace-nowrap">
+            <span className="hidden md:inline-flex items-center gap-1.5 text-ink-300">
+              <span>Next dispatch:</span>
+              <span className="tabnum font-bold text-volt-400">
+                {String(timeLeft.min).padStart(2, "0")}:{String(timeLeft.sec).padStart(2, "0")}
+              </span>
+            </span>
+            <Link
+              to="/track"
+              className="text-ink-200 hover:text-blaze-400 font-semibold transition-colors flex items-center gap-1"
+            >
+              <span>Track Order</span>
+              <span aria-hidden="true">→</span>
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)}>
+        <div className="p-4 sm:p-6">
+          <div className="border-b border-ink-800 pb-3 mb-4 pr-10">
+            <p className="font-mono text-[10px] tracking-[0.2em] text-blaze-400 uppercase font-bold">
+              Delhi NCR Dispatch Network
+            </p>
+            <h3 className="font-display font-black text-lg sm:text-xl uppercase mt-1 text-ink-50">
+              Select Your Delivery Hub
+            </h3>
+            <p className="font-mono text-[11px] text-ink-400 mt-0.5">
+              Instant 30-45m express dispatch from nearest artisan kitchen
+            </p>
+          </div>
+          <div className="space-y-2.5 max-h-[65dvh] overflow-y-auto overscroll-contain pr-1">
+            {hubs.map((h) => {
+              const selected = h.id === activeHubId;
+              return (
+                <button
+                  key={h.id}
+                  type="button"
+                  onClick={() => handleSelect(h.id)}
+                  className={`w-full text-left p-3.5 rounded-lg border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                    selected
+                      ? "border-blaze-500 bg-blaze-500/15 shadow-glow"
+                      : "border-ink-700/80 bg-ink-950/90 hover:border-ink-500 hover:bg-ink-900"
+                  }`}
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-display font-bold text-base text-ink-50">{h.city}</span>
+                      <span className="font-mono text-[10px] text-volt-400 font-bold">
+                        · ⚡ {h.time}
+                      </span>
+                      {selected && (
+                        <span className="font-mono text-[10px] text-emerald-400 font-bold">
+                          · ✓ Current
+                        </span>
+                      )}
+                    </div>
+                    <p className="font-mono text-[10px] text-ink-400 mt-1">{h.zone}</p>
+                    <p className="text-xs text-ink-300 mt-0.5 line-clamp-1">{h.topAreas}</p>
+                  </div>
+                  <div className="flex sm:block justify-end shrink-0 pt-1 sm:pt-0 border-t sm:border-t-0 border-ink-800/60">
+                    <span
+                      className={`px-3 py-1.5 font-mono text-[10px] uppercase font-bold rounded block text-center min-w-[100px] transition-all ${
+                        selected
+                          ? "bg-blaze-500 text-ink-50 shadow-md"
+                          : "border border-ink-600 bg-ink-900 text-ink-200 hover:border-blaze-500 hover:text-blaze-400"
+                      }`}
+                    >
+                      {selected ? "Active Hub" : "Deliver Here →"}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </Modal>
+    </>
+  );
+}
+
 /* ================= header + mega menu ================= */
 export function Header({ onCart, onCompare }: { onCart: () => void; onCompare: () => void }) {
-  const { t, user, cartCount, wishlist, compare, theme, toggleTheme, lang, set, currency, settings, categories, products, logout } = useStore();
+  const { t, user, cartCount, wishlist, compare, settings, categories, logout } = useStore();
   const { openAuth } = useAuth();
   const [mega, setMega] = useState(false);
   const [cakesMega, setCakesMega] = useState(false);
   const [search, setSearch] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [mobileMenu, setMobileMenu] = useState(false);
   const loc = useLocation();
-  useEffect(() => { setMega(false); setCakesMega(false); }, [loc.pathname]);
+  useEffect(() => { setMega(false); setCakesMega(false); setMobileMenu(false); }, [loc.pathname]);
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 24);
     h(); window.addEventListener("scroll", h);
     return () => window.removeEventListener("scroll", h);
   }, []);
 
-  const headerConfig = settings.header || {
-    brandName: "CakeUrban",
-    brandBadge: "100% EGGLESS PURE VEG",
-    tagline: "Delhi NCR's #1 Eggless Artisan Bakehouse",
-    announcement: settings.announcement,
-    showAnnouncement: true,
-    hotline: "+91 7318531953",
-    whatsappNumber: "+917318531953",
-    showHotline: true,
-    showCityNotice: true,
-    cityNotice: "Faridabad · Noida · Gurgaon · Delhi NCR",
-    banner: { enabled: false, text: "", linkText: "", linkUrl: "/shop", badgeText: "HOT" },
-  };
-
+  const brandName = settings.header?.brandName || "CakeUrban";
   const navCategories = categories.filter((c) => c.showInNav !== false);
 
   return (
     <>
-      <header className={`fixed top-0 inset-x-0 z-[70] transition-all duration-300 ${scrolled || mega ? "bg-ink-950/95 backdrop-blur-lg border-b border-ink-800 shadow-lg shadow-ink-950/40" : "bg-ink-950/80 backdrop-blur-sm border-b border-ink-800/40"}`}>
-        {/* top promo banner if enabled */}
-        {headerConfig.banner?.enabled && (
-          <div className="bg-blaze-600 text-ink-50 px-4 py-1.5 text-center font-mono text-[11px] tracking-wide flex items-center justify-center gap-3">
-            <span className="bg-ink-950 text-blaze-400 px-2 py-0.5 text-[9px] font-bold rounded">{headerConfig.banner.badgeText || "PROMO"}</span>
-            <span>{headerConfig.banner.text}</span>
-            {headerConfig.banner.linkText && (
-              <Link to={headerConfig.banner.linkUrl || "/shop"} className="underline font-bold hover:text-ink-200 ml-1">
-                {headerConfig.banner.linkText} →
+      <header className={`sticky top-0 inset-x-0 z-[70] transition-all duration-200 ${scrolled || mega ? "bg-ink-950/95 backdrop-blur-lg border-b border-ink-800 shadow-lg" : "bg-ink-950/95 backdrop-blur-md border-b border-ink-800/60"}`}>
+        {/* Slim 1-line NCR Hub & Order Tracker bar */}
+        <NcrExpressHubBanner />
+
+        {/* Clean 3-Zone Main Bar */}
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 sm:gap-6 px-3.5 sm:px-6 lg:px-10 h-14 sm:h-16">
+          {/* Zone 1: Mobile Menu Trigger + Brand Wordmark */}
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => setMobileMenu(true)}
+              aria-label="Open menu"
+              className="lg:hidden p-1.5 -ml-1 text-ink-200 hover:text-ink-50 transition-colors"
+            >
+              <Ic.menu className="w-5 h-5" />
+            </button>
+            <Link to="/" className="flex items-center gap-2 text-ink-50 group whitespace-nowrap shrink-0">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blaze-500 flex items-center justify-center text-ink-50">
+                <Ic.cake className="w-4 h-4 group-hover:scale-110 transition-transform" />
+              </div>
+              <span className="font-display font-black text-base sm:text-xl tracking-tight text-ink-50">
+                {brandName}
+              </span>
+            </Link>
+          </div>
+
+          {/* Zone 2: Clean Single-Line Navigation Links */}
+          <nav className="hidden lg:flex items-center gap-7 font-mono text-xs uppercase tracking-wider">
+            <div className="relative" onMouseEnter={() => setMega(true)} onMouseLeave={() => setMega(false)}>
+              <Link to="/shop" className={`link-sweep py-2 flex items-center gap-1 whitespace-nowrap shrink-0 transition-colors ${mega ? "text-blaze-400" : "text-ink-200 hover:text-ink-50"}`}>
+                <span>{t("nav.shop")}</span>
+                <Ic.chev className={`w-3.5 h-3.5 transition-transform ${mega ? "rotate-180" : ""}`} />
+              </Link>
+            </div>
+            <div className="relative" onMouseEnter={() => setCakesMega(true)} onMouseLeave={() => setCakesMega(false)}>
+              <Link to="/shop?cat=Gift%20Hampers" className={`link-sweep py-2 flex items-center gap-1 whitespace-nowrap shrink-0 transition-colors ${cakesMega ? "text-blaze-400" : "text-ink-200 hover:text-ink-50"}`}>
+                <span>Cakes & Hampers</span>
+                <Ic.chev className={`w-3.5 h-3.5 transition-transform ${cakesMega ? "rotate-180" : ""}`} />
+              </Link>
+            </div>
+            <Link to="/builder" className="link-sweep text-ink-200 hover:text-ink-50 transition-colors whitespace-nowrap shrink-0">
+              3D Customizer
+            </Link>
+            <Link to="/track" className="link-sweep text-ink-200 hover:text-ink-50 transition-colors whitespace-nowrap shrink-0">
+              Track Order
+            </Link>
+            <Link to="/delivery-locations" className="link-sweep text-ink-200 hover:text-ink-50 transition-colors whitespace-nowrap shrink-0">
+              NCR Hubs
+            </Link>
+            {user?.role === "admin" && (
+              <Link to="/admin" className="link-sweep text-gold-400 hover:text-gold-300 font-bold whitespace-nowrap shrink-0">
+                Admin
               </Link>
             )}
-          </div>
-        )}
+          </nav>
 
-        {/* top utility strip */}
-        {headerConfig.showAnnouncement && (
-          <div className="hidden md:flex items-center justify-between px-6 lg:px-10 h-8 border-b border-ink-800/60 font-mono text-[10px] tracking-[0.18em] text-ink-400 uppercase">
-            <div className="flex items-center gap-3 truncate">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="truncate">{headerConfig.announcement || settings.announcement}</span>
-              {headerConfig.showCityNotice && (
-                <span className="hidden xl:inline-block px-2 py-0.5 bg-ink-900 border border-ink-700 text-blaze-400 text-[9px] rounded">
-                  📍 {headerConfig.cityNotice || "Faridabad · Noida · Gurgaon · Delhi NCR"}
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-4 shrink-0">
-              {headerConfig.showHotline && (
-                <a href={`https://wa.me/${(headerConfig.whatsappNumber || "917318531953").replace(/\D/g, "")}?text=Hi%20CakeUrban,%20I%20want%20to%20order%20a%20fresh%20cake`} target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:text-emerald-300 flex items-center gap-1">
-                  <span>💬 WhatsApp Order:</span>
-                  <span className="font-bold text-ink-200">{headerConfig.hotline || "+91 7318531953"}</span>
-                </a>
-              )}
-              <span className="text-ink-700">/</span>
-              <select value={currency} onChange={(e) => set({ currency: e.target.value })} aria-label="Currency" className="bg-transparent outline-none cursor-pointer hover:text-blaze-400 transition-colors">
-                {CURRENCIES.map((c) => <option key={c.code} value={c.code} className="bg-ink-900 text-ink-100">{c.code} {c.symbol}</option>)}
-              </select>
-              <span className="text-ink-700">/</span>
-              <select value={lang} onChange={(e) => set({ lang: e.target.value as Lang })} aria-label="Language" className="bg-transparent outline-none cursor-pointer hover:text-blaze-400 transition-colors">
-                <option value="en" className="bg-ink-900 text-ink-100">EN</option>
-                <option value="hi" className="bg-ink-900 text-ink-100">हिं</option>
-                <option value="es" className="bg-ink-900 text-ink-100">ES</option>
-              </select>
-            </div>
-          </div>
-        )}
-
-        {/* main bar */}
-        <div className="flex items-center justify-between px-4 sm:px-6 lg:px-10 h-16">
-          <div className="flex items-center gap-8">
-            <Link to="/" className="flex items-center gap-2.5 text-ink-50 group">
-              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blaze-500 to-blaze-600 flex items-center justify-center shadow-glow text-ink-50">
-                <Ic.cake className="w-5 h-5 group-hover:scale-110 transition-transform" />
-              </div>
-              <div className="flex flex-col">
-                <div className="flex items-center gap-1.5">
-                  <span className="font-display font-black text-xl tracking-wider text-ink-50">{headerConfig.brandName || "CakeUrban"}</span>
-                  <span className="px-1.5 py-0.2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono text-[8px] rounded uppercase font-bold tracking-widest">
-                    {headerConfig.brandBadge || "VEG"}
-                  </span>
-                </div>
-                <span className="font-mono text-[9px] text-ink-400 tracking-wider hidden sm:block">
-                  {headerConfig.tagline || "Artisan Eggless Bakehouse"}
-                </span>
-              </div>
-            </Link>
-
-            <nav className="hidden lg:flex items-center gap-7 font-mono text-xs tracking-[0.2em] uppercase">
-              <div className="relative" onMouseEnter={() => setMega(true)} onMouseLeave={() => setMega(false)}>
-                <Link to="/shop" className={`link-sweep py-2 flex items-center gap-1.5 transition-colors ${mega ? "text-blaze-400" : "text-ink-200 hover:text-ink-50"}`}>
-                  {t("nav.shop")} <Ic.chev className={`w-3.5 h-3.5 transition-transform ${mega ? "rotate-180" : ""}`} />
-                </Link>
-              </div>
-              <div className="relative" onMouseEnter={() => setCakesMega(true)} onMouseLeave={() => setCakesMega(false)}>
-                <Link to="/shop?cat=Signature%20Cakes" className={`link-sweep py-2 flex items-center gap-1.5 transition-colors ${cakesMega ? "text-blaze-400" : "text-ink-200 hover:text-ink-50"}`}>
-                  Cakes <Ic.chev className={`w-3.5 h-3.5 transition-transform ${cakesMega ? "rotate-180" : ""}`} />
-                </Link>
-              </div>
-              <Link to="/shop?tag=NEW" className="link-sweep text-ink-200 hover:text-ink-50 transition-colors">{t("nav.new")}</Link>
-              <Link to="/shop?cat=Bento%20Cakes" className="link-sweep text-ink-200 hover:text-ink-50 transition-colors">Bento & Mini</Link>
-              <Link to="/blog" className="link-sweep text-ink-200 hover:text-ink-50 transition-colors">{t("nav.blog")}</Link>
-              {user?.role === "admin" && <Link to="/admin" className="link-sweep text-gold-400 hover:text-gold-400 font-bold">⚙ Admin Panel</Link>}
-            </nav>
-          </div>
-
-          <div className="flex items-center gap-0.5 sm:gap-1.5">
-            <button onClick={() => setSearch(true)} aria-label="Search" className="p-2 text-ink-300 hover:text-blaze-500 transition-colors"><Ic.search className="w-5 h-5" /></button>
-            <button onClick={toggleTheme} aria-label={t("theme")} className="p-2 text-ink-300 hover:text-blaze-500 transition-colors">
-              {theme === "dark" ? <Ic.sun className="w-5 h-5" /> : <Ic.moon className="w-5 h-5" />}
+          {/* Zone 3: Essential User Actions & Primary Bag CTA */}
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+            <button onClick={() => setSearch(true)} aria-label="Search" className="p-2 text-ink-300 hover:text-ink-50 transition-colors">
+              <Ic.search className="w-5 h-5" />
             </button>
-            <div className="hidden sm:block"><Bell /></div>
-            <Link to="/wishlist" aria-label={t("wishlist")} className="relative p-2 text-ink-300 hover:text-blaze-500 transition-colors">
+
+            <Link to="/wishlist" aria-label={t("wishlist")} className="hidden sm:inline-flex relative p-2 text-ink-300 hover:text-ink-50 transition-colors">
               <Ic.heart className="w-5 h-5" />
-              {wishlist.length > 0 && <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 grid place-items-center bg-blaze-500 text-ink-50 font-mono text-[9px] rounded-full">{wishlist.length}</span>}
+              {wishlist.length > 0 && (
+                <span className="absolute top-0.5 right-0.5 min-w-4 h-4 px-1 grid place-items-center bg-blaze-500 text-ink-50 font-mono text-[9px] rounded-full">
+                  {wishlist.length}
+                </span>
+              )}
             </Link>
-            <button onClick={onCompare} aria-label={t("compare")} className="relative p-2 text-ink-300 hover:text-cobalt-400 transition-colors">
-              <Ic.scale className="w-5 h-5" />
-              {compare.length > 0 && <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 grid place-items-center bg-cobalt-500 text-ink-50 font-mono text-[9px] rounded-full">{compare.length}</span>}
-            </button>
+
+            {compare.length > 0 && (
+              <button onClick={onCompare} aria-label={t("compare")} className="hidden sm:inline-flex relative p-2 text-ink-300 hover:text-cobalt-400 transition-colors">
+                <Ic.scale className="w-5 h-5" />
+                <span className="absolute top-0.5 right-0.5 min-w-4 h-4 px-1 grid place-items-center bg-cobalt-500 text-ink-50 font-mono text-[9px] rounded-full">
+                  {compare.length}
+                </span>
+              </button>
+            )}
+
             {user ? (
               <div className="relative group">
-                <button className="flex items-center gap-2 p-1.5 text-ink-300 hover:text-blaze-500 transition-colors" aria-label={t("account")}>
-                  <span className="w-7 h-7 grid place-items-center bg-ink-800 border border-ink-600 rounded-full font-mono text-[11px] text-ink-100">{user.name[0]}</span>
+                <button className="flex items-center gap-2 p-1.5 text-ink-300 hover:text-ink-50 transition-colors" aria-label={t("account")}>
+                  <span className="w-7 h-7 grid place-items-center bg-ink-800 border border-ink-600 rounded-full font-mono text-[11px] text-ink-100">
+                    {user.name[0]}
+                  </span>
                 </button>
-                <div className="absolute right-0 top-11 w-52 bg-ink-900 border border-ink-700 shadow-lift opacity-0 invisible translate-y-2 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all">
-                  <p className="px-4 pt-3 pb-2 border-b border-ink-800"><span className="block font-mono text-[10px] tracking-widest text-ink-500 uppercase">{t("signedIn")}</span><span className="text-sm font-semibold">{user.name}</span></p>
-                  <Link to={user.role === "admin" ? "/admin" : "/account"} className="block px-4 py-2.5 text-sm hover:bg-ink-800 transition-colors">Dashboard</Link>
-                  <Link to="/account?tab=orders" className="block px-4 py-2.5 text-sm hover:bg-ink-800 transition-colors">Orders</Link>
-                  <button onClick={logout} className="block w-full text-left px-4 py-2.5 text-sm hover:bg-ink-800 text-danger-400 transition-colors">Sign out</button>
+                <div className="absolute right-0 top-10 w-48 bg-ink-900 border border-ink-700 rounded-lg shadow-2xl opacity-0 invisible translate-y-1 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all z-50 overflow-hidden">
+                  <p className="px-4 pt-3 pb-2 border-b border-ink-800">
+                    <span className="block font-mono text-[10px] text-ink-400 uppercase">{t("signedIn")}</span>
+                    <span className="text-sm font-semibold truncate block">{user.name}</span>
+                  </p>
+                  <Link to={user.role === "admin" ? "/admin" : "/account"} className="block px-4 py-2 text-xs font-mono uppercase hover:bg-ink-800 transition-colors">
+                    Dashboard
+                  </Link>
+                  <Link to="/track" className="block px-4 py-2 text-xs font-mono uppercase hover:bg-ink-800 transition-colors">
+                    Live Order Tracker
+                  </Link>
+                  <button onClick={logout} className="block w-full text-left px-4 py-2 text-xs font-mono uppercase hover:bg-ink-800 text-danger-400 transition-colors">
+                    Sign out
+                  </button>
                 </div>
               </div>
             ) : (
-              <button onClick={() => openAuth("login")} aria-label={t("account")} className="p-2 text-ink-300 hover:text-blaze-500 transition-colors"><Ic.user className="w-5 h-5" /></button>
+              <button onClick={() => openAuth("login")} aria-label={t("account")} className="p-2 text-ink-300 hover:text-ink-50 transition-colors">
+                <Ic.user className="w-5 h-5" />
+              </button>
             )}
-            <button onClick={onCart} aria-label={t("cart")} className="relative p-2 text-ink-300 hover:text-blaze-500 transition-colors">
-              <Ic.bag className="w-5 h-5" />
-              {cartCount > 0 && <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 grid place-items-center bg-blaze-500 text-ink-50 font-mono text-[9px] rounded-full anim-check" key={cartCount}>{cartCount}</span>}
+
+            <button
+              onClick={onCart}
+              aria-label={t("cart")}
+              className="px-3 sm:px-4 py-2 bg-blaze-500 hover:bg-blaze-400 text-ink-50 rounded-lg font-mono text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-colors whitespace-nowrap shrink-0"
+            >
+              <Ic.bag className="w-4 h-4" />
+              <span className="hidden sm:inline">Bag</span>
+              <span className="tabnum bg-ink-950/40 px-1.5 py-0.5 rounded text-[11px]">{cartCount}</span>
             </button>
           </div>
         </div>
@@ -484,8 +603,87 @@ export function Header({ onCart, onCompare }: { onCart: () => void; onCompare: (
           )}
         </AnimatePresence>
       </header>
+
+      {/* Clean Mobile Slide-Over Menu Drawer */}
+      <AnimatePresence>
+        {mobileMenu && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMobileMenu(false)}
+              className="fixed inset-0 z-[90] bg-ink-950/80 backdrop-blur-sm lg:hidden"
+            />
+            <motion.aside
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", damping: 28, stiffness: 280 }}
+              className="fixed left-0 top-0 bottom-0 z-[91] w-[280px] bg-ink-900 border-r border-ink-800 flex flex-col lg:hidden"
+            >
+              <div className="flex items-center justify-between px-4 h-14 border-b border-ink-800 shrink-0">
+                <span className="font-display font-black text-base uppercase text-ink-50 flex items-center gap-2">
+                  <Ic.cake className="w-4 h-4 text-blaze-500" /> {brandName}
+                </span>
+                <button onClick={() => setMobileMenu(false)} aria-label="Close menu" className="p-1.5 text-ink-400 hover:text-ink-50">
+                  <Ic.x className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-4 space-y-5">
+                <div className="space-y-1">
+                  <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-ink-500 px-2 mb-1.5">Navigation</p>
+                  {[
+                    ["/", "Home"],
+                    ["/shop", "Full Bakery Catalog"],
+                    ["/shop?cat=Gift%20Hampers", "Luxury Gift Hampers"],
+                    ["/builder", "Custom Cake Builder"],
+                    ["/track", "Live Order Tracker"],
+                    ["/delivery-locations", "Delhi NCR Hubs"],
+                    ["/wishlist", `Saved Wishlist (${wishlist.length})`],
+                    ["/blog", "Bakehouse Journal"],
+                  ].map(([to, label]) => (
+                    <Link
+                      key={to}
+                      to={to}
+                      onClick={() => setMobileMenu(false)}
+                      className="block px-2.5 py-2 rounded text-sm font-medium text-ink-100 hover:bg-ink-850 hover:text-blaze-400 transition-colors"
+                    >
+                      {label}
+                    </Link>
+                  ))}
+                </div>
+
+                <div className="space-y-1 border-t border-ink-800 pt-4">
+                  <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-ink-500 px-2 mb-1.5">Categories</p>
+                  {navCategories.map((c) => (
+                    <Link
+                      key={c.name}
+                      to={`/shop?cat=${encodeURIComponent(c.name)}`}
+                      onClick={() => setMobileMenu(false)}
+                      className="block px-2.5 py-1.5 rounded text-xs font-mono uppercase text-ink-300 hover:bg-ink-850 hover:text-blaze-400 transition-colors"
+                    >
+                      {c.name}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+              <div className="p-4 border-t border-ink-800 bg-ink-950/60">
+                <a
+                  href="https://wa.me/917318531953?text=Hi%20CakeUrban,%20I%20need%20help%20ordering%20a%20cake"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-full py-2.5 px-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded font-mono text-xs uppercase font-bold flex items-center justify-center gap-2"
+                >
+                  <Ic.whatsapp className="w-4 h-4 fill-current" /> WhatsApp Concierge
+                </a>
+              </div>
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+
       <SearchOverlay open={search} onClose={() => setSearch(false)} />
-      <div className="h-16 md:h-24" />
     </>
   );
 }
@@ -634,7 +832,7 @@ export function ChatWidget() {
   return (
     <>
       <motion.button whileTap={{ scale: 0.9 }} onClick={() => setOpen(!open)} aria-label="Support chat"
-        className={`fixed left-5 z-[75] w-13 h-13 p-3.5 bg-cobalt-500 hover:bg-cobalt-400 text-ink-50 clip-btn shadow-lift transition-all ${consent === "pending" ? "bottom-56" : "bottom-24 md:bottom-6"}`}>
+        className={`hidden md:flex fixed left-5 z-[75] w-12 h-12 items-center justify-center bg-cobalt-500 hover:bg-cobalt-400 text-ink-50 clip-btn shadow-lift transition-all ${consent === "pending" ? "bottom-56" : "bottom-6"}`}>
         {open ? <Ic.x className="w-5 h-5" /> : <Ic.chat className="w-5 h-5" />}
       </motion.button>
       <AnimatePresence>
@@ -697,7 +895,7 @@ export function WhatsAppWidget() {
   return (
     <>
       {/* Floating button on bottom right */}
-      <div className={`fixed right-4 md:right-6 z-[76] flex items-center gap-3 transition-all ${consent === "pending" ? "bottom-56" : "bottom-24 md:bottom-6"}`}>
+      <div className={`fixed right-3.5 md:right-6 z-[76] flex items-center gap-3 transition-all ${consent === "pending" ? "bottom-32 md:bottom-56" : "bottom-[72px] md:bottom-6"}`}>
         {!open && (
           <motion.div
             initial={{ opacity: 0, x: 10 }}
@@ -715,9 +913,9 @@ export function WhatsAppWidget() {
           whileTap={{ scale: 0.95 }}
           onClick={() => setOpen(!open)}
           aria-label="Contact on WhatsApp"
-          className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lift text-white transition-all ${open ? "bg-ink-800 border border-ink-600 text-ink-200" : "bg-[#25D366] hover:bg-[#20ba59]"}`}
+          className={`w-11 h-11 sm:w-13 sm:h-13 rounded-full flex items-center justify-center shadow-lift text-white transition-all ${open ? "bg-ink-800 border border-ink-600 text-ink-200" : "bg-[#25D366] hover:bg-[#20ba59]"}`}
         >
-          {open ? <Ic.x className="w-6 h-6" /> : <Ic.whatsapp className="w-7 h-7 fill-current" />}
+          {open ? <Ic.x className="w-5 h-5" /> : <Ic.whatsapp className="w-5 h-5 sm:w-6 sm:h-6 fill-current" />}
         </motion.button>
       </div>
 
@@ -968,13 +1166,15 @@ export function CookieConsent() {
   const { consent, set, t } = useStore();
   if (consent !== "pending") return null;
   return (
-    <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }}
-      className="fixed bottom-5 left-5 z-[74] w-[min(92vw,400px)] bg-ink-900 border border-ink-700 shadow-lift p-5 clip-tile">
-      <p className="font-mono text-[10px] tracking-[0.25em] text-blaze-500 uppercase mb-2">GDPR · Cookies</p>
-      <p className="text-sm text-ink-300 leading-relaxed">{t("cookieMsg")}</p>
-      <div className="flex gap-2 mt-4">
-        <button onClick={() => set({ consent: "accepted" })} className="clip-tag flex-1 bg-blaze-500 hover:bg-blaze-400 text-ink-50 font-mono text-xs tracking-[0.15em] uppercase py-2.5 transition-colors">{t("accept")}</button>
-        <button onClick={() => set({ consent: "declined" })} className="clip-tag flex-1 border border-ink-600 hover:border-ink-400 font-mono text-xs tracking-[0.15em] uppercase py-2.5 transition-colors text-ink-300">{t("decline")}</button>
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }}
+      className="fixed bottom-16 md:bottom-5 left-3 right-3 md:left-5 md:right-auto z-[74] md:w-[380px] bg-ink-900/95 backdrop-blur border border-ink-700 shadow-lift p-3 sm:p-4 rounded-lg flex sm:block items-center justify-between gap-3">
+      <div className="min-w-0 flex-1">
+        <p className="font-mono text-[9px] tracking-[0.2em] text-blaze-500 uppercase mb-0.5 hidden sm:block">GDPR · Cookies</p>
+        <p className="text-xs text-ink-200 leading-snug line-clamp-2 sm:line-clamp-none">{t("cookieMsg")}</p>
+      </div>
+      <div className="flex gap-1.5 sm:mt-3 shrink-0">
+        <button onClick={() => set({ consent: "accepted" })} className="px-3 py-1.5 sm:flex-1 bg-blaze-500 hover:bg-blaze-400 text-ink-50 font-mono text-[10px] tracking-wider uppercase rounded font-bold transition-colors">{t("accept")}</button>
+        <button onClick={() => set({ consent: "declined" })} className="px-2.5 py-1.5 sm:flex-1 border border-ink-600 hover:border-ink-400 font-mono text-[10px] tracking-wider uppercase rounded transition-colors text-ink-300">{t("decline")}</button>
       </div>
     </motion.div>
   );
@@ -987,61 +1187,41 @@ const POLICIES: Record<string, { title: string; body: string[] }> = {
   gdpr: { title: "GDPR Compliance", body: ["Right to access, rectify and erase: email privacy@cakeurban.com and we respond within 30 days.", "Cookie consent is recorded and respected across sessions — declining disables all non-essential tracking.", "Our data processing agreements with payment providers (Stripe, Razorpay, PayPal) are fully PCI-DSS compliant."] },
 };
 export function Footer() {
-  const { t, subscribe, subscribed, settings, products } = useStore();
-  const [email, setEmail] = useState("");
+  const { t, settings } = useStore();
   const [policy, setPolicy] = useState<string | null>(null);
-  const lowStock = products.filter((p) => p.stock <= 5).length;
-  void lowStock;
   const year = new Date().getFullYear();
   return (
-    <footer className="relative border-t border-ink-800 bg-ink-900 dark:bg-ink-950 mt-24">
-      {/* newsletter band */}
-      <div className="relative overflow-hidden border-b border-ink-800 noise">
-        <div className="absolute inset-0 grid-lines opacity-40" />
-        <div className="relative max-w-7xl mx-auto px-6 lg:px-10 py-16 grid md:grid-cols-2 gap-8 items-center">
-          <div>
-            <p className="font-mono text-[11px] tracking-[0.3em] text-blaze-500 mb-3">NEWSLETTER — MAILCHIMP SYNCED</p>
-            <h3 className="font-display text-3xl md:text-4xl font-bold uppercase leading-tight">{t("newsletterTitle")}</h3>
-            <p className="text-ink-300 mt-3 max-w-md">{t("newsletterSub")}</p>
-          </div>
-          {subscribed ? (
-            <div className="anim-check flex items-center gap-4 border border-volt-500/50 bg-volt-500/10 p-6 clip-tile">
-              <Ic.check className="w-8 h-8 text-volt-400 shrink-0" />
-              <p className="font-mono text-sm text-volt-300">You're on the list. WELCOME10 is live in your inbox.</p>
-            </div>
-          ) : (
-            <form className="flex flex-col sm:flex-row gap-3" onSubmit={(e) => { e.preventDefault(); if (email.includes("@")) { subscribe(email); setEmail(""); } }}>
-              <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="you@fastmail.com" className="flex-1 bg-ink-950 border border-ink-600 focus:border-blaze-500 outline-none px-5 py-4 font-mono text-sm transition-colors placeholder:font-body placeholder:text-ink-500" />
-              <button className="clip-btn bg-blaze-500 hover:bg-blaze-400 text-ink-50 font-mono text-sm tracking-[0.2em] uppercase px-8 py-4 transition-colors">{t("subscribe")}</button>
-            </form>
-          )}
-        </div>
-      </div>
-      {/* link columns */}
-      <div className="max-w-7xl mx-auto px-6 lg:px-10 py-14 grid grid-cols-2 md:grid-cols-5 gap-10">
+    <footer className="relative border-t border-ink-800 bg-ink-900 dark:bg-ink-950 mt-12 sm:mt-16">
+      {/* Compact Link Columns */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-10 sm:py-12 grid grid-cols-2 md:grid-cols-5 gap-8">
         <div className="col-span-2 md:col-span-2">
-          <div className="flex items-center gap-2 text-ink-50"><Ic.cake className="w-7 h-7 text-blaze-500" /><span className="font-display font-extrabold text-lg">CakeUrban</span></div>
-          <p className="text-sm text-ink-400 mt-4 max-w-xs leading-relaxed">Delhi NCR's artisanal bakery & express cake delivery network. 100% fresh baked on order with 30-45 mins delivery & guaranteed midnight slots.</p>
-          <div className="flex gap-2 mt-6">
+          <div className="flex items-center gap-2 text-ink-50">
+            <Ic.cake className="w-6 h-6 text-blaze-500" />
+            <span className="font-display font-extrabold text-lg">CakeUrban</span>
+          </div>
+          <p className="text-xs text-ink-400 mt-2.5 max-w-xs leading-relaxed">
+            100% Pure Eggless Bakery · 30–45 Min Express & Midnight Delivery across Delhi NCR.
+          </p>
+          <div className="flex gap-2 mt-4">
             {[settings.socials.instagram, settings.socials.twitter, settings.socials.youtube].map((s, i) => (
-              <a key={i} href={`https://${s}`} target="_blank" rel="noreferrer" className="w-9 h-9 grid place-items-center border border-ink-700 hover:border-blaze-500 hover:text-blaze-400 text-ink-400 transition-colors font-mono text-[10px]">{["IG", "X", "YT"][i]}</a>
+              <a key={i} href={`https://${s}`} target="_blank" rel="noreferrer" className="w-8 h-8 grid place-items-center border border-ink-700 hover:border-blaze-500 hover:text-blaze-400 text-ink-400 transition-colors font-mono text-[10px]">{["IG", "X", "YT"][i]}</a>
             ))}
           </div>
         </div>
         {[
-          { h: "Bakery Menu", links: [["All Cakes", "/shop"], ["Birthday Specials", "/birthday-cake-delivery-in/sector-15-faridabad"], ["100% Eggless", "/eggless-cake-delivery-in/dlf-phase-gurgaon"], ["Midnight Delivery", "/midnight-cake-delivery-in/sector-18-noida"], ["3D Custom Cake", "/builder"]] },
-          { h: "NCR City Hubs", links: [["Faridabad Hub", "/cakes-in/faridabad"], ["Gurgaon Hub", "/cakes-in/gurgaon"], ["Noida Hub", "/cakes-in/noida"], ["Delhi Hub", "/cakes-in/delhi"], ["Ghaziabad Hub", "/cakes-in/ghaziabad"]] },
-          { h: "Company & Legal", links: [["Delivery Locations", "/delivery-locations"], ["Journal / Blog", "/blog"], ["Privacy Policy", "privacy"], ["Terms of Service", "terms"], ["XML Sitemap", "/sitemap.xml"]] },
+          { h: "Bakery Menu", links: [["All Cakes", "/shop"], ["Gift Hampers", "/shop?cat=Gift%20Hampers"], ["Cookies", "/shop?cat=Cookies"], ["3D Custom Cake", "/builder"], ["Track Order", "/track"]] },
+          { h: "NCR City Hubs", links: [["Faridabad", "/cakes-in/faridabad"], ["Gurgaon", "/cakes-in/gurgaon"], ["Noida", "/cakes-in/noida"], ["Delhi", "/cakes-in/delhi"], ["Ghaziabad", "/cakes-in/ghaziabad"]] },
+          { h: "Help & Legal", links: [["All Locations", "/delivery-locations"], ["Journal / Blog", "/blog"], ["Privacy Policy", "privacy"], ["Terms of Service", "terms"]] },
         ].map((col) => (
           <div key={col.h}>
-            <p className="font-mono text-[10px] tracking-[0.25em] text-ink-500 uppercase mb-4">{col.h}</p>
-            <ul className="space-y-2.5">
+            <p className="font-mono text-[10px] tracking-[0.2em] text-ink-500 uppercase mb-3">{col.h}</p>
+            <ul className="space-y-2">
               {col.links.map(([label, to]) => (
                 <li key={label}>
                   {to.startsWith("/") ? (
-                    <Link to={to} className="text-sm text-ink-300 hover:text-blaze-400 transition-colors">{label}</Link>
+                    <Link to={to} className="text-xs sm:text-sm text-ink-300 hover:text-blaze-400 transition-colors">{label}</Link>
                   ) : (
-                    <button onClick={() => setPolicy(to)} className="text-sm text-ink-300 hover:text-blaze-400 transition-colors">{label}</button>
+                    <button onClick={() => setPolicy(to)} className="text-xs sm:text-sm text-ink-300 hover:text-blaze-400 transition-colors">{label}</button>
                   )}
                 </li>
               ))}
@@ -1049,13 +1229,13 @@ export function Footer() {
           </div>
         ))}
       </div>
-      {/* bottom bar */}
+      {/* Bottom Bar */}
       <div className="border-t border-ink-800">
-        <div className="max-w-7xl mx-auto px-6 lg:px-10 py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="font-mono text-[10px] tracking-[0.15em] text-ink-500 uppercase">© {year} CakeUrban Bakery Network — {t("footerRights")}</p>
-          <div className="flex items-center gap-2">
-            {["UPI", "Cards", "NetBanking", "COD", "Razorpay"].map((pm) => (
-              <span key={pm} className="px-2.5 py-1 border border-ink-700 font-mono text-[9px] tracking-wider text-ink-400">{pm}</span>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p className="font-mono text-[10px] tracking-[0.12em] text-ink-500 uppercase">© {year} CakeUrban — {t("footerRights")}</p>
+          <div className="flex items-center gap-1.5 flex-wrap justify-center">
+            {["UPI", "Cards", "COD", "Razorpay"].map((pm) => (
+              <span key={pm} className="px-2 py-0.5 border border-ink-700 font-mono text-[9px] tracking-wider text-ink-400">{pm}</span>
             ))}
           </div>
         </div>
@@ -1074,33 +1254,31 @@ export function Footer() {
 }
 
 export function MobileBottomNav({ onCart }: { onCart: () => void }) {
-  const { cartCount, user } = useStore();
-  const { openAuth } = useAuth();
+  const { cartCount } = useStore();
   const loc = useLocation();
-  const navigate = useNavigate();
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-[80] bg-ink-950/95 backdrop-blur-md border-t border-ink-800 px-3 py-2 flex items-center justify-around shadow-lift">
-      <Link to="/" className={`flex flex-col items-center gap-1 py-1 px-3 ${loc.pathname === "/" ? "text-blaze-500" : "text-ink-400 hover:text-ink-200"}`}>
-        <Ic.cake className="w-5 h-5" />
-        <span className="font-mono text-[10px] uppercase tracking-wider">Home</span>
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-[80] bg-ink-950/95 backdrop-blur-md border-t border-ink-800 px-2 py-1.5 flex items-center justify-around shadow-lift">
+      <Link to="/" className={`flex flex-col items-center gap-0.5 py-1 px-2 ${loc.pathname === "/" ? "text-blaze-500" : "text-ink-400 hover:text-ink-200"}`}>
+        <Ic.cake className="w-4 h-4" />
+        <span className="font-mono text-[9px] uppercase tracking-wider">Home</span>
       </Link>
-      <Link to="/shop" className={`flex flex-col items-center gap-1 py-1 px-3 ${loc.pathname.startsWith("/shop") ? "text-blaze-500" : "text-ink-400 hover:text-ink-200"}`}>
-        <Ic.search className="w-5 h-5" />
-        <span className="font-mono text-[10px] uppercase tracking-wider">Shop</span>
+      <Link to="/shop" className={`flex flex-col items-center gap-0.5 py-1 px-2 ${loc.pathname.startsWith("/shop") ? "text-blaze-500" : "text-ink-400 hover:text-ink-200"}`}>
+        <Ic.search className="w-4 h-4" />
+        <span className="font-mono text-[9px] uppercase tracking-wider">Shop</span>
       </Link>
-      <Link to="/delivery-locations" className={`flex flex-col items-center gap-1 py-1 px-3 ${loc.pathname.includes("delivery") || loc.pathname.includes("cakes-in") ? "text-blaze-500" : "text-ink-400 hover:text-ink-200"}`}>
-        <Ic.map className="w-5 h-5" />
-        <span className="font-mono text-[10px] uppercase tracking-wider">Hubs</span>
+      <Link to="/builder" className={`flex flex-col items-center gap-0.5 py-1 px-2 ${loc.pathname.startsWith("/builder") ? "text-blaze-500" : "text-ink-400 hover:text-ink-200"}`}>
+        <Ic.rotate className="w-4 h-4" />
+        <span className="font-mono text-[9px] uppercase tracking-wider">3D Cake</span>
       </Link>
-      <button onClick={onCart} className="relative flex flex-col items-center gap-1 py-1 px-3 text-ink-400 hover:text-ink-200">
-        <Ic.bag className="w-5 h-5" />
-        <span className="font-mono text-[10px] uppercase tracking-wider">Cart</span>
-        {cartCount > 0 && <span className="absolute top-0 right-2 w-4 h-4 grid place-items-center bg-blaze-500 text-ink-50 font-mono text-[9px] rounded-full">{cartCount}</span>}
-      </button>
-      <button onClick={() => { if (user) navigate("/account"); else openAuth("login"); }} className={`flex flex-col items-center gap-1 py-1 px-3 ${loc.pathname.startsWith("/account") ? "text-blaze-500" : "text-ink-400 hover:text-ink-200"}`}>
-        <Ic.user className="w-5 h-5" />
-        <span className="font-mono text-[10px] uppercase tracking-wider">Account</span>
+      <Link to="/track" className={`flex flex-col items-center gap-0.5 py-1 px-2 ${loc.pathname.startsWith("/track") ? "text-blaze-500" : "text-ink-400 hover:text-ink-200"}`}>
+        <Ic.truck className="w-4 h-4" />
+        <span className="font-mono text-[9px] uppercase tracking-wider">Track</span>
+      </Link>
+      <button onClick={onCart} className="relative flex flex-col items-center gap-0.5 py-1 px-2 text-ink-400 hover:text-ink-200">
+        <Ic.bag className="w-4 h-4" />
+        <span className="font-mono text-[9px] uppercase tracking-wider">Bag</span>
+        {cartCount > 0 && <span className="absolute top-0 right-1 w-4 h-4 grid place-items-center bg-blaze-500 text-ink-50 font-mono text-[9px] rounded-full">{cartCount}</span>}
       </button>
     </div>
   );

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useStore } from "../lib/store";
 import { Ic, ImgX } from "../components/ui";
+import { ThreeCake } from "../components/ThreeCake";
 
 const SIZES = [
   { id: "6", name: '6" (Serves 4-6)', price: 35 },
@@ -76,7 +77,7 @@ export default function CustomBuilder() {
         {/* Steps container */}
         <div className="bg-ink-900 border border-ink-800 p-8 clip-tile">
           {/* Step tabs header */}
-          <div className="flex items-center justify-between border-b border-ink-800 pb-6 mb-8 overflow-x-auto gap-2">
+          <div className="flex items-center justify-between border-b border-ink-800 pb-4 mb-8 overflow-x-auto no-scrollbar gap-2">
             {[
               { n: 1, label: "Size" },
               { n: 2, label: "Base" },
@@ -85,8 +86,8 @@ export default function CustomBuilder() {
               { n: 5, label: "Style" },
               { n: 6, label: "Message" },
             ].map((s) => (
-              <button key={s.n} onClick={() => setStep(s.n)} className={`flex items-center gap-2 font-mono text-xs tracking-wider uppercase whitespace-nowrap px-3 py-2 transition-colors ${step === s.n ? "text-blaze-400 border-b-2 border-blaze-500" : "text-ink-400 hover:text-ink-100"}`}>
-                <span className={`w-5 h-5 rounded-full grid place-items-center text-[10px] ${step === s.n ? "bg-blaze-500 text-ink-50" : "bg-ink-800 text-ink-300"}`}>{s.n}</span>
+              <button key={s.n} onClick={() => setStep(s.n)} className={`flex items-center gap-2 font-mono text-xs tracking-wider uppercase whitespace-nowrap shrink-0 px-3.5 py-2 rounded-t transition-colors ${step === s.n ? "text-blaze-400 border-b-2 border-blaze-500 bg-blaze-500/10 font-bold" : "text-ink-400 hover:text-ink-100"}`}>
+                <span className={`w-5 h-5 rounded-full grid place-items-center text-[10px] shrink-0 ${step === s.n ? "bg-blaze-500 text-ink-50" : "bg-ink-800 text-ink-300"}`}>{s.n}</span>
                 {s.label}
               </button>
             ))}
@@ -204,29 +205,65 @@ export default function CustomBuilder() {
           </div>
         </div>
 
-        {/* Live Summary Card */}
-        <div className="bg-ink-900 border border-ink-800 p-6 clip-tile sticky top-28">
-          <h3 className="font-display font-bold uppercase text-lg border-b border-ink-800 pb-4">Masterpiece Summary</h3>
-          <div className="space-y-4 py-4 border-b border-ink-800 text-sm">
-            <div className="flex justify-between"><span className="text-ink-400">Size</span><span className="font-semibold">{size.name}</span></div>
-            <div className="flex justify-between"><span className="text-ink-400">Base Sponge</span><span className="font-semibold">{base.name}</span></div>
-            <div className="flex justify-between"><span className="text-ink-400">Cream</span><span className="font-semibold">{cream.name}</span></div>
-            <div className="flex justify-between"><span className="text-ink-400">Filling</span><span className="font-semibold">{filling.name}</span></div>
-            <div className="flex justify-between"><span className="text-ink-400">Style</span><span className="font-semibold">{style.name}</span></div>
+        {/* Live 3D Interactive Masterpiece Card */}
+        <div className="bg-ink-900 border border-ink-800 p-6 clip-tile lg:sticky lg:top-24 space-y-5">
+          <div className="flex items-center justify-between border-b border-ink-800 pb-3">
+            <h3 className="font-display font-bold uppercase text-lg text-ink-50">3D Masterpiece Preview</h3>
+            <span className="font-mono text-[9px] tracking-widest uppercase text-blaze-400 bg-blaze-500/10 border border-blaze-500/30 px-2 py-0.5 rounded">
+              Interactive
+            </span>
+          </div>
+
+          {/* Interactive 3D Model with real-time props */}
+          <div className="rounded overflow-hidden shadow-2xl border border-ink-800/80">
+            <ThreeCake
+              sizeId={size.id}
+              baseId={base.id}
+              creamId={cream.id}
+              styleId={style.id}
+              messageText={msg}
+              messageColor={msgColor}
+              className="w-full h-72 sm:h-80"
+            />
+          </div>
+
+          <div className="space-y-3.5 py-2 border-b border-ink-800 text-sm">
+            <div className="flex justify-between items-center">
+              <span className="text-ink-400 text-xs font-mono uppercase tracking-wider">Tier Size</span>
+              <span className="font-semibold text-ink-100">{size.name}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-ink-400 text-xs font-mono uppercase tracking-wider">Base Sponge</span>
+              <span className="font-semibold text-ink-100">{base.name}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-ink-400 text-xs font-mono uppercase tracking-wider">Cream & Frosting</span>
+              <span className="font-semibold text-ink-100">{cream.name}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-ink-400 text-xs font-mono uppercase tracking-wider">Signature Style</span>
+              <span className="font-semibold text-ink-100">{style.name}</span>
+            </div>
             {msg && (
-              <div className="p-3 bg-ink-950 border border-ink-800 text-center">
-                <p className="font-mono text-[10px] text-ink-500 uppercase">Plaque Message</p>
-                <p className="font-display font-bold text-lg mt-1" style={{ color: msgColor }}>{msg}</p>
+              <div className="p-3 bg-ink-950 border border-ink-800 rounded text-center">
+                <p className="font-mono text-[9px] text-ink-500 uppercase tracking-widest">Chocolate Inscription Plaque</p>
+                <p className="font-display font-bold text-base mt-1 truncate" style={{ color: msgColor }}>
+                  "{msg}"
+                </p>
               </div>
             )}
           </div>
-          <div className="pt-5 flex items-center justify-between">
+
+          <div className="pt-2 flex items-center justify-between">
             <div>
               <p className="font-mono text-[10px] text-ink-400 uppercase tracking-widest">Total Investment</p>
               <p className="font-mono tabnum text-2xl font-black text-blaze-400 mt-0.5">{fmt(totalPrice)}</p>
             </div>
-            <button onClick={handleAddToCart} className="clip-btn bg-blaze-500 hover:bg-blaze-400 text-ink-50 font-mono text-xs tracking-[0.18em] uppercase px-6 py-3.5 transition-colors">
-              Add to Cart
+            <button
+              onClick={handleAddToCart}
+              className="clip-btn bg-blaze-500 hover:bg-blaze-400 active:scale-95 text-ink-50 font-mono text-xs tracking-[0.18em] uppercase px-6 py-3.5 transition-all shadow-glow font-bold flex items-center gap-2"
+            >
+              <Ic.bag className="w-4 h-4" /> Add to Cart
             </button>
           </div>
         </div>

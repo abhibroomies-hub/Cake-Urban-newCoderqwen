@@ -252,13 +252,16 @@ export default function Account() {
       </div>
 
       <div className="grid lg:grid-cols-[220px_1fr] gap-8 items-start">
-        <aside className="flex lg:flex-col gap-1.5 overflow-x-auto pb-2">
+        <aside className="flex lg:flex-col gap-1.5 overflow-x-auto no-scrollbar pb-2">
           {tabs.map(([k, label, Icon]) => (
-            <button key={k} onClick={() => setParams({ tab: k })} className={`flex items-center gap-3 px-4 py-3 font-mono text-xs tracking-[0.15em] uppercase whitespace-nowrap transition-colors border-l-2 ${tab === k ? "border-blaze-500 bg-ink-850 text-ink-50 font-bold" : "border-transparent text-ink-400 hover:text-ink-100"}`}>
-              <Icon className="w-4 h-4" /> {label}
+            <button key={k} onClick={() => setParams({ tab: k })} className={`flex items-center gap-2.5 px-4 py-2.5 rounded lg:rounded-none font-mono text-xs tracking-[0.14em] uppercase whitespace-nowrap shrink-0 transition-colors border-b-2 lg:border-b-0 lg:border-l-2 ${tab === k ? "border-blaze-500 bg-ink-850 text-ink-50 font-bold" : "border-transparent text-ink-400 hover:text-ink-100"}`}>
+              <Icon className="w-4 h-4 shrink-0" /> {label}
             </button>
           ))}
-          <button onClick={logout} className="flex items-center gap-3 px-4 py-3 font-mono text-xs tracking-[0.15em] uppercase text-danger-400 hover:bg-danger-500/10 border-l-2 border-transparent mt-2 whitespace-nowrap"><Ic.logout className="w-4 h-4" /> Sign out</button>
+          <Link to="/track" className="flex items-center gap-2.5 px-4 py-2.5 font-mono text-xs tracking-[0.14em] uppercase text-volt-400 hover:bg-volt-500/10 border-b-2 lg:border-b-0 lg:border-l-2 border-transparent whitespace-nowrap shrink-0">
+            <Ic.truck className="w-4 h-4 shrink-0" /> Live GPS Track
+          </Link>
+          <button onClick={logout} className="flex items-center gap-2.5 px-4 py-2.5 font-mono text-xs tracking-[0.14em] uppercase text-danger-400 hover:bg-danger-500/10 border-b-2 lg:border-b-0 lg:border-l-2 border-transparent lg:mt-2 whitespace-nowrap shrink-0"><Ic.logout className="w-4 h-4 shrink-0" /> Sign out</button>
         </aside>
 
         <div className="min-w-0">

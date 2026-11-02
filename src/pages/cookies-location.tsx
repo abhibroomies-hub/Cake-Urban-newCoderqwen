@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
-import { useStore } from "../lib/store";
-import { Ic, ImgX } from "../components/ui";
+import { useParams, useLocation, Link } from "react-router-dom";
+import { Ic } from "../components/ui";
 import { PRODUCTS } from "../data/catalog";
 import { ProductCard } from "../components/product";
 
@@ -45,7 +44,10 @@ const CITY_SEO_DATA: Record<string, { name: string; title: string; desc: string;
 
 export function CookiesLocationPage() {
   const { city } = useParams<{ city: string }>();
-  const cityData = CITY_SEO_DATA[city || "delhi"] || CITY_SEO_DATA.delhi;
+  const { pathname } = useLocation();
+  const pathCity = pathname.replace(/^\/cookies-/, "").toLowerCase();
+  const resolvedCity = city || (CITY_SEO_DATA[pathCity] ? pathCity : "delhi");
+  const cityData = CITY_SEO_DATA[resolvedCity] || CITY_SEO_DATA.delhi;
   const cookies = PRODUCTS.filter((p) => p.category === "Cookies" || p.category === "Gift Hampers");
 
   useEffect(() => {
@@ -55,25 +57,25 @@ export function CookiesLocationPage() {
   }, [cityData]);
 
   return (
-    <div className="max-w-7xl mx-auto px-6 lg:px-10 py-12 space-y-12">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-8 sm:py-12 space-y-8 sm:space-y-12">
       {/* Hero Banner */}
-      <div className="relative overflow-hidden clip-tile border border-ink-700/60 bg-ink-850 p-8 md:p-14 noise">
+      <div className="relative overflow-hidden clip-tile border border-ink-700/60 bg-ink-850 p-6 sm:p-8 md:p-14 noise">
         <div className="absolute inset-0 grid-lines opacity-40" />
         <div className="relative z-10 max-w-2xl space-y-4">
           <span className="font-mono text-[10px] tracking-[0.25em] text-blaze-500 uppercase font-bold">
             ⚡ Express 35-Min Delivery in {cityData.name} NCR
           </span>
-          <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-black uppercase tracking-tight leading-[1.05]">
+          <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black uppercase tracking-tight leading-[1.05]">
             Gourmet Cookies & Gift Hampers in <span className="text-blaze-500">{cityData.name}</span>
           </h1>
-          <p className="text-ink-300 text-sm md:text-base leading-relaxed">
+          <p className="text-ink-300 text-xs sm:text-sm md:text-base leading-relaxed">
             {cityData.desc}
           </p>
           <div className="flex flex-wrap gap-3 pt-2">
-            <Link to="/shop" className="clip-btn bg-blaze-500 hover:bg-blaze-400 text-ink-50 font-mono text-xs uppercase px-6 py-3 font-bold transition-colors">
+            <Link to="/shop" className="clip-btn bg-blaze-500 hover:bg-blaze-400 text-ink-50 font-mono text-xs uppercase px-5 sm:px-6 py-3 font-bold transition-colors">
               Order Now →
             </Link>
-            <Link to="/delivery-locations" className="clip-btn bg-ink-900 border border-ink-700 hover:border-ink-500 text-ink-200 font-mono text-xs uppercase px-6 py-3 transition-colors">
+            <Link to="/delivery-locations" className="clip-btn bg-ink-900 border border-ink-700 hover:border-ink-500 text-ink-200 font-mono text-xs uppercase px-5 sm:px-6 py-3 transition-colors">
               View All Delivery Hubs
             </Link>
           </div>
@@ -81,11 +83,11 @@ export function CookiesLocationPage() {
       </div>
 
       {/* Coverage Hubs */}
-      <div className="border border-ink-700/60 bg-ink-850 p-6 sm:p-8 clip-tile">
-        <h2 className="font-display text-xl font-bold uppercase mb-4 text-ink-100 flex items-center gap-2">
-          <Ic.map className="w-5 h-5 text-blaze-500" /> Active {cityData.name} Express Coverage Zones
+      <div className="border border-ink-700/60 bg-ink-850 p-5 sm:p-8 clip-tile">
+        <h2 className="font-display text-lg sm:text-xl font-bold uppercase mb-4 text-ink-100 flex items-center gap-2">
+          <Ic.map className="w-5 h-5 text-blaze-500 shrink-0" /> Active {cityData.name} Express Coverage Zones
         </h2>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {cityData.hubs.map((hub, idx) => (
             <div key={idx} className="p-4 bg-ink-900 border border-ink-700/80 clip-tile">
               <span className="font-mono text-[9px] text-gold-400 uppercase tracking-widest">Zone {idx + 1}</span>
@@ -98,14 +100,14 @@ export function CookiesLocationPage() {
 
       {/* Product Showcase */}
       <div>
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-5 sm:mb-6 gap-2">
           <div>
             <span className="font-mono text-[10px] uppercase tracking-widest text-gold-400 font-bold">Handcrafted Fresh Daily</span>
-            <h2 className="font-display text-2xl font-bold uppercase mt-1">Top Selling Cookies & Hampers in {cityData.name}</h2>
+            <h2 className="font-display text-xl sm:text-2xl font-bold uppercase mt-1">Top Selling Cookies & Hampers in {cityData.name}</h2>
           </div>
-          <Link to="/shop" className="font-mono text-xs text-blaze-400 hover:underline">Explore Full Catalog →</Link>
+          <Link to="/shop" className="font-mono text-xs text-blaze-400 hover:underline shrink-0">Explore All →</Link>
         </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-6">
           {cookies.slice(0, 6).map((p) => (
             <ProductCard key={p.id} p={p} />
           ))}

@@ -125,39 +125,70 @@ export default function Shop() {
   );
 
   return (
-    <div className="max-w-7xl mx-auto px-6 lg:px-10 py-12">
-      {/* page head */}
-      <div className="relative overflow-hidden clip-tile border border-ink-700/60 bg-ink-850 p-8 md:p-12 mb-10 noise">
-        <div className="absolute inset-0 grid-lines opacity-50" />
-        <div className="absolute -right-10 -top-10 font-display font-black text-[10rem] leading-none text-outline opacity-40 select-none hidden md:block">GO</div>
-        <div className="relative">
-          <p className="font-mono text-[11px] tracking-[0.3em] text-blaze-500">FULL CATALOG</p>
-          <h1 className="font-display text-4xl md:text-6xl font-black uppercase mt-2">{t("nav.shop")}</h1>
-          <p className="font-mono text-xs text-ink-400 mt-3">{list.length} {t("results")} · {f.cats[0] ?? "All categories"}</p>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-6 sm:py-10">
+      {/* Compact Page Head */}
+      <div className="flex flex-wrap items-end justify-between gap-3 pb-4 mb-6 border-b border-ink-800">
+        <div>
+          <p className="font-mono text-[10px] tracking-[0.25em] text-blaze-500 uppercase font-bold">100% Pure Eggless Catalog</p>
+          <h1 className="font-display text-2xl sm:text-4xl font-black uppercase mt-1">{t("nav.shop")}</h1>
         </div>
+        <p className="font-mono text-xs text-ink-400">{list.length} {t("results")} · {f.cats[0] ?? "All categories"}</p>
       </div>
 
-      <div className="flex gap-10">
+      <div className="flex gap-8 lg:gap-10">
         {/* rail */}
         <aside className="hidden lg:block w-64 shrink-0">
           <div className="sticky top-28">{FilterPanel}</div>
         </aside>
 
         <div className="flex-1 min-w-0">
+          {/* Clean Horizontal Category Quick-Tabs */}
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-3 mb-4 border-b border-ink-800">
+            <button
+              type="button"
+              onClick={() => setF((prev) => ({ ...prev, cats: [] }))}
+              className={`px-3.5 py-1.5 rounded-full font-mono text-xs uppercase tracking-wider transition-all whitespace-nowrap shrink-0 ${
+                f.cats.length === 0
+                  ? "bg-blaze-500 text-ink-50 font-bold shadow-sm"
+                  : "bg-ink-900 border border-ink-700/80 text-ink-300 hover:text-ink-100"
+              }`}
+            >
+              All ({products.length})
+            </button>
+            {CATEGORIES.map((c) => {
+              const active = f.cats.includes(c.name);
+              const count = products.filter((p) => p.category === c.name).length;
+              return (
+                <button
+                  key={c.name}
+                  type="button"
+                  onClick={() => setF((prev) => ({ ...prev, cats: active ? [] : [c.name] }))}
+                  className={`px-3.5 py-1.5 rounded-full font-mono text-xs uppercase tracking-wider transition-all whitespace-nowrap shrink-0 ${
+                    active
+                      ? "bg-blaze-500 text-ink-50 font-bold shadow-sm"
+                      : "bg-ink-900 border border-ink-700/80 text-ink-300 hover:text-ink-100"
+                  }`}
+                >
+                  {c.name} ({count})
+                </button>
+              );
+            })}
+          </div>
+
           <div className="flex items-center justify-between gap-3 mb-6 flex-wrap">
-            <div className="flex items-center gap-2 flex-wrap">
-              <button onClick={() => setMobileF(true)} className="lg:hidden clip-tag border border-ink-600 px-3.5 py-2 font-mono text-xs tracking-[0.15em] uppercase flex items-center gap-1.5"><Ic.filter className="w-3.5 h-3.5" /> {t("filter")} {activeCount > 0 && `(${activeCount})`}</button>
-              <input value={f.q} onChange={(e) => setF({ ...f, q: e.target.value })} placeholder="Search cakes…" className="bg-ink-900 border border-ink-600 focus:border-blaze-500 outline-none px-3 py-2 text-xs sm:text-sm w-36 sm:w-44 transition-colors" />
+            <div className="flex items-center gap-2 flex-1 min-w-[200px]">
+              <button onClick={() => setMobileF(true)} className="lg:hidden clip-tag border border-ink-600 px-3.5 py-2 font-mono text-xs tracking-[0.15em] uppercase flex items-center gap-1.5 whitespace-nowrap shrink-0"><Ic.filter className="w-3.5 h-3.5" /> {t("filter")} {activeCount > 0 && `(${activeCount})`}</button>
+              <input value={f.q} onChange={(e) => setF({ ...f, q: e.target.value })} placeholder="Search cakes, hampers, cookies…" className="bg-ink-900 border border-ink-600 focus:border-blaze-500 rounded outline-none px-3.5 py-2 text-xs sm:text-sm flex-1 max-w-xs transition-colors" />
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               {/* View Switcher: 2-Col Grid, Carousel Reel, Detail List */}
-              <div className="flex items-center bg-ink-900 border border-ink-700/80 rounded p-0.5">
+              <div className="flex items-center bg-ink-900 border border-ink-700/80 rounded-lg p-0.5 shrink-0">
                 <button
                   type="button"
                   onClick={() => setViewMode("grid2")}
                   title="2-Column Grid"
-                  className={`px-2.5 py-1 text-xs font-mono rounded transition-colors ${viewMode === "grid2" ? "bg-blaze-500 text-ink-50 font-bold" : "text-ink-400 hover:text-ink-100"}`}
+                  className={`px-2.5 py-1.5 text-xs font-mono rounded transition-colors whitespace-nowrap shrink-0 ${viewMode === "grid2" ? "bg-blaze-500 text-ink-50 font-bold" : "text-ink-400 hover:text-ink-100"}`}
                 >
                   ⊞ Grid
                 </button>
@@ -165,7 +196,7 @@ export default function Shop() {
                   type="button"
                   onClick={() => setViewMode("carousel")}
                   title="Horizontal Reel (Swipe Left/Right)"
-                  className={`px-2.5 py-1 text-xs font-mono rounded transition-colors ${viewMode === "carousel" ? "bg-blaze-500 text-ink-50 font-bold" : "text-ink-400 hover:text-ink-100"}`}
+                  className={`px-2.5 py-1.5 text-xs font-mono rounded transition-colors whitespace-nowrap shrink-0 ${viewMode === "carousel" ? "bg-blaze-500 text-ink-50 font-bold" : "text-ink-400 hover:text-ink-100"}`}
                 >
                   ⇆ Reel
                 </button>
@@ -173,13 +204,13 @@ export default function Shop() {
                   type="button"
                   onClick={() => setViewMode("grid1")}
                   title="Single Column"
-                  className={`hidden sm:block px-2.5 py-1 text-xs font-mono rounded transition-colors ${viewMode === "grid1" ? "bg-blaze-500 text-ink-50 font-bold" : "text-ink-400 hover:text-ink-100"}`}
+                  className={`hidden sm:block px-2.5 py-1.5 text-xs font-mono rounded transition-colors whitespace-nowrap shrink-0 ${viewMode === "grid1" ? "bg-blaze-500 text-ink-50 font-bold" : "text-ink-400 hover:text-ink-100"}`}
                 >
                   ☰ List
                 </button>
               </div>
 
-              <select value={sort} onChange={(e) => setSort(e.target.value)} className="bg-ink-900 border border-ink-600 outline-none px-2.5 py-1.5 font-mono text-xs tracking-wide uppercase cursor-pointer">
+              <select value={sort} onChange={(e) => setSort(e.target.value)} className="bg-ink-900 border border-ink-600 rounded outline-none px-2.5 py-2 font-mono text-xs tracking-wide uppercase cursor-pointer shrink-0">
                 <option value="featured">{t("sort")}: Popular</option>
                 <option value="newest">{t("sort")}: Newest</option>
                 <option value="price-asc">{t("price")} ↑</option>

@@ -48,7 +48,7 @@ export type Category = {
 };
 
 export const CATEGORIES: Category[] = [
-  { id: "cat-cookies", name: "Cookies", subs: ["Choc Chip", "Macaron", "Butter Cookies", "Biscotti"], img: IMG.cookies, showOnHome: true, showInNav: true, tag: "POPULAR", desc: "72-hour cold-fermented cookie dough, molten centers & buttery artisanal crunch" },
+  { id: "cat-cookies", name: "Cookies", subs: ["Choc Chip", "Macaron", "Butter Cookies", "Biscotti"], img: IMG.cookies, crop: CROP.TL, showOnHome: true, showInNav: true, tag: "POPULAR", desc: "72-hour cold-fermented cookie dough, molten centers & buttery artisanal crunch" },
   { id: "cat-namkeens", name: "Namkeens", subs: ["Royal Bhujia", "Spicy Mixture", "Roasted Makhana", "Mathri"], img: IMG.cookies, crop: CROP.BL, showOnHome: true, showInNav: true, tag: "CRISPY", desc: "Traditional fusion namkeens, roasted makhana and royal spice blends" },
   { id: "cat-hampers", name: "Gift Hampers", subs: ["Birthday", "Anniversary", "Corporate", "Marriage", "Return Gifts"], img: IMG.hero, showOnHome: true, showInNav: true, tag: "LUXURY", desc: "Exquisite curated gift hampers for birthdays, anniversaries, corporate events & marriages" },
   { id: "cat-seasonal", name: "Seasonal & Festive", subs: ["Festive Boxes", "Party Packs", "Custom Gifting"], img: IMG.cookies, crop: CROP.TR, showOnHome: true, showInNav: true, desc: "Special celebration packs and personalized return gifts" },
@@ -220,19 +220,27 @@ export const PRODUCTS: Product[] = [
   },
 ];
 
-export type Review = { id: string; productId: string; name: string; rating: number; title: string; text: string; date: string; hasImage?: boolean };
+export type Review = {
+  id: string;
+  productId: string;
+  name: string;
+  rating: number;
+  title: string;
+  text: string;
+  date: string;
+  hasImage?: boolean;
+  photoUrl?: string;
+  hubLocation?: string;
+  occasion?: string;
+};
 
 export const SEED_REVIEWS: Review[] = [
-  { id: "r1", productId: "raspberry-noir", name: "Amara Osei", rating: 5, title: "The coulis drip is theatre", text: "Ordered for my mother's 60th. The drip held perfectly through forty minutes of photographs, and the dark sponge is genuinely not too sweet. Best cake in the city, no contest.", date: "2026-01-18", hasImage: true },
-  { id: "r2", productId: "raspberry-noir", name: "Diego Fuentes", rating: 5, title: "Worth every cent", text: "Gold leaf, fresh raspberries, and a sponge that tastes like it was baked an hour ago — because it was.", date: "2026-01-05" },
-  { id: "r3", productId: "raspberry-noir", name: "Priya Nair", rating: 4, title: "Nearly perfect", text: "Ask for the eggless version if you're ordering for a mixed crowd — it's 95% as good, which is a miracle in itself.", date: "2025-12-22" },
-  { id: "r4", productId: "chocchip-stack", name: "Jonas Keller", rating: 5, title: "Molten centre is real", text: "The 72-hour dough is not marketing. Crisp outside, almost underbaked middle, salt on top. I've reordered six times.", date: "2026-02-01", hasImage: true },
-  { id: "r5", productId: "chocchip-stack", name: "Mei Tanaka", rating: 5, title: "Sell-out is real too", text: "Order before Thursday or you're waiting till Monday. That's the only complaint I have.", date: "2026-01-14" },
-  { id: "r6", productId: "macaron-jewel", name: "Sam Whitfield", rating: 5, title: "Perfect feet, every shell", text: "Italian method done properly. No hollows, clean snap, and the raspberry one tastes like actual fruit.", date: "2026-01-27" },
-  { id: "r7", productId: "macaron-jewel", name: "Lena Hoffmann", rating: 4, title: "Beautiful box", text: "The jewel box looks more expensive than it is. Wish there were more pistachio per box.", date: "2025-12-30" },
-  { id: "r8", productId: "midnight-fudge", name: "Ravi Menon", rating: 5, title: "Dense in the best way", text: "Survived a two-hour drive in a cold box and cut like fudge. The espresso soak is subtle but makes it.", date: "2026-01-20", hasImage: true },
-  { id: "r9", productId: "pistachio-rose", name: "Carla Reyes", rating: 5, title: "The photographed one", text: "Every single guest asked where it was from. Rose is light, pistachio is loud. Perfect balance.", date: "2026-02-06" },
-  { id: "r10", productId: "bakers-dozen", name: "Theo Brandt", rating: 5, title: "The office peace treaty", text: "One tin ended three weeks of kitchen disputes. The handwritten card was a lovely touch.", date: "2026-01-09" },
+  { id: "r1", productId: "birthday-deluxe-hamper", name: "Pooja Sharma", rating: 5, title: "Delivered in 34 mins at Midnight!", text: "Ordered for my mother's 50th birthday in Faridabad Sector 15. The coulis drip and Belgian truffle held perfectly through forty minutes of photographs, and the 100% eggless sponge is unbelievably moist.", date: "2026-02-18", hasImage: true, photoUrl: IMG.hero, hubLocation: "Faridabad Sector 15", occasion: "Mom's 50th Birthday · Midnight" },
+  { id: "r2", productId: "choc-chip-stack", name: "Rohan Verma", rating: 5, title: "72-Hour Dough Molten Center is Real", text: "Crispy edges, warm molten dark chocolate middle, and flaky sea salt on top. None of our guests believed it was 100% pure vegetarian and eggless. Insulated dry-ice box arrived right on time.", date: "2026-02-14", hasImage: true, photoUrl: IMG.cookies, hubLocation: "Noida Sector 75", occasion: "Birthday Surprise" },
+  { id: "r3", productId: "anniversary-romance-box", name: "Simran Kaur", rating: 5, title: "Breathtaking Anniversary Hamper", text: "The Pistachio & Rose macarons paired with Belgian chocolate cookies made our anniversary unforgettable. Gold foil embossed note was handwritten so neatly!", date: "2026-02-10", hasImage: true, photoUrl: IMG.cakes, hubLocation: "Gurgaon DLF Cyber City", occasion: "5th Anniversary" },
+  { id: "r4", productId: "french-macaron-jewel-box", name: "Aarav Mehta", rating: 5, title: "Perfect macaron shells, zero hollows", text: "Authentic French patisserie quality right here in South Delhi. The raspberry and Sicilian pistachio fillings taste like real fruit and nuts, never artificial.", date: "2026-02-04", hasImage: true, photoUrl: IMG.cookies, hubLocation: "South Delhi GK-2", occasion: "Family High Tea" },
+  { id: "r5", productId: "corporate-executive-box", name: "Neha Kapoor", rating: 5, title: "45 Executive Boxes Delivered Seamlessly", text: "We ordered 45 custom-branded executive hampers for our leadership summit in Gurgaon. Every single box arrived crisp, fresh, and on schedule.", date: "2026-01-29", hasImage: true, photoUrl: IMG.hero, hubLocation: "Gurgaon Golf Course Rd", occasion: "Corporate Gifting" },
+  { id: "r6", productId: "royal-shahi-mixture", name: "Vikramaditya Singh", rating: 5, title: "Pure Ghee & Roasted Dry Fruit Crunch", text: "The proportion of roasted cashews, pistachios, and almonds in the Shahi Mixture is unmatched. Paired it with the Methi Mathri tin for our family gathering.", date: "2026-01-22", hasImage: false, hubLocation: "Ghaziabad Indirapuram", occasion: "Festive Gathering" },
 ];
 
 export type BlogPost = { slug: string; title: string; tag: string; date: string; read: string; excerpt: string; img: string; crop?: string; body: string[] };
@@ -340,6 +348,7 @@ export type OrderStatus = "pending" | "processing" | "shipped" | "delivered" | "
 export type Order = {
   id: string; email: string; items: OrderItem[]; subtotal: number; discount: number; shipping: number; total: number;
   status: OrderStatus; date: string; address: string; method: string; payment: string; timeline: { status: OrderStatus; at: string }[];
+  deliverySlot?: string; plaqueMessage?: string; customerPhone?: string; customerName?: string;
 };
 
 export type Customer = { id: string; name: string; email: string; joined: string; orders: number; spend: number; blocked: boolean; phone?: string };

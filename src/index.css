@@ -166,7 +166,9 @@ input, textarea, select, button { font-family: inherit; }
   transform-style: preserve-3d;
   animation: ring-rotate 34s linear infinite;
 }
-.ring-stage:hover .ring-rotor { animation-play-state: paused; }
+@media (hover: hover) and (min-width: 768px) {
+  .ring-stage:hover .ring-rotor { animation-play-state: paused; }
+}
 .ring-card { transform-style: preserve-3d; backface-visibility: hidden; }
 
 .tilt-wrap { transform-style: preserve-3d; transition: transform 0.18s ease-out; }

@@ -15,7 +15,7 @@ export function SEOManager() {
     let image = `${siteUrl}/og-image.jpg`;
     let schemaList: any[] = [];
 
-    // Base Organization Schema
+    // Base Organization Schema with Geo coordinates and Bakery metadata
     const orgSchema = {
       "@context": "https://schema.org",
       "@type": "Bakery",
@@ -26,6 +26,18 @@ export function SEOManager() {
       "image": image,
       "telephone": "+91-7318531953",
       "priceRange": "₹₹",
+      "servesCuisine": "Artisan Bakery, Gourmet Cookies, 100% Eggless Cakes, Luxury Hampers",
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 28.4089,
+        "longitude": 77.3178
+      },
+      "openingHoursSpecification": {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+        "opens": "06:00",
+        "closes": "23:59"
+      },
       "address": {
         "@type": "PostalAddress",
         "streetAddress": "Sector 15 / Central Kitchen Hub",
@@ -34,7 +46,7 @@ export function SEOManager() {
         "postalCode": "121007",
         "addressCountry": "IN"
       },
-      "areaServed": ["Delhi", "Faridabad", "Noida", "Gurgaon", "Ghaziabad"],
+      "areaServed": ["Faridabad", "Delhi", "Noida", "Gurgaon", "Ghaziabad"],
       "sameAs": [
         "https://www.instagram.com/cakeurban",
         "https://www.facebook.com/cakeurban"
@@ -43,7 +55,46 @@ export function SEOManager() {
     schemaList.push(orgSchema);
 
     // Route-specific dynamic metadata & schema
-    if (pathname.startsWith("/product/")) {
+    if (pathname === "/") {
+      title = "CakeUrban — 100% Eggless Gourmet Cakes, Cookies & Luxury Hampers Delhi NCR";
+      desc = "Delhi NCR's premiere eggless artisan bakehouse. Handcrafted 72-hr fermented cookies, gourmet celebration cakes, and luxury gift hampers with 30-45 min express delivery.";
+
+      // Home FAQ schema for rich search snippets
+      const faqSchema = {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Are 100% of your cakes eggless and vegetarian?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes, absolute 100%. Our dedicated artisan kitchens never use eggs, gelatin, or animal by-products. We use cultured dairy butter, real Belgian cocoa, and natural organic setting agents."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How fast can I get a cake delivered in Delhi NCR?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Our express delivery hubs in Faridabad, Noida, Gurgaon, South Delhi, and Ghaziabad dispatch in specialized insulated carriers to deliver within 30 to 45 minutes of order confirmation."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Do you offer midnight birthday delivery?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes! We specialize in midnight surprise deliveries between 11:30 PM and 12:15 AM across Delhi NCR with live courier tracking."
+            }
+          }
+        ]
+      };
+      schemaList.push(faqSchema);
+    } else if (pathname === "/builder") {
+      title = "3D Custom Cake & Hamper Builder | Design Online | CakeUrban";
+      desc = "Design your custom celebration cake in real-time 3D. Choose tier sizes, sponge flavors, Belgian creams, ganache drips, and custom chocolate plaques with express NCR delivery.";
+    } else if (pathname.startsWith("/product/")) {
       const productId = pathname.split("/product/")[1];
       const product = products.find((p) => p.id === productId);
       if (product) {
@@ -51,7 +102,7 @@ export function SEOManager() {
         desc = product.desc || `Order fresh ${product.name} with express delivery across Delhi NCR.`;
         if (product.img) image = product.img;
 
-        // Automated Product Schema (works for any newly added product instantly!)
+        // Automated Product Schema
         const productSchema = {
           "@context": "https://schema.org",
           "@type": "Product",

@@ -84,11 +84,23 @@ function mulberry32(a: number) {
 
 function seedOrders(): Order[] {
   const rnd = mulberry32(20260211);
-  const statuses: OrderStatus[] = ["pending", "processing", "shipped", "delivered", "delivered", "delivered"];
-  const cities = ["Berlin", "Mumbai", "Austin", "Tokyo", "London", "São Paulo", "Seoul", "Toronto"];
+  const statuses: OrderStatus[] = ["shipped", "processing", "pending", "delivered", "delivered", "delivered"];
+  const cities = [
+    "Sector 15, Faridabad, HR 121007",
+    "Sector 75, Noida, UP 201301",
+    "DLF Phase 4, Gurgaon, HR 122009",
+    "Greater Kailash II, South Delhi 110048",
+    "Indirapuram, Ghaziabad, UP 201014",
+    "Sector 21C, Faridabad, HR 121001",
+  ];
+  const slots = [
+    "⚡ Express 30-45 Min Dispatch",
+    "🌙 Midnight Surprise (11:30 PM - 12:15 AM)",
+    "🕰 Today · 6:00 PM - 8:00 PM",
+  ];
   const orders: Order[] = [];
-  for (let i = 0; i < 46; i++) {
-    const n = 1 + Math.floor(rnd() * 3);
+  for (let i = 0; i < 16; i++) {
+    const n = 1 + Math.floor(rnd() * 2);
     const items: OrderItem[] = [];
     for (let j = 0; j < n; j++) {
       const p = PRODUCTS[Math.floor(rnd() * PRODUCTS.length)];
@@ -97,17 +109,31 @@ function seedOrders(): Order[] {
     }
     const subtotal = items.reduce((s, it) => s + it.price * it.qty, 0);
     const shipping = subtotal > 49 ? 0 : 4.9;
-    const status = statuses[Math.floor(rnd() * statuses.length)];
-    const daysAgo = Math.floor(rnd() * 30);
+    const status = statuses[i % statuses.length];
+    const daysAgo = Math.floor(rnd() * 14);
     const d = new Date(Date.now() - daysAgo * 86400000);
     const timeline = [{ status: "pending" as OrderStatus, at: d.toISOString() }];
     const flow: OrderStatus[] = ["processing", "shipped", "delivered"];
     const upto = status === "pending" ? 0 : status === "processing" ? 1 : status === "shipped" ? 2 : 3;
-    for (let k = 0; k < upto; k++) timeline.push({ status: flow[k], at: new Date(d.getTime() + (k + 1) * 86400000).toISOString() });
+    for (let k = 0; k < upto; k++) timeline.push({ status: flow[k], at: new Date(d.getTime() + (k + 1) * 1200000).toISOString() });
     orders.push({
-      id: `CU-${9100 + i}`, email: `customer${i}@mail.com`, items, subtotal, discount: 0, shipping,
-      total: subtotal + shipping, status, date: d.toISOString(), address: `${4 + Math.floor(rnd() * 90)} Sugar Lane, ${cities[i % cities.length]}`,
-      method: "Same-day", payment: rnd() > 0.5 ? "Card •••• 4242" : rnd() > 0.5 ? "Razorpay UPI" : "PayPal", timeline,
+      id: `CU-${9100 + i}`,
+      email: i === 0 ? "user@cakeurban.com" : `patron${i}@gmail.com`,
+      customerName: i === 0 ? "Aarav Sharma" : `Valued Patron #${i + 1}`,
+      customerPhone: "+91 98765 43210",
+      items,
+      subtotal,
+      discount: 0,
+      shipping,
+      total: subtotal + shipping,
+      status,
+      date: d.toISOString(),
+      address: `House #${12 + i * 4}, ${cities[i % cities.length]}`,
+      method: slots[i % slots.length],
+      deliverySlot: slots[i % slots.length],
+      plaqueMessage: i % 2 === 0 ? "Happy Birthday! 🎉" : "Happy Anniversary ❤️",
+      payment: rnd() > 0.5 ? "Razorpay UPI" : rnd() > 0.3 ? "Card •••• 4242" : "Cash on Delivery",
+      timeline,
     });
   }
   return orders;
@@ -221,13 +247,13 @@ function initialState(): State {
   return {
     theme: "dark", lang: "en", currency: detectInitialCurrency(), user: null,
     users: [],
-    cart: [], saved: [], wishlist: ["raspberry-noir"], compare: [],
-    orders: [], reviews: [], coupons: SEED_COUPONS,
-    customers: [], staff: SEED_STAFF,
-    addresses: [{ id: "a1", label: "Home", name: "Jordan Miles", line1: "88 Meridian Ave", city: "Austin", zip: "73301", country: "United States", phone: "+1 512 555 0188" }],
+    cart: [], saved: [], wishlist: ["birthday-deluxe-hamper"], compare: [],
+    orders: seedOrders(), reviews: SEED_REVIEWS, coupons: SEED_COUPONS,
+    customers: SEED_CUSTOMERS, staff: SEED_STAFF,
+    addresses: [{ id: "a1", label: "Home", name: "Aarav Sharma", line1: "H.No 42, Sector 15", city: "Faridabad", zip: "121007", country: "India", phone: "+91 98765 43210" }],
     payMethods: [{ id: "p1", brand: "VISA", last4: "4242", exp: "09/28" }],
-    notifs: [{ id: 1, text: "Welcome to CakeUrban — your 10% code is WELCOME10", at: new Date().toISOString(), read: false }],
-    chat: [{ from: "support", text: "Hey! This is CakeUrban support. Ask me about same-day delivery, eggless options or cake messages.", at: new Date().toISOString() }],
+    notifs: [{ id: 1, text: "Welcome to CakeUrban — your 15% code is URBAN15", at: new Date().toISOString(), read: false }],
+    chat: [{ from: "support", text: "Namaste! Welcome to CakeUrban Delhi NCR. Ask me about 30-45m express delivery, midnight cake slots, or 100% eggless customization.", at: new Date().toISOString() }],
     stockMap: {}, consent: "pending", subscribed: false, settings: DEFAULT_SETTINGS, blogHidden: [],
   };
 }
@@ -261,7 +287,7 @@ type Store = State & {
   updateProfile: (data: { name?: string; phone?: string; photoURL?: string }) => void;
   socialLogin: (provider: string) => void;
   logout: () => void;
-  placeOrder: (o: { address: string; method: string; shipCost: number; payment: string; coupon?: string; email?: string; customerName?: string; customerPhone?: string }) => Order | null;
+  placeOrder: (o: { address: string; method: string; shipCost: number; payment: string; coupon?: string; email?: string; customerName?: string; customerPhone?: string; deliverySlot?: string; plaqueMessage?: string }) => Order | null;
   addManualOrder: (data: { customerName: string; email: string; phone: string; address: string; cakeName: string; cakeImg: string; size: string; qty: number; price: number; payment: string }) => Order;
   cancelOrder: (id: string) => void;
   setOrderStatus: (id: string, s: OrderStatus) => void;
@@ -317,9 +343,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           ...initialState(),
           ...saved,
           settings: mergedSettings,
-          orders: [],
-          customers: [],
-          reviews: [],
+          orders: saved.orders && saved.orders.length > 0 ? saved.orders : seedOrders(),
+          customers: saved.customers && saved.customers.length > 0 ? saved.customers : SEED_CUSTOMERS,
+          reviews: saved.reviews && saved.reviews.length > 0 ? saved.reviews : SEED_REVIEWS,
         };
       }
     } catch { /* fresh */ }
@@ -737,7 +763,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     toast("info", "Signed out");
   };
 
-  const placeOrder: Store["placeOrder"] = ({ address, method, shipCost, payment, coupon, email, customerName, customerPhone }) => {
+  const placeOrder: Store["placeOrder"] = ({ address, method, shipCost, payment, coupon, email, customerName, customerPhone, deliverySlot, plaqueMessage }) => {
     if (!state.cart.length) return null;
     const items: OrderItem[] = state.cart.map((it) => {
       const p = products.find((x) => x.id === it.productId)!;
@@ -756,15 +782,30 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       const m = o.id.match(/CU-(\d+)/);
       return m ? parseInt(m[1], 10) : 0;
     });
-    const maxNum = existingNums.length ? Math.max(...existingNums) : 0;
+    const maxNum = existingNums.length ? Math.max(...existingNums) : 9100;
     const orderId = `CU-${String(maxNum + 1).padStart(3, '0')}`;
 
     const order: Order = {
       id: orderId,
       email: orderEmail,
-      items, subtotal, discount, shipping, total: subtotal - discount + shipping, status: "pending",
-      date: new Date().toISOString(), address, method, payment,
-      timeline: [{ status: "pending", at: new Date().toISOString() }],
+      customerName: customerName || state.user?.name || "Valued Patron",
+      customerPhone: customerPhone || state.user?.phone || "+91 98765 43210",
+      items,
+      subtotal,
+      discount,
+      shipping,
+      total: subtotal - discount + shipping,
+      status: "processing",
+      date: new Date().toISOString(),
+      address,
+      method,
+      deliverySlot: deliverySlot || method,
+      plaqueMessage: plaqueMessage || "",
+      payment,
+      timeline: [
+        { status: "pending", at: new Date().toISOString() },
+        { status: "processing", at: new Date().toISOString() },
+      ],
     };
     
     // Sync order to RTDB live

@@ -18,6 +18,7 @@ import CustomBuilder from "./pages/builder";
 import PolicyPage from "./pages/policies";
 import { DeliveryLocationsIndex, CityHubPage, AreaLandingPage } from "./pages/local-seo";
 import { CookiesLocationPage } from "./pages/cookies-location";
+import { OrderTracker } from "./components/OrderTracker";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -42,7 +43,7 @@ function CompareTray({ onOpen }: { onOpen: () => void }) {
         <span className="hidden sm:block font-mono text-[10px] tracking-[0.15em] uppercase text-ink-300">
           {items.length}/4 · {fmt(Math.min(...items.map((p) => p?.price ?? 0)))}+
         </span>
-        <button onClick={onOpen} className="clip-tag bg-cobalt-500 hover:bg-cobalt-400 text-ink-50 font-mono text-[10px] tracking-[0.15em] uppercase px-4 py-2.5 transition-colors flex items-center gap-2">
+        <button onClick={onOpen} className="clip-tag bg-cobalt-500 hover:bg-cobalt-400 text-ink-50 font-mono text-[10px] tracking-[0.15em] uppercase px-4 py-2.5 transition-colors flex items-center gap-2 whitespace-nowrap">
           <Ic.scale className="w-3.5 h-3.5" /> Compare
         </button>
         <button onClick={clearCompare} aria-label="Clear compare" className="p-2 text-ink-400 hover:text-danger-400 transition-colors"><Ic.x className="w-4 h-4" /></button>
@@ -68,6 +69,7 @@ function Shell() {
             <Route path="/shop" element={<Shop />} />
             <Route path="/product/:id" element={<ProductPage onAddToCartFlow={() => setCartOpen(true)} />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route path="/track" element={<OrderTracker />} />
             <Route path="/account" element={<Account />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/blog" element={<BlogList />} />
