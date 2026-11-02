@@ -57,7 +57,7 @@ const CURATED_PINS: CakePin[] = [
     img: "https://i.pinimg.com/736x/11/63/1e/11631ec40ef315f65ce7876b5bdbc4c4.jpg",
     startingWeight: "1.0 Kg",
     priceInr: 1199,
-    badge: "Pinterest #1",
+    badge: "#1 Bestseller",
     tags: ["butterfly", "lavender", "purple", "aesthetic", "girl", "birthday", "pastel", "trending"],
   },
   {
@@ -97,7 +97,7 @@ const CURATED_PINS: CakePin[] = [
     img: "https://i.pinimg.com/736x/35/83/9a/35839a9db0cd2ab92eb49a4a4327439a.jpg",
     startingWeight: "1.0 Kg",
     priceInr: 1149,
-    badge: "Coquette Pin",
+    badge: "Coquette Style",
     tags: ["vintage", "heart", "blue", "lambeth", "coquette", "aesthetic", "birthday"],
   },
   {
@@ -262,7 +262,7 @@ const CURATED_PINS: CakePin[] = [
     img: "https://i.pinimg.com/736x/38/ee/b3/38eeb308bdffa4fc365eaec9878b9165.jpg",
     startingWeight: "1.0 Kg",
     priceInr: 1199,
-    badge: "Magical Pin",
+    badge: "Magical Theme",
     tags: ["unicorn", "rainbow", "pastel", "girl", "kids", "magical", "1st birthday", "birthday"],
   },
   {
@@ -558,15 +558,25 @@ function scorePinAgainstQuery(pin: CakePin, rawQuery: string): number {
 export default function CustomCakePinterestFinder() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
-  const [selectedWeight, setSelectedWeight] = useState("1.0 Kg");
   const [selectedFlavor, setSelectedFlavor] = useState("Belgian Chocolate Truffle");
   const [livePins, setLivePins] = useState<CakePin[]>([]);
   const [isSearchingWeb, setIsSearchingWeb] = useState(false);
   const [previewPin, setPreviewPin] = useState<CakePin | null>(null);
+  const [isImageZoomed, setIsImageZoomed] = useState(false);
   const [customNote, setCustomNote] = useState("");
   const [customPasteUrl, setCustomPasteUrl] = useState("");
 
-  // Live Pinterest Search via our /api/pinterest-search endpoint when user types a query
+  const openCakePreview = (pin: CakePin) => {
+    setIsImageZoomed(false);
+    setPreviewPin(pin);
+  };
+
+  const closeCakePreview = () => {
+    setIsImageZoomed(false);
+    setPreviewPin(null);
+  };
+
+  // Live Custom Cake Search via our /api/pinterest-search endpoint when user types a query
   useEffect(() => {
     const q = searchQuery.trim();
     if (q.length < 2) {
@@ -591,8 +601,8 @@ export default function CustomCakePinterestFinder() {
           img: p.img,
           startingWeight: p.startingWeight || "1.0 Kg",
           priceInr: p.priceInr || 999,
-          tags: [q.toLowerCase(), "pinterest", "custom"],
-          badge: p.badge || "Pinterest Live",
+          tags: [q.toLowerCase(), "custom"],
+          badge: "Custom Design",
           pinUrl: p.pinUrl,
         }));
         setLivePins(fetchedPins);
@@ -650,17 +660,14 @@ export default function CustomCakePinterestFinder() {
     const lines = [
       `Hi CakeUrban! 🎂 Mujhe ye custom cake banwana hai:`,
       ``,
-      `📌 *Cake Design:* ${pin.title}`,
-      `⚖️ *Selected Weight:* ${selectedWeight}`,
+      `🎂 *Cake Design:* ${pin.title}`,
       `🍫 *Preferred Flavor:* ${selectedFlavor} (100% Eggless)`,
-      `💰 *Ref Starting Price:* ₹${pin.priceInr}`,
       ...(extraNote?.trim() ? [`✍️ *Custom Note:* ${extraNote.trim()}`] : []),
       ``,
-      `🖼️ *Pinterest Cake Photo Link:*`,
+      `🖼️ *Selected Cake Photo:*`,
       pin.img,
-      ...(pin.pinUrl ? [`🔗 *Pinterest Pin:* ${pin.pinUrl}`] : []),
       ``,
-      `Please confirm final price & delivery slot!`,
+      `Please share price & delivery slot!`,
     ];
     return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(lines.join("\n"))}`;
   };
@@ -669,29 +676,28 @@ export default function CustomCakePinterestFinder() {
     e.preventDefault();
     if (!customPasteUrl.trim()) return;
     const msg = [
-      `Hi CakeUrban! 🎂 Maine Pinterest/Instagram par ye custom cake dekha hai:`,
+      `Hi CakeUrban! 🎂 Mujhe ye custom cake design banwana hai:`,
       ``,
       `🔗 *Cake Link / Idea:* ${customPasteUrl.trim()}`,
-      `⚖️ *Weight:* ${selectedWeight}`,
       `🍫 *Flavor:* ${selectedFlavor} (100% Eggless)`,
       ``,
-      `Please check this image/link and share price & availability!`,
+      `Please check this design and share price & availability!`,
     ].join("\n");
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, "_blank", "noopener,noreferrer");
   };
 
   return (
     <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-10 py-5 sm:py-10">
-      {/* Hero Header + Pinterest-Style Search Bar */}
+      {/* Hero Header + Custom Cake Search Bar */}
       <div className="relative overflow-hidden border border-ink-700/70 bg-gradient-to-b from-ink-850 via-ink-900 to-ink-950 p-4 sm:p-8 clip-tile mb-5 sm:mb-8">
         <div className="max-w-3xl mx-auto text-center space-y-2.5 sm:space-y-3">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#E60023]/15 border border-[#E60023]/40 text-[#ff4d67] font-mono text-[9px] sm:text-[10px] tracking-[0.12em] sm:tracking-[0.18em] uppercase font-bold max-w-full">
-            <span className="w-2 h-2 rounded-full bg-[#E60023] animate-ping shrink-0" />
-            <span className="truncate">Live Pinterest Custom Cake Search · 100% Eggless</span>
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blaze-500/15 border border-blaze-500/40 text-blaze-400 font-mono text-[9px] sm:text-[10px] tracking-[0.12em] sm:tracking-[0.18em] uppercase font-bold max-w-full">
+            <span className="w-2 h-2 rounded-full bg-blaze-500 animate-ping shrink-0" />
+            <span className="truncate">Custom Cake Design Studio · 100% Eggless</span>
           </div>
 
           <h1 className="font-display text-2xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight leading-tight">
-            Search Any <span className="text-blaze-500">Pinterest Cake</span> & Chat on WhatsApp
+            Search Any <span className="text-blaze-500">Custom Cake</span> & Chat on WhatsApp
           </h1>
 
           <p className="text-ink-300 text-xs sm:text-sm max-w-xl mx-auto leading-relaxed">
@@ -699,7 +705,7 @@ export default function CustomCakePinterestFinder() {
             <span className="text-emerald-400 font-semibold">"Chat About This Cake"</span> dabayein!
           </p>
 
-          {/* Main Pinterest Search Input */}
+          {/* Main Custom Cake Search Input */}
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -719,7 +725,7 @@ export default function CustomCakePinterestFinder() {
                   setSearchQuery(e.target.value);
                   if (activeCategory !== "all") setActiveCategory("all");
                 }}
-                placeholder="Search any Pinterest cake: 'Butterfly', 'Doraemon', 'Shinchan', '2 Tier'..."
+                placeholder="Search any custom cake: 'Butterfly', 'Doraemon', 'Shinchan', '2 Tier'..."
                 className="w-full min-w-0 bg-transparent px-2.5 sm:px-4 py-3 sm:py-3.5 text-xs sm:text-sm text-ink-50 placeholder-ink-400 outline-none"
               />
               {searchQuery && (
@@ -734,7 +740,7 @@ export default function CustomCakePinterestFinder() {
               )}
               <button
                 type="submit"
-                className="mr-1.5 px-3.5 sm:px-6 py-2 sm:py-2.5 rounded-full bg-[#E60023] hover:bg-[#cc001f] text-white font-mono text-[10px] sm:text-xs uppercase font-bold tracking-wider transition-colors shrink-0"
+                className="mr-1.5 px-3.5 sm:px-6 py-2 sm:py-2.5 rounded-full bg-blaze-500 hover:bg-blaze-400 text-white font-mono text-[10px] sm:text-xs uppercase font-bold tracking-wider transition-colors shrink-0"
               >
                 Search
               </button>
@@ -754,53 +760,33 @@ export default function CustomCakePinterestFinder() {
                 }}
                 className={`px-2.5 py-1 rounded-full font-mono text-[10px] border transition-colors shrink-0 ${
                   searchQuery.toLowerCase() === term.toLowerCase()
-                    ? "bg-[#E60023] text-white border-[#E60023] font-bold"
+                    ? "bg-blaze-500 text-white border-blaze-500 font-bold"
                     : "bg-ink-900/90 text-ink-300 border-ink-700 hover:border-blaze-400 hover:text-ink-100"
                 }`}
               >
-                📌 {term}
+                {term}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Quick Weight & Flavor Selector Strip (Included in WhatsApp Message Automatically!) */}
-        <div className="mt-5 pt-4 border-t border-ink-800/80 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 max-w-4xl mx-auto">
-          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar">
-            <span className="font-mono text-[10px] uppercase text-gold-400 shrink-0">1. Weight:</span>
-            {["0.5 Kg", "1.0 Kg", "1.5 Kg", "2.0 Kg (2-Tier)", "3.0 Kg+"].map((w) => (
-              <button
-                key={w}
-                type="button"
-                onClick={() => setSelectedWeight(w)}
-                className={`px-2.5 py-1 rounded font-mono text-[10px] border transition-colors shrink-0 ${
-                  selectedWeight === w
-                    ? "bg-volt-400/20 border-volt-400 text-volt-400 font-bold"
-                    : "bg-ink-950 border-ink-700 text-ink-300"
-                }`}
-              >
-                {w}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="font-mono text-[10px] uppercase text-gold-400 shrink-0">2. Flavor:</span>
-            <select
-              value={selectedFlavor}
-              onChange={(e) => setSelectedFlavor(e.target.value)}
-              aria-label="Select cake flavor"
-              className="bg-ink-950 border border-ink-700 focus:border-blaze-500 rounded px-2.5 py-1 text-xs font-mono text-ink-100 outline-none flex-1 sm:flex-initial min-w-0 truncate"
-            >
-              <option value="Belgian Chocolate Truffle">Belgian Chocolate Truffle</option>
-              <option value="Red Velvet Cream Cheese">Red Velvet Cream Cheese</option>
-              <option value="Fresh Pineapple Cloud">Fresh Pineapple Cloud</option>
-              <option value="Butterscotch Caramel Crunch">Butterscotch Caramel Crunch</option>
-              <option value="Royal Rasmalai Pistachio">Royal Rasmalai Pistachio</option>
-              <option value="Lotus Biscoff Speculoos">Lotus Biscoff Speculoos</option>
-              <option value="Fresh Strawberry Vanilla">Fresh Strawberry Vanilla</option>
-            </select>
-          </div>
+        {/* Flavor Selector Strip (Included in WhatsApp Message Automatically!) */}
+        <div className="mt-4 pt-3.5 border-t border-ink-800/80 flex items-center justify-center gap-2 max-w-xl mx-auto">
+          <span className="font-mono text-[10px] uppercase text-gold-400 shrink-0">Preferred Flavor:</span>
+          <select
+            value={selectedFlavor}
+            onChange={(e) => setSelectedFlavor(e.target.value)}
+            aria-label="Select cake flavor"
+            className="bg-ink-950 border border-ink-700 focus:border-blaze-500 rounded px-3 py-1.5 text-xs font-mono text-ink-100 outline-none flex-1 sm:flex-initial min-w-0 truncate"
+          >
+            <option value="Belgian Chocolate Truffle">Belgian Chocolate Truffle</option>
+            <option value="Red Velvet Cream Cheese">Red Velvet Cream Cheese</option>
+            <option value="Fresh Pineapple Cloud">Fresh Pineapple Cloud</option>
+            <option value="Butterscotch Caramel Crunch">Butterscotch Caramel Crunch</option>
+            <option value="Royal Rasmalai Pistachio">Royal Rasmalai Pistachio</option>
+            <option value="Lotus Biscoff Speculoos">Lotus Biscoff Speculoos</option>
+            <option value="Fresh Strawberry Vanilla">Fresh Strawberry Vanilla</option>
+          </select>
         </div>
       </div>
 
@@ -830,12 +816,12 @@ export default function CustomCakePinterestFinder() {
         <div className="flex flex-wrap items-center justify-between gap-2 mb-4 px-1">
           <div className="flex items-center gap-2 min-w-0">
             <p className="font-mono text-xs text-ink-300 truncate">
-              Pinterest results for <span className="text-blaze-400 font-bold">"{searchQuery}"</span>{" "}
-              <span className="text-ink-400">({displayedPins.length} pins)</span>
+              Showing cake designs for <span className="text-blaze-400 font-bold">"{searchQuery}"</span>{" "}
+              <span className="text-ink-400">({displayedPins.length} designs)</span>
             </p>
             {isSearchingWeb && (
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#E60023]/20 border border-[#E60023]/40 text-[#ff4d67] font-mono text-[10px] animate-pulse shrink-0">
-                Loading live Pinterest pins...
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-blaze-500/20 border border-blaze-500/40 text-blaze-400 font-mono text-[10px] animate-pulse shrink-0">
+                Finding more cake designs...
               </span>
             )}
           </div>
@@ -880,8 +866,8 @@ export default function CustomCakePinterestFinder() {
               {/* Cake Image Container */}
               <div>
                 <div
-                  onClick={() => setPreviewPin(pin)}
-                  className="relative aspect-[4/5] bg-ink-950 overflow-hidden cursor-pointer"
+                  onClick={() => openCakePreview(pin)}
+                  className="relative aspect-[4/5] bg-ink-950 overflow-hidden cursor-zoom-in"
                 >
                   <img
                     src={pin.img}
@@ -897,47 +883,36 @@ export default function CustomCakePinterestFinder() {
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
 
-                  {/* Top Badges */}
-                  <div className="absolute top-2 left-2 right-2 flex items-center justify-between gap-1 pointer-events-none">
-                    {pin.badge ? (
-                      <span className="px-1.5 py-0.5 rounded-full bg-ink-950/85 backdrop-blur-sm border border-ink-700 font-mono text-[7.5px] sm:text-[9px] tracking-wider uppercase text-gold-400 font-bold truncate max-w-[68%]">
+                  {/* Top Badge */}
+                  {pin.badge && (
+                    <div className="absolute top-2 left-2 right-2 flex items-center justify-between pointer-events-none gap-1">
+                      <span className="px-2 py-0.5 rounded-full bg-ink-950/85 backdrop-blur-sm border border-ink-700 font-mono text-[7.5px] sm:text-[9px] tracking-wider uppercase text-gold-400 font-bold truncate max-w-[75%]">
                         {pin.badge}
                       </span>
-                    ) : (
-                      <span />
-                    )}
-                    <span className="px-1.5 py-0.5 rounded-full bg-[#E60023] text-white font-mono text-[7.5px] sm:text-[9px] font-bold uppercase shadow shrink-0">
-                      📌 Pin
-                    </span>
-                  </div>
+                      <span className="px-1.5 py-0.5 rounded-full bg-ink-950/85 backdrop-blur-sm border border-ink-700 font-mono text-[8px] text-ink-200 shrink-0">
+                        🔍 Full View
+                      </span>
+                    </div>
+                  )}
 
-                  {/* Bottom Gradient Overlay with Weight & Price */}
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink-950 via-ink-950/60 to-transparent p-2.5 sm:p-3 pt-8 flex items-end justify-between">
-                    <div>
-                      <span className="font-mono text-[9px] text-emerald-400 uppercase block">100% Eggless</span>
-                      <span className="font-mono text-[10px] sm:text-xs text-ink-200 font-bold">
-                        From {pin.startingWeight}
-                      </span>
-                    </div>
-                    <div className="text-right">
-                      <span className="font-mono text-[9px] text-ink-400 block">Starts at</span>
-                      <span className="font-display font-black text-sm sm:text-base text-volt-400">
-                        ₹{pin.priceInr}
-                      </span>
-                    </div>
+                  {/* Bottom Gradient Overlay */}
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink-950 via-ink-950/50 to-transparent p-2.5 sm:p-3 pt-8 flex items-end justify-between">
+                    <span className="font-mono text-[9px] text-emerald-400 uppercase block font-bold">
+                      100% Pure Eggless
+                    </span>
                   </div>
                 </div>
 
                 {/* Cake Title */}
                 <div className="p-2.5 sm:p-3.5 pb-2">
                   <h3
-                    onClick={() => setPreviewPin(pin)}
+                    onClick={() => openCakePreview(pin)}
                     className="font-display font-bold text-xs sm:text-sm text-ink-50 group-hover:text-blaze-400 transition-colors line-clamp-2 cursor-pointer leading-snug"
                   >
                     {pin.title}
                   </h3>
                   <p className="font-mono text-[9px] sm:text-[10px] text-ink-400 mt-1 truncate">
-                    {selectedWeight} · {selectedFlavor.split(" ")[0]}
+                    {selectedFlavor}
                   </p>
                 </div>
               </div>
@@ -970,7 +945,7 @@ export default function CustomCakePinterestFinder() {
           </p>
           <a
             href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
-              `Hi CakeUrban! 🎂 Mujhe "${searchQuery}" theme me custom cake chahiye (${selectedWeight}, ${selectedFlavor}). Please share sample photos & price!`
+              `Hi CakeUrban! 🎂 Mujhe "${searchQuery}" theme me custom cake chahiye (${selectedFlavor}). Please share sample photos & price!`
             )}`}
             target="_blank"
             rel="noopener noreferrer"
@@ -981,18 +956,18 @@ export default function CustomCakePinterestFinder() {
         </div>
       )}
 
-      {/* Paste Any Pinterest / Instagram Link Banner at Bottom */}
+      {/* Paste Any Reference Cake Link Banner at Bottom */}
       <div className="mt-8 sm:mt-12 border border-ink-700/80 bg-ink-850 p-4 sm:p-7 clip-tile">
         <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-4 sm:gap-6 items-center">
           <div className="min-w-0">
             <span className="font-mono text-[10px] tracking-[0.2em] text-gold-400 uppercase font-bold">
-              📌 Have a Pinterest or Instagram Link?
+              ✨ Have a Reference Cake Photo or Link?
             </span>
             <h2 className="font-display text-lg sm:text-2xl font-black uppercase mt-1">
               Paste Any Cake Link or Idea & Get Instant Quote
             </h2>
             <p className="text-xs sm:text-sm text-ink-300 mt-1">
-              Agar aapke paas Pinterest/Instagram ka koi link ya screenshot hai, toh yahan paste karein ya WhatsApp par photo bhejein.
+              Agar aapke paas kisi cake ka link ya design idea hai, toh yahan paste karein ya seedha WhatsApp par photo bhejein.
             </p>
           </div>
 
@@ -1001,7 +976,7 @@ export default function CustomCakePinterestFinder() {
               type="text"
               value={customPasteUrl}
               onChange={(e) => setCustomPasteUrl(e.target.value)}
-              placeholder="Paste Pinterest link or describe your dream cake..."
+              placeholder="Paste cake link or describe your dream cake..."
               className="flex-1 min-w-0 bg-ink-950 border border-ink-700 focus:border-blaze-500 rounded-lg px-3.5 py-2.5 text-xs sm:text-sm text-ink-100 outline-none"
             />
             <button
@@ -1014,106 +989,91 @@ export default function CustomCakePinterestFinder() {
         </div>
       </div>
 
-      {/* Quick Pin Zoom & Customize Modal when User Taps a Cake Photo */}
+      {/* Full-Size Cake Lightbox & Zoom Modal when User Taps a Cake Photo */}
       {previewPin && (
         <div
-          onClick={() => setPreviewPin(null)}
-          className="fixed inset-0 z-[95] bg-ink-950/85 backdrop-blur-sm p-3.5 sm:p-6 flex items-center justify-center overflow-y-auto"
+          onClick={closeCakePreview}
+          className="fixed inset-0 z-[95] bg-ink-950/95 backdrop-blur-md p-2 sm:p-5 flex items-center justify-center overflow-y-auto"
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-ink-900 border border-ink-700 rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl grid grid-cols-1 sm:grid-cols-2"
+            className="bg-ink-900 border border-ink-700 rounded-2xl max-w-4xl w-full max-h-[94vh] flex flex-col overflow-hidden shadow-2xl"
           >
-            <div className="relative aspect-square sm:aspect-auto sm:h-full bg-ink-950">
+            {/* Top Bar with Title, Zoom Button & Close Button */}
+            <div className="flex items-center justify-between gap-2 px-3.5 sm:px-5 py-2.5 sm:py-3 border-b border-ink-800 bg-ink-950/90 shrink-0">
+              <div className="min-w-0">
+                <span className="font-mono text-[9px] sm:text-[10px] text-gold-400 uppercase tracking-wider block">
+                  🎂 Full Cake Preview · 100% Pure Eggless
+                </span>
+                <h3 className="font-display text-sm sm:text-lg font-black uppercase text-ink-50 truncate">
+                  {previewPin.title}
+                </h3>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setIsImageZoomed((z) => !z)}
+                  className="px-2.5 sm:px-3 py-1.5 rounded-lg bg-ink-800 hover:bg-ink-700 border border-ink-600 text-ink-100 font-mono text-[10px] sm:text-xs font-bold transition-colors"
+                >
+                  {isImageZoomed ? "🔍 Fit Screen" : "🔍 Zoom In +"}
+                </button>
+                <button
+                  type="button"
+                  onClick={closeCakePreview}
+                  aria-label="Close full image preview"
+                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-ink-800 hover:bg-blaze-500 text-white grid place-items-center text-sm font-bold transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* Full Uncropped Cake Photo Viewer (Tap to Zoom In/Out) */}
+            <div
+              onClick={() => setIsImageZoomed((z) => !z)}
+              className={`relative bg-ink-950 flex-1 overflow-auto flex items-center justify-center p-2 sm:p-4 select-none ${
+                isImageZoomed ? "cursor-zoom-out items-start" : "cursor-zoom-in"
+              }`}
+            >
               <img
-                src={previewPin.img}
+                src={previewPin.img.replace(/\/(236x|474x)\//, "/736x/")}
                 alt={previewPin.title}
                 referrerPolicy="no-referrer"
                 onError={(e) => {
                   const target = e.currentTarget;
-                  if (target.src !== FALLBACK_CAKE_IMG) {
+                  if (target.src !== previewPin.img) {
+                    target.src = previewPin.img;
+                  } else if (target.src !== FALLBACK_CAKE_IMG) {
                     target.src = FALLBACK_CAKE_IMG;
                   }
                 }}
-                className="w-full h-full object-cover"
+                className={`transition-all duration-300 rounded-lg shadow-2xl ${
+                  isImageZoomed
+                    ? "w-full sm:w-[85%] max-w-none h-auto object-contain mx-auto"
+                    : "max-h-[58vh] sm:max-h-[66vh] w-auto max-w-full object-contain mx-auto"
+                }`}
               />
-              <button
-                type="button"
-                onClick={() => setPreviewPin(null)}
-                className="sm:hidden absolute top-3 right-3 w-8 h-8 rounded-full bg-ink-950/80 text-white grid place-items-center"
-              >
-                ✕
-              </button>
             </div>
 
-            <div className="p-4 sm:p-6 flex flex-col justify-between space-y-4">
-              <div>
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-[10px] text-gold-400 uppercase tracking-wider">
-                    📌 Custom Cake Pin
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setPreviewPin(null)}
-                    className="hidden sm:inline-block text-ink-400 hover:text-white text-sm"
-                  >
-                    ✕
-                  </button>
-                </div>
-
-                <h3 className="font-display text-lg sm:text-xl font-black uppercase text-ink-50 mt-1">
-                  {previewPin.title}
-                </h3>
-                <p className="font-mono text-xs text-volt-400 font-bold mt-1">
-                  Starting at ₹{previewPin.priceInr} ({previewPin.startingWeight} · 100% Eggless)
-                </p>
-
-                <div className="space-y-3 mt-4">
-                  <div>
-                    <label className="block font-mono text-[10px] text-ink-400 uppercase mb-1">
-                      Select Weight
-                    </label>
-                    <div className="flex flex-wrap gap-1.5">
-                      {["0.5 Kg", "1.0 Kg", "1.5 Kg", "2.0 Kg (2-Tier)", "3.0 Kg+"].map((w) => (
-                        <button
-                          key={w}
-                          type="button"
-                          onClick={() => setSelectedWeight(w)}
-                          className={`px-2.5 py-1 rounded font-mono text-[10px] border ${
-                            selectedWeight === w
-                              ? "bg-blaze-500 text-white border-blaze-500 font-bold"
-                              : "bg-ink-950 text-ink-300 border-ink-700"
-                          }`}
-                        >
-                          {w}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block font-mono text-[10px] text-ink-400 uppercase mb-1">
-                      Cake Message / Custom Request (Optional)
-                    </label>
-                    <input
-                      type="text"
-                      value={customNote}
-                      onChange={(e) => setCustomNote(e.target.value)}
-                      placeholder="e.g. Happy Birthday Aarav! Make it Pink..."
-                      className="w-full bg-ink-950 border border-ink-700 rounded px-3 py-2 text-xs text-ink-100 outline-none focus:border-blaze-500"
-                    />
-                  </div>
-                </div>
-              </div>
+            {/* Bottom Customize & WhatsApp Action Bar */}
+            <div className="p-3 sm:p-4 border-t border-ink-800 bg-ink-900 shrink-0 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3">
+              <input
+                type="text"
+                value={customNote}
+                onChange={(e) => setCustomNote(e.target.value)}
+                placeholder="Cake message or custom note (e.g. Happy Birthday Aarav!)..."
+                className="flex-1 min-w-0 bg-ink-950 border border-ink-700 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-ink-100 outline-none focus:border-blaze-500"
+              />
 
               <a
                 href={buildWhatsAppLink(previewPin, customNote)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full py-3 px-4 rounded-xl bg-[#25D366] hover:bg-[#1fb855] text-ink-950 font-mono text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg"
+                className="py-2.5 sm:py-3 px-4 sm:px-6 rounded-xl bg-[#25D366] hover:bg-[#1fb855] text-ink-950 font-mono text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shrink-0"
               >
-                <Ic.whatsapp className="w-4 h-4 fill-current" />
-                Chat About This Cake on WhatsApp
+                <Ic.whatsapp className="w-4 h-4 fill-current shrink-0" />
+                <span>Chat About This Cake on WhatsApp</span>
               </a>
             </div>
           </div>

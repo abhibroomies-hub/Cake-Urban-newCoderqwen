@@ -121,7 +121,7 @@ export default function Home() {
                 {t("shopNow")} <Ic.arrow className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
               </Link>
               <Link to="/builder" className="clip-btn border border-ink-600 hover:border-blaze-500 hover:text-ink-50 text-ink-200 font-mono text-xs tracking-[0.15em] uppercase px-4 sm:px-5 py-3 transition-colors whitespace-nowrap shrink-0">
-                📌 Custom Cakes
+                🎂 Custom Cakes
               </Link>
               <Link to="/track" className="clip-btn border border-ink-700 hover:border-volt-400 text-volt-400 font-mono text-xs tracking-[0.14em] uppercase px-4 sm:px-5 py-3 transition-colors whitespace-nowrap shrink-0">
                 📍 Track

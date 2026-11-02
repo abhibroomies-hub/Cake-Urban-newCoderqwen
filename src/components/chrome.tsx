@@ -169,7 +169,7 @@ function SearchOverlay({ open, onClose }: { open: boolean; onClose: () => void }
           <div className="max-w-3xl mx-auto pt-28 px-6" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center gap-4 border-b-2 border-ink-600 focus-within:border-blaze-500 transition-colors pb-3">
               <Ic.search className="w-6 h-6 text-blaze-500 shrink-0" />
-              <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search gear, brands, collections…"
+              <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search cakes, cookies, hampers…"
                 className="flex-1 bg-transparent outline-none font-display text-xl md:text-2xl placeholder:text-ink-500" />
               <button onClick={onClose} className="font-mono text-xs tracking-[0.2em] text-ink-400 hover:text-blaze-400">ESC</button>
             </div>
@@ -187,7 +187,7 @@ function SearchOverlay({ open, onClose }: { open: boolean; onClose: () => void }
               {q.trim() && res.length === 0 && <p className="font-mono text-sm text-ink-400 py-8 text-center">No matches for "{q}"</p>}
               {!q.trim() && (
                 <div className="flex flex-wrap gap-2 pt-2">
-                  {["Running", "ANC", "Titanium", "Shell", "Carbon"].map((s) => (
+                  {["Chocolate", "Truffle", "Rasmalai", "Cookies", "Hampers"].map((s) => (
                     <button key={s} onClick={() => setQ(s)} className="clip-tag border border-ink-600 hover:border-blaze-500 hover:text-blaze-400 px-3 py-1.5 font-mono text-xs transition-colors">{s}</button>
                   ))}
                 </div>
@@ -425,7 +425,6 @@ export function Header({ onCart, onCompare }: { onCart: () => void; onCompare: (
             </div>
             <Link to="/builder" className="link-sweep text-ink-200 hover:text-ink-50 transition-colors whitespace-nowrap shrink-0 flex items-center gap-1.5">
               <span>Custom Cakes</span>
-              <span className="px-1.5 py-0.5 bg-[#E60023]/20 text-[#E60023] border border-[#E60023]/40 rounded text-[9px] font-bold">PIN</span>
             </Link>
             <Link to="/track" className="link-sweep text-ink-200 hover:text-ink-50 transition-colors whitespace-nowrap shrink-0">
               Track Order
@@ -442,9 +441,11 @@ export function Header({ onCart, onCompare }: { onCart: () => void; onCompare: (
 
           {/* Zone 3: Essential User Actions & Primary Bag CTA */}
           <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-            <button onClick={() => setSearch(true)} aria-label="Search" className="p-2 text-ink-300 hover:text-ink-50 transition-colors">
-              <Ic.search className="w-5 h-5" />
-            </button>
+            {!loc.pathname.startsWith("/builder") && (
+              <button onClick={() => setSearch(true)} aria-label="Search" className="p-2 text-ink-300 hover:text-ink-50 transition-colors">
+                <Ic.search className="w-5 h-5" />
+              </button>
+            )}
 
             <Link to="/wishlist" aria-label={t("wishlist")} className="hidden sm:inline-flex relative p-2 text-ink-300 hover:text-ink-50 transition-colors">
               <Ic.heart className="w-5 h-5" />
@@ -591,9 +592,9 @@ export function Header({ onCart, onCompare }: { onCart: () => void; onCompare: (
                 <Link to="/builder" className="relative clip-tile overflow-hidden group border border-ink-700/60 bg-ink-850 p-6 flex flex-col justify-between">
                   <div className="absolute inset-0 grid-lines opacity-50" />
                   <div className="relative z-10">
-                    <span className="px-2 py-1 bg-[#E60023]/20 text-[#E60023] font-mono text-[9px] rounded font-bold">PINTEREST CAKE FINDER</span>
+                    <span className="px-2 py-1 bg-blaze-500/20 text-blaze-400 font-mono text-[9px] rounded font-bold">CUSTOM CAKE STUDIO</span>
                     <p className="font-display font-bold text-lg mt-3 text-ink-50 group-hover:text-blaze-400 transition-colors">Search Any Custom Cake</p>
-                    <p className="font-mono text-xs text-ink-400 mt-1">Search 1000+ cake pins & tap "Chat About This Cake" on WhatsApp.</p>
+                    <p className="font-mono text-xs text-ink-400 mt-1">Search 1000+ cake designs & tap "Chat About This Cake" on WhatsApp.</p>
                   </div>
                   <div className="relative z-10 pt-4 flex items-center gap-1.5 font-mono text-xs text-emerald-400 uppercase font-bold">
                     <span>Search Custom Cakes</span> <span>→</span>
@@ -638,7 +639,7 @@ export function Header({ onCart, onCompare }: { onCart: () => void; onCompare: (
                     ["/", "Home"],
                     ["/shop", "Full Bakery Catalog"],
                     ["/shop?cat=Gift%20Hampers", "Luxury Gift Hampers"],
-                    ["/builder", "📌 Custom Cake Finder (Pinterest)"],
+                    ["/builder", "🎂 Custom Cake Studio"],
                     ["/track", "Live Order Tracker"],
                     ["/delivery-locations", "Delhi NCR Hubs"],
                     ["/wishlist", `Saved Wishlist (${wishlist.length})`],
