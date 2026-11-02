@@ -350,15 +350,15 @@ export function OrderTracker({ initialOrderId, compact = false }: { initialOrder
         </div>
 
         {/* Lower Split: Simulated GPS Route & Order Details */}
-        <div className="grid lg:grid-cols-[1.2fr_1fr] divide-y lg:divide-y-0 lg:divide-x divide-ink-800">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] divide-y lg:divide-y-0 lg:divide-x divide-ink-800">
           {/* Left: Simulated Rider & Cold-Chain Telemetry */}
-          <div className="p-4 sm:p-6 space-y-4">
+          <div className="p-3.5 sm:p-6 space-y-4 min-w-0 overflow-hidden">
             <div className="flex items-center justify-between gap-2">
-              <div className="min-w-0">
-                <p className="font-mono text-[10px] tracking-[0.18em] text-cobalt-400 uppercase font-bold">
+              <div className="min-w-0 flex-1">
+                <p className="font-mono text-[10px] tracking-[0.15em] text-cobalt-400 uppercase font-bold truncate">
                   Live Cold-Chain & GPS Route
                 </p>
-                <h3 className="font-display text-base sm:text-lg font-bold uppercase mt-0.5 truncate">
+                <h3 className="font-display text-sm sm:text-lg font-bold uppercase mt-0.5 truncate">
                   Sector 15 Hub → {activeOrder.address.split(",")[0]}
                 </h3>
               </div>
@@ -371,22 +371,22 @@ export function OrderTracker({ initialOrderId, compact = false }: { initialOrder
             <div className="relative h-36 sm:h-44 rounded bg-ink-950 border border-ink-800 overflow-hidden p-3 sm:p-5 flex flex-col justify-between">
               <div className="absolute inset-0 grid-lines opacity-30 pointer-events-none" />
 
-              <div className="relative z-10 flex items-center justify-between gap-2 text-xs font-mono">
-                <div className="bg-ink-900/90 border border-ink-700 px-2.5 py-1.5 rounded min-w-0 flex-1 max-w-[46%]">
+              <div className="relative z-10 grid grid-cols-2 gap-2 text-xs font-mono">
+                <div className="bg-ink-900/90 border border-ink-700 px-2.5 py-1.5 rounded min-w-0">
                   <span className="text-gold-400 block text-[9px] uppercase truncate">🏪 Kitchen Hub</span>
                   <span className="text-ink-100 font-bold text-[11px] truncate block">Faridabad Sec-15</span>
                 </div>
 
-                <div className="bg-ink-900/90 border border-ink-700 px-2.5 py-1.5 rounded text-right min-w-0 flex-1 max-w-[46%]">
+                <div className="bg-ink-900/90 border border-ink-700 px-2.5 py-1.5 rounded text-right min-w-0">
                   <span className="text-blaze-400 block text-[9px] uppercase truncate">🏠 Destination</span>
                   <span className="text-ink-100 font-bold text-[11px] truncate block">
-                    {activeOrder.address}
+                    {activeOrder.address.split(",")[0]}
                   </span>
                 </div>
               </div>
 
               {/* Route Line & Animated Rider Pin */}
-              <div className="relative z-10 my-auto py-2">
+              <div className="relative z-10 my-auto py-2 px-1">
                 <div className="h-1 bg-ink-800 w-full rounded relative">
                   <div
                     className="h-1 bg-volt-400 rounded transition-all duration-700"
@@ -394,7 +394,7 @@ export function OrderTracker({ initialOrderId, compact = false }: { initialOrder
                   />
                   <div
                     className="absolute -top-3.5 -translate-x-1/2 transition-all duration-700 flex flex-col items-center"
-                    style={{ left: `${Math.min(94, Math.max(6, riderProgressPct))}%` }}
+                    style={{ left: `${Math.min(82, Math.max(18, riderProgressPct))}%` }}
                   >
                     <span className="px-2 py-0.5 rounded bg-blaze-500 text-ink-50 font-mono text-[9px] font-bold shadow-lg whitespace-nowrap">
                       🛵 {currentStep === 3 ? "Arrived" : "Vikram S."}
@@ -404,16 +404,16 @@ export function OrderTracker({ initialOrderId, compact = false }: { initialOrder
               </div>
 
               <div className="relative z-10 flex items-center justify-between text-[10px] font-mono text-ink-400 gap-2">
-                <span className="truncate">Rider: Vikram Singh (★ 4.9)</span>
-                <span className="text-ink-300 shrink-0">Sealed Tamper-Proof</span>
+                <span className="truncate min-w-0">Rider: Vikram Singh (★ 4.9)</span>
+                <span className="text-ink-300 shrink-0">Sealed Box</span>
               </div>
             </div>
 
             {/* Instant WhatsApp SMS Notification Opt-in */}
-            <div className="p-3.5 sm:p-4 rounded bg-ink-900/80 border border-ink-700/70">
+            <div className="p-3 sm:p-4 rounded bg-ink-900/80 border border-ink-700/70">
               {waOptIn ? (
                 <div className="flex items-center justify-between text-xs text-emerald-400 font-mono gap-2">
-                  <span>✓ Live WhatsApp alerts active for {waPhone}</span>
+                  <span className="truncate min-w-0">✓ Live WhatsApp alerts active for {waPhone}</span>
                   <button onClick={() => setWaOptIn(false)} className="text-ink-400 hover:text-ink-200 underline shrink-0">
                     Edit
                   </button>
@@ -446,15 +446,15 @@ export function OrderTracker({ initialOrderId, compact = false }: { initialOrder
           </div>
 
           {/* Right: Order Items & Plaque Details */}
-          <div className="p-4 sm:p-6 flex flex-col justify-between">
+          <div className="p-3.5 sm:p-6 flex flex-col justify-between min-w-0 overflow-hidden">
             <div>
               <p className="font-mono text-[10px] tracking-[0.2em] text-ink-400 uppercase font-bold mb-3">
                 Order Items ({activeOrder.items.reduce((s, i) => s + i.qty, 0)})
               </p>
               <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
                 {activeOrder.items.map((it, idx) => (
-                  <div key={idx} className="flex items-center gap-3 p-2 rounded bg-ink-900/90 border border-ink-800">
-                    <div className="w-12 h-12 rounded overflow-hidden shrink-0 border border-ink-700">
+                  <div key={idx} className="flex items-center gap-2.5 sm:gap-3 p-2 rounded bg-ink-900/90 border border-ink-800 min-w-0">
+                    <div className="w-11 h-11 sm:w-12 sm:h-12 rounded overflow-hidden shrink-0 border border-ink-700">
                       <PImg src={it.img} crop={it.crop} filter={it.imgFilter} alt={it.name} className="w-full h-full object-cover" />
                     </div>
                     <div className="min-w-0 flex-1">
@@ -475,23 +475,23 @@ export function OrderTracker({ initialOrderId, compact = false }: { initialOrder
               {activeOrder.plaqueMessage && (
                 <div className="mt-3 p-2.5 rounded bg-ink-950 border border-gold-400/30">
                   <p className="font-mono text-[9px] text-gold-400 uppercase">Hand-Piped Plaque Message</p>
-                  <p className="font-display italic text-xs sm:text-sm text-ink-100 mt-0.5">"{activeOrder.plaqueMessage}"</p>
+                  <p className="font-display italic text-xs sm:text-sm text-ink-100 mt-0.5 break-words">"{activeOrder.plaqueMessage}"</p>
                 </div>
               )}
             </div>
 
             <div className="mt-5 pt-3.5 border-t border-ink-800 space-y-1.5 font-mono text-xs">
-              <div className="flex justify-between text-ink-400">
+              <div className="flex justify-between gap-2 text-ink-400">
                 <span>Subtotal</span>
-                <span className="tabnum">{fmt(activeOrder.subtotal)}</span>
+                <span className="tabnum shrink-0">{fmt(activeOrder.subtotal)}</span>
               </div>
-              <div className="flex justify-between text-ink-400">
-                <span>Chilled Express Delivery</span>
-                <span className="tabnum">{activeOrder.shipping === 0 ? "FREE" : fmt(activeOrder.shipping)}</span>
+              <div className="flex justify-between gap-2 text-ink-400">
+                <span className="truncate">Chilled Express Delivery</span>
+                <span className="tabnum text-volt-400 shrink-0">{activeOrder.shipping === 0 ? "FREE" : fmt(activeOrder.shipping)}</span>
               </div>
-              <div className="flex justify-between text-sm sm:text-base font-bold text-ink-50 pt-2 border-t border-ink-800">
+              <div className="flex justify-between gap-2 text-sm sm:text-base font-bold text-ink-50 pt-2 border-t border-ink-800">
                 <span>Total Paid</span>
-                <span className="tabnum text-volt-400">{fmt(activeOrder.total)}</span>
+                <span className="tabnum text-volt-400 shrink-0">{fmt(activeOrder.total)}</span>
               </div>
             </div>
           </div>

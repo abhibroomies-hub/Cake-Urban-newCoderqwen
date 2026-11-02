@@ -23,7 +23,7 @@ export function BlogList() {
         </div>
       </div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {posts.map((p, i) => (
           <Reveal key={p.slug} delay={i * 60}>
             <Link
@@ -128,7 +128,7 @@ export function BlogPost() {
 
       <div className="mt-10 border-t border-ink-800 pt-6">
         <p className="font-mono text-[10px] tracking-[0.2em] text-ink-400 uppercase mb-4">More Guides</p>
-        <div className="grid sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {others.map((p) => (
             <Link
               key={p.slug}

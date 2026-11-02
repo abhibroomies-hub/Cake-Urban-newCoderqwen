@@ -120,22 +120,22 @@ export default function Checkout() {
   /* ---------- success ---------- */
   if (done) {
     return (
-      <div className="max-w-5xl mx-auto px-6 py-14">
+      <div className="max-w-5xl mx-auto px-3.5 sm:px-6 py-8 sm:py-14">
         <div className="max-w-2xl mx-auto text-center">
           <div className="anim-check inline-grid place-items-center w-20 h-20 border-2 border-volt-400 text-volt-400 clip-tile bg-volt-400/10">
             <Ic.check className="w-10 h-10" strokeWidth={2.4} />
           </div>
           <p className="font-mono text-[11px] tracking-[0.3em] text-volt-400 uppercase mt-6">{t("orderPlaced")}</p>
-          <h1 className="font-display text-4xl md:text-5xl font-black uppercase mt-2">Order <span className="text-blaze-500">{done.id}</span></h1>
-          <p className="text-ink-300 mt-3 max-w-md mx-auto">Confirmation sent to <span className="text-ink-100">{done.email}</span>. Track your live baking and rider dispatch below.</p>
-          <div className="mt-8 border border-ink-700/60 bg-ink-850 clip-tile p-6 text-left">
-            <div className="flex justify-between font-mono text-sm"><span className="text-ink-400">Items</span><span>{done.items.reduce((s, i) => s + i.qty, 0)}</span></div>
-            <div className="flex justify-between font-mono text-sm mt-2"><span className="text-ink-400">Delivery Slot</span><span className="text-volt-400">{done.deliverySlot || done.method}</span></div>
+          <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-black uppercase mt-2">Order <span className="text-blaze-500">{done.id}</span></h1>
+          <p className="text-ink-300 text-xs sm:text-base mt-3 max-w-md mx-auto">Confirmation sent to <span className="text-ink-100 break-all">{done.email}</span>. Track your live baking and rider dispatch below.</p>
+          <div className="mt-6 sm:mt-8 border border-ink-700/60 bg-ink-850 clip-tile p-4 sm:p-6 text-left">
+            <div className="flex justify-between gap-2 font-mono text-xs sm:text-sm"><span className="text-ink-400 shrink-0">Items</span><span>{done.items.reduce((s, i) => s + i.qty, 0)}</span></div>
+            <div className="flex justify-between gap-2 font-mono text-xs sm:text-sm mt-2"><span className="text-ink-400 shrink-0">Delivery Slot</span><span className="text-volt-400 text-right break-words min-w-0">{done.deliverySlot || done.method}</span></div>
             {done.plaqueMessage && (
-              <div className="flex justify-between font-mono text-sm mt-2"><span className="text-ink-400">Cake Plaque</span><span className="text-blaze-400">"{done.plaqueMessage}"</span></div>
+              <div className="flex justify-between gap-2 font-mono text-xs sm:text-sm mt-2"><span className="text-ink-400 shrink-0">Cake Plaque</span><span className="text-blaze-400 text-right break-words min-w-0">"{done.plaqueMessage}"</span></div>
             )}
-            <div className="flex justify-between font-mono text-sm mt-2"><span className="text-ink-400">Payment</span><span>{done.payment}</span></div>
-            <div className="flex justify-between font-mono text-lg font-bold mt-4 pt-4 border-t border-ink-700"><span>{t("total")}</span><span className="tabnum">{fmt(done.total)}</span></div>
+            <div className="flex justify-between gap-2 font-mono text-xs sm:text-sm mt-2"><span className="text-ink-400 shrink-0">Payment</span><span className="text-right break-words min-w-0">{done.payment}</span></div>
+            <div className="flex justify-between gap-2 font-mono text-base sm:text-lg font-bold mt-4 pt-4 border-t border-ink-700"><span>{t("total")}</span><span className="tabnum shrink-0">{fmt(done.total)}</span></div>
           </div>
           <div className="flex flex-wrap justify-center gap-3 mt-7">
             <Link to={`/track?id=${done.id}`} className="clip-btn bg-blaze-500 hover:bg-blaze-400 text-ink-50 font-mono text-xs tracking-[0.2em] uppercase px-7 py-3.5 transition-colors font-bold">
@@ -188,8 +188,8 @@ export default function Checkout() {
         ))}
       </div>
 
-      <div className="grid lg:grid-cols-[1.5fr_1fr] gap-6 sm:gap-10 items-start">
-        <div>
+      <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-6 sm:gap-10 items-start">
+        <div className="min-w-0">
           <motion.div key={step} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.35 }}>
             {step === 0 && (
               <div className="space-y-4">
@@ -213,7 +213,7 @@ export default function Checkout() {
                     Chat Now →
                   </a>
                 </div>
-                <div className="grid sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block font-mono text-[10px] uppercase tracking-wider text-ink-400 mb-1">Email Address *</label>
                     <input className={inp} type="email" placeholder="you@example.com" value={info.email} onChange={(e) => setInfo({ ...info, email: e.target.value })} />
@@ -328,7 +328,7 @@ export default function Checkout() {
         </div>
 
         {/* summary */}
-        <aside className="border border-ink-700/60 bg-ink-850 clip-tile p-6 lg:sticky lg:top-28">
+        <aside className="border border-ink-700/60 bg-ink-850 clip-tile p-4 sm:p-6 lg:sticky lg:top-28 min-w-0">
           <h3 className="font-display font-bold uppercase tracking-wide mb-5">Order summary</h3>
           <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
             {cart.map((it) => {

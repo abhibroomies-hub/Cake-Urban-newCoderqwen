@@ -62,7 +62,7 @@ export function DeliverySlotPicker({
       </div>
 
       {/* 3 Compact Slot Buttons */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
         {DELIVERY_SLOTS.map((s) => {
           const active = value.slotId === s.id;
           return (
@@ -78,17 +78,17 @@ export function DeliverySlotPicker({
                   surcharge: s.surcharge,
                 })
               }
-              className={`text-left p-2.5 rounded-lg border transition-all flex flex-col justify-between ${
+              className={`text-left p-2 sm:p-2.5 rounded-lg border transition-all flex flex-col justify-between min-w-0 overflow-hidden ${
                 active
                   ? "border-blaze-500 bg-blaze-500/15 text-ink-50"
                   : "border-ink-700/80 bg-ink-950/70 text-ink-300 hover:border-ink-500"
               }`}
             >
-              <div>
-                <span className="font-mono text-[11px] font-bold block truncate">{s.label}</span>
-                <p className="text-[10px] text-ink-400 mt-0.5 truncate">{s.window}</p>
+              <div className="min-w-0">
+                <span className="font-mono text-[10px] sm:text-[11px] font-bold block truncate">{s.label}</span>
+                <p className="text-[9px] sm:text-[10px] text-ink-400 mt-0.5 truncate">{s.window}</p>
               </div>
-              <p className="font-mono text-[9px] font-bold text-volt-400 mt-1.5 uppercase">
+              <p className="font-mono text-[9px] font-bold text-volt-400 mt-1.5 uppercase truncate">
                 {s.surcharge === 0 ? "Free" : `+${fmt(s.surcharge)}`}
               </p>
             </button>

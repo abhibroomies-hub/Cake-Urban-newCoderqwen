@@ -5,8 +5,8 @@ export default function About() {
   return (
     <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-10 py-6 sm:py-14 space-y-8 sm:space-y-14">
       {/* Compact Hero */}
-      <div className="grid lg:grid-cols-2 gap-6 sm:gap-10 items-center">
-        <div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-10 items-center">
+        <div className="min-w-0">
           <p className="font-mono text-[10px] tracking-[0.25em] text-blaze-500 uppercase font-bold">
             CakeUrban Bakehouse · Est. 2021 · Delhi NCR
           </p>

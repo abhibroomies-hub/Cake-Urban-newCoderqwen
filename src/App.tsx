@@ -59,11 +59,11 @@ function Shell() {
   const [compareOpen, setCompareOpen] = useState(false);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col w-full max-w-full overflow-x-clip">
       <SEOManager />
       <Header onCart={() => setCartOpen(true)} onCompare={() => setCompareOpen(true)} />
-      <main className="flex-1 pb-20 md:pb-0" key={location.pathname}>
-        <div className="page-enter">
+      <main className="flex-1 pb-20 md:pb-0 w-full max-w-full min-w-0 overflow-x-clip" key={location.pathname}>
+        <div className="page-enter w-full max-w-full min-w-0">
           <Routes location={location}>
             <Route path="/" element={<Home />} />
             <Route path="/shop" element={<Shop />} />

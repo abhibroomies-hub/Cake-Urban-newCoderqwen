@@ -57,9 +57,9 @@ export default function ProductPage({ onAddToCartFlow }: { onAddToCartFlow: () =
         <span className="text-ink-200 truncate">{p.name}</span>
       </nav>
 
-      <div className="grid lg:grid-cols-2 gap-6 lg:gap-12 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12 items-start">
         {/* Left: Product Photo Gallery */}
-        <div>
+        <div className="min-w-0">
           <Tilt max={7} className="relative">
             <div className="relative bg-ink-850 clip-tile border border-ink-700/60 overflow-hidden">
               <div className="absolute inset-0 grid-lines opacity-50" />
@@ -80,7 +80,7 @@ export default function ProductPage({ onAddToCartFlow }: { onAddToCartFlow: () =
         </div>
 
         {/* Right: Clean Buy Box */}
-        <div>
+        <div className="min-w-0">
           <div className="flex items-center justify-between gap-2">
             <span className="font-mono text-[10px] tracking-[0.2em] text-volt-400 uppercase font-bold">🌱 100% Pure Eggless</span>
             <div className="flex items-center gap-1.5 text-ink-300 text-xs">
@@ -103,7 +103,7 @@ export default function ProductPage({ onAddToCartFlow }: { onAddToCartFlow: () =
           </div>
 
           {/* Variant & Size Selectors */}
-          <div className="grid sm:grid-cols-2 gap-4 mt-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5">
             <div>
               <p className="font-mono text-[10px] tracking-[0.18em] text-ink-400 uppercase mb-1.5">
                 {t("colorway")}: <span className="text-ink-100">{p.colors[color].name}</span>
@@ -220,7 +220,7 @@ export default function ProductPage({ onAddToCartFlow }: { onAddToCartFlow: () =
       </div>
 
       {/* Customer Photo Reviews */}
-      <div className="mt-10 -mx-4 sm:-mx-6 lg:-mx-10">
+      <div className="mt-8 sm:mt-10">
         <CustomerReviewsShowcase productId={p.id} title="Customer Reviews & Photos" />
       </div>
 

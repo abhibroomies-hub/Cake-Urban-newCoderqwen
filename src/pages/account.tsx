@@ -218,18 +218,18 @@ export default function Account() {
   return (
     <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-10 py-6 sm:py-12">
       <div className="flex flex-wrap items-center justify-between gap-4 sm:gap-6 mb-6 sm:mb-10 pb-5 sm:pb-8 border-b border-ink-800">
-        <div className="flex items-center gap-4">
-          <div className="relative w-16 h-16 rounded-full overflow-hidden bg-ink-800 border-2 border-blaze-500 shrink-0 grid place-items-center">
+        <div className="flex items-center gap-3.5 sm:gap-4 min-w-0">
+          <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden bg-ink-800 border-2 border-blaze-500 shrink-0 grid place-items-center">
             {user.photoURL ? (
               <img src={user.photoURL} alt={user.name} className="w-full h-full object-cover" />
             ) : (
-              <Ic.user className="w-8 h-8 text-ink-300" />
+              <Ic.user className="w-7 h-7 sm:w-8 sm:h-8 text-ink-300" />
             )}
           </div>
-          <div>
-            <p className="font-mono text-[11px] tracking-[0.3em] text-blaze-500">MEMBER DASHBOARD</p>
-            <h1 className="font-display text-3xl md:text-4xl font-black uppercase mt-1">{user.name}</h1>
-            <p className="font-mono text-xs text-ink-400 mt-1">
+          <div className="min-w-0">
+            <p className="font-mono text-[10px] sm:text-[11px] tracking-[0.22em] text-blaze-500">MEMBER DASHBOARD</p>
+            <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-black uppercase mt-0.5 truncate">{user.name}</h1>
+            <p className="font-mono text-[11px] sm:text-xs text-ink-400 mt-1 break-all sm:break-normal">
               {user.email} · {user.phone ? <span className="text-emerald-400 font-semibold">{user.phone}</span> : <span className="text-danger-400">Phone Missing</span>}
             </p>
           </div>
@@ -251,8 +251,8 @@ export default function Account() {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-[220px_1fr] gap-8 items-start">
-        <aside className="flex lg:flex-col gap-1.5 overflow-x-auto no-scrollbar pb-2">
+      <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-6 sm:gap-8 items-start">
+        <aside className="flex lg:flex-col gap-1.5 overflow-x-auto no-scrollbar pb-2 min-w-0">
           {tabs.map(([k, label, Icon]) => (
             <button key={k} onClick={() => setParams({ tab: k })} className={`flex items-center gap-2.5 px-4 py-2.5 rounded lg:rounded-none font-mono text-xs tracking-[0.14em] uppercase whitespace-nowrap shrink-0 transition-colors border-b-2 lg:border-b-0 lg:border-l-2 ${tab === k ? "border-blaze-500 bg-ink-850 text-ink-50 font-bold" : "border-transparent text-ink-400 hover:text-ink-100"}`}>
               <Icon className="w-4 h-4 shrink-0" /> {label}
@@ -366,7 +366,7 @@ export default function Account() {
 
           {tab === "overview" && (
             <div className="space-y-6 anim-fade-up">
-              <div className="grid sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                 {[
                   [String(shown.length), "Orders", Ic.box], [fmt(spend), "Lifetime spend", Ic.chart], [String(wishlist.length), "Saved items", Ic.heart],
                 ].map(([n, l, Icon]: unknown[]) => {
@@ -484,7 +484,7 @@ export default function Account() {
                 </button>
               </div>
 
-              <div className="grid sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {addresses.map((a) => (
                   <div key={a.id} className="border border-ink-700/60 bg-ink-850 clip-tile p-6 relative group flex flex-col justify-between">
                     <div>
@@ -538,13 +538,13 @@ export default function Account() {
                   <p className="text-xs text-ink-400 mb-6">Enter exact street and contact details for live GPS rider delivery.</p>
 
                   <div className="space-y-3.5">
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-1.5">
                       {["Home", "Office", "Celebration Venue", "Other"].map((lbl) => (
                         <button
                           key={lbl}
                           type="button"
                           onClick={() => setAddr({ ...addr, label: lbl })}
-                          className={`flex-1 py-1.5 font-mono text-[10px] uppercase tracking-wider clip-tag border transition-colors ${addr.label === lbl ? "border-blaze-500 bg-blaze-500 text-ink-50 font-bold" : "border-ink-700 bg-ink-900 text-ink-400 hover:text-ink-200"}`}
+                          className={`px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider clip-tag border transition-colors ${addr.label === lbl ? "border-blaze-500 bg-blaze-500 text-ink-50 font-bold" : "border-ink-700 bg-ink-900 text-ink-400 hover:text-ink-200"}`}
                         >
                           {lbl}
                         </button>
@@ -682,14 +682,14 @@ export default function Account() {
                 <p className="font-mono text-[10px] text-ink-500 mt-2 tracking-wide uppercase">Role: {user.role} · Email verified ✓ · Realtime DB Synced</p>
               </div>
 
-              <div className="border border-ink-700/60 bg-ink-850 clip-tile p-6">
+              <div className="border border-ink-700/60 bg-ink-850 clip-tile p-5 sm:p-6">
                 <h3 className="font-display font-bold uppercase mb-4">Preferences</h3>
-                <div className="flex gap-3">
+                <div className="flex flex-wrap gap-2.5">
                   <button onClick={store.toggleTheme} className="clip-tag border border-ink-600 hover:border-blaze-500 px-4 py-2.5 font-mono text-[10px] tracking-[0.15em] uppercase flex items-center gap-2 transition-colors">{store.theme === "dark" ? <Ic.sun className="w-4 h-4" /> : <Ic.moon className="w-4 h-4" />} {store.theme === "dark" ? "Light mode" : "Dark mode"}</button>
-                  <select value={store.lang} onChange={(e) => store.set({ lang: e.target.value as "en" | "hi" | "es" })} className="bg-ink-950 border border-ink-600 outline-none px-3 font-mono text-xs uppercase cursor-pointer">
+                  <select value={store.lang} onChange={(e) => store.set({ lang: e.target.value as "en" | "hi" | "es" })} className="bg-ink-950 border border-ink-600 outline-none px-3 py-2 font-mono text-xs uppercase cursor-pointer">
                     <option value="en">English</option><option value="hi">हिन्दी</option><option value="es">Español</option>
                   </select>
-                  <select value={store.currency} onChange={(e) => store.set({ currency: e.target.value })} className="bg-ink-950 border border-ink-600 outline-none px-3 font-mono text-xs cursor-pointer">
+                  <select value={store.currency} onChange={(e) => store.set({ currency: e.target.value })} className="bg-ink-950 border border-ink-600 outline-none px-3 py-2 font-mono text-xs cursor-pointer">
                     <option value="USD">USD $</option><option value="EUR">EUR €</option><option value="GBP">GBP £</option><option value="INR">INR ₹</option>
                   </select>
                 </div>

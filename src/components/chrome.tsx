@@ -423,8 +423,9 @@ export function Header({ onCart, onCompare }: { onCart: () => void; onCompare: (
                 <Ic.chev className={`w-3.5 h-3.5 transition-transform ${cakesMega ? "rotate-180" : ""}`} />
               </Link>
             </div>
-            <Link to="/builder" className="link-sweep text-ink-200 hover:text-ink-50 transition-colors whitespace-nowrap shrink-0">
-              3D Customizer
+            <Link to="/builder" className="link-sweep text-ink-200 hover:text-ink-50 transition-colors whitespace-nowrap shrink-0 flex items-center gap-1.5">
+              <span>Custom Cakes</span>
+              <span className="px-1.5 py-0.5 bg-[#E60023]/20 text-[#E60023] border border-[#E60023]/40 rounded text-[9px] font-bold">PIN</span>
             </Link>
             <Link to="/track" className="link-sweep text-ink-200 hover:text-ink-50 transition-colors whitespace-nowrap shrink-0">
               Track Order
@@ -590,12 +591,12 @@ export function Header({ onCart, onCompare }: { onCart: () => void; onCompare: (
                 <Link to="/builder" className="relative clip-tile overflow-hidden group border border-ink-700/60 bg-ink-850 p-6 flex flex-col justify-between">
                   <div className="absolute inset-0 grid-lines opacity-50" />
                   <div className="relative z-10">
-                    <span className="px-2 py-1 bg-blaze-500/20 text-blaze-400 font-mono text-[9px] rounded font-bold">CUSTOM 3D STUDIO</span>
-                    <p className="font-display font-bold text-lg mt-3 text-ink-50 group-hover:text-blaze-400 transition-colors">Design Your Own Dream Cake</p>
-                    <p className="font-mono text-xs text-ink-400 mt-1">Choose layers, frosting, toppers & live preview.</p>
+                    <span className="px-2 py-1 bg-[#E60023]/20 text-[#E60023] font-mono text-[9px] rounded font-bold">PINTEREST CAKE FINDER</span>
+                    <p className="font-display font-bold text-lg mt-3 text-ink-50 group-hover:text-blaze-400 transition-colors">Search Any Custom Cake</p>
+                    <p className="font-mono text-xs text-ink-400 mt-1">Search 1000+ cake pins & tap "Chat About This Cake" on WhatsApp.</p>
                   </div>
-                  <div className="relative z-10 pt-4 flex items-center gap-1.5 font-mono text-xs text-blaze-400 uppercase font-bold">
-                    <span>Launch 3D Studio</span> <span>→</span>
+                  <div className="relative z-10 pt-4 flex items-center gap-1.5 font-mono text-xs text-emerald-400 uppercase font-bold">
+                    <span>Search Custom Cakes</span> <span>→</span>
                   </div>
                 </Link>
               </div>
@@ -637,7 +638,7 @@ export function Header({ onCart, onCompare }: { onCart: () => void; onCompare: (
                     ["/", "Home"],
                     ["/shop", "Full Bakery Catalog"],
                     ["/shop?cat=Gift%20Hampers", "Luxury Gift Hampers"],
-                    ["/builder", "Custom Cake Builder"],
+                    ["/builder", "📌 Custom Cake Finder (Pinterest)"],
                     ["/track", "Live Order Tracker"],
                     ["/delivery-locations", "Delhi NCR Hubs"],
                     ["/wishlist", `Saved Wishlist (${wishlist.length})`],
@@ -1209,7 +1210,7 @@ export function Footer() {
           </div>
         </div>
         {[
-          { h: "Bakery Menu", links: [["All Cakes", "/shop"], ["Gift Hampers", "/shop?cat=Gift%20Hampers"], ["Cookies", "/shop?cat=Cookies"], ["3D Custom Cake", "/builder"], ["Track Order", "/track"]] },
+          { h: "Bakery Menu", links: [["All Cakes", "/shop"], ["Gift Hampers", "/shop?cat=Gift%20Hampers"], ["Cookies", "/shop?cat=Cookies"], ["Custom Cake Finder", "/builder"], ["Track Order", "/track"]] },
           { h: "NCR City Hubs", links: [["Faridabad", "/cakes-in/faridabad"], ["Gurgaon", "/cakes-in/gurgaon"], ["Noida", "/cakes-in/noida"], ["Delhi", "/cakes-in/delhi"], ["Ghaziabad", "/cakes-in/ghaziabad"]] },
           { h: "Help & Legal", links: [["All Locations", "/delivery-locations"], ["Journal / Blog", "/blog"], ["Privacy Policy", "privacy"], ["Terms of Service", "terms"]] },
         ].map((col) => (
@@ -1329,8 +1330,8 @@ export function MobileBottomNav({ onCart }: { onCart: () => void }) {
         <span className="font-mono text-[9px] uppercase tracking-wider">Shop</span>
       </Link>
       <Link to="/builder" className={`flex flex-col items-center gap-0.5 py-1 px-2 ${loc.pathname.startsWith("/builder") ? "text-blaze-500" : "text-ink-400 hover:text-ink-200"}`}>
-        <Ic.rotate className="w-4 h-4" />
-        <span className="font-mono text-[9px] uppercase tracking-wider">3D Cake</span>
+        <Ic.sparkle className="w-4 h-4" />
+        <span className="font-mono text-[9px] uppercase tracking-wider">Custom</span>
       </Link>
       <Link to="/track" className={`flex flex-col items-center gap-0.5 py-1 px-2 ${loc.pathname.startsWith("/track") ? "text-blaze-500" : "text-ink-400 hover:text-ink-200"}`}>
         <Ic.truck className="w-4 h-4" />

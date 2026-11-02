@@ -98,8 +98,8 @@ export default function Home() {
         <div className="absolute inset-0 bg-[radial-gradient(50%_40%_at_20%_80%,rgba(214,151,64,0.13),transparent_60%)]" />
         <Particles />
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-7 sm:py-10 lg:py-12 grid lg:grid-cols-[1.08fr_0.92fr] gap-6 lg:gap-8 items-center w-full">
-          <div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-7 sm:py-10 lg:py-12 grid grid-cols-1 lg:grid-cols-[1.08fr_0.92fr] gap-6 lg:gap-8 items-center w-full">
+          <div className="min-w-0">
             <div className="inline-flex items-center gap-1.5 font-mono text-[10px] sm:text-[11px] tracking-[0.15em] text-blaze-400 border border-blaze-500/40 bg-blaze-500/10 px-2.5 py-1 rounded font-bold">
               <span>🌱 100% EGGLESS</span>
               <span className="text-ink-600">·</span>
@@ -121,7 +121,7 @@ export default function Home() {
                 {t("shopNow")} <Ic.arrow className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
               </Link>
               <Link to="/builder" className="clip-btn border border-ink-600 hover:border-blaze-500 hover:text-ink-50 text-ink-200 font-mono text-xs tracking-[0.15em] uppercase px-4 sm:px-5 py-3 transition-colors whitespace-nowrap shrink-0">
-                🎂 Customizer
+                📌 Custom Cakes
               </Link>
               <Link to="/track" className="clip-btn border border-ink-700 hover:border-volt-400 text-volt-400 font-mono text-xs tracking-[0.14em] uppercase px-4 sm:px-5 py-3 transition-colors whitespace-nowrap shrink-0">
                 📍 Track
@@ -204,8 +204,8 @@ export default function Home() {
             </h2>
           </div>
 
-          <div className="flex items-center justify-between gap-2 w-full md:w-auto">
-            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+          <div className="flex items-center justify-between gap-2 w-full md:w-auto min-w-0">
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 min-w-0 flex-1">
               {quickFilterPills.map((pill) => (
                 <button
                   key={pill.val}

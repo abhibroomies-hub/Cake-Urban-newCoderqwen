@@ -1,528 +1,778 @@
-import { useState, lazy, Suspense } from "react";
-import { useNavigate } from "react-router-dom";
-import { useStore } from "../lib/store";
+import React, { useState, useMemo, useEffect } from "react";
 import { Ic } from "../components/ui";
+import { useStore } from "../lib/store";
 
-const ThreeCake = lazy(() => import("../components/ThreeCake").then((m) => ({ default: m.ThreeCake })));
+const WHATSAPP_NUMBER = "917318531953";
 
-const SIZES = [
-  { id: "6", name: "0.5 Kg (6\")", sub: "4–6 Servings", price: 18, badge: "COUPLE" },
-  { id: "8", name: "1.0 Kg (8\")", sub: "8–10 Servings", price: 32, badge: "MOST POPULAR" },
-  { id: "10", name: "1.5 Kg (10\")", sub: "12–15 Servings", price: 46, badge: "PARTY" },
-  { id: "12", name: "2.0 Kg (12\")", sub: "18–22 Servings · 2 Tier", price: 62, badge: "GRAND" },
+export type CakePin = {
+  id: string;
+  title: string;
+  category: string;
+  tags: string[];
+  img: string;
+  startingWeight: string;
+  priceInr: number;
+  servings: string;
+  badge?: string;
+  aspect?: "tall" | "square" | "classic";
+};
+
+const CATEGORIES = [
+  { id: "all", label: "🔥 All Trending" },
+  { id: "kids", label: "🎈 Kids & Theme" },
+  { id: "anniversary", label: "❤️ Anniversary & Heart" },
+  { id: "wedding", label: "💍 2-3 Tier Wedding" },
+  { id: "vintage", label: "🎀 Korean & Vintage" },
+  { id: "luxury", label: "✨ Gold & Chocolate" },
+  { id: "photo", label: "📸 Photo & Pinata" },
+  { id: "bride", label: "👑 Bride / Groom To Be" },
 ];
 
-const BASES = [
-  { id: "chocolate", name: "72% Belgian Dark", desc: "Rich Valrhona fudge sponge", price: 4, hex: "#3d2217" },
-  { id: "vanilla", name: "Madagascar Vanilla", desc: "Light organic vanilla génoise", price: 0, hex: "#f5e3c3" },
-  { id: "redvelvet", name: "Crimson Red Velvet", desc: "Classic cocoa buttermilk crumb", price: 3, hex: "#8a1c2d" },
-  { id: "matcha", name: "Pistachio Matcha", desc: "Roasted pistachio & green tea sponge", price: 4, hex: "#6e8b4e" },
+const POPULAR_SEARCHES = [
+  "Butterfly Cake",
+  "Vintage Heart",
+  "2 Tier Wedding",
+  "Spiderman",
+  "Unicorn",
+  "Jungle Safari",
+  "Belgian Truffle",
+  "Rasmalai Cake",
+  "Bride To Be",
+  "Cricket Theme",
+  "Cocomelon",
+  "50th Birthday Gold",
 ];
 
-const CREAMS = [
-  { id: "ganache", name: "Belgian Dark Truffle", desc: "Silky 54% couverture ganache", price: 6, hex: "#24140d" },
-  { id: "whipped", name: "Vanilla Chantilly", desc: "Whipped mascarpone cloud", price: 0, hex: "#fbf8f3" },
-  { id: "mousse", name: "Hazelnut Choc Mousse", desc: "Whipped praline dark mousse", price: 4, hex: "#4a2a1f" },
-  { id: "butter", name: "Golden Buttercream", desc: "French vanilla bean buttercream", price: 5, hex: "#fff3da" },
-];
-
-const FILLINGS = [
-  { id: "raspberry-coulis", name: "Raspberry Coulis", price: 4, tag: "TANGY" },
-  { id: "hazelnut-praline", name: "Nutella Hazelnut Crunch", price: 5, tag: "BESTSELLER" },
-  { id: "salted-caramel", name: "Sea-Salt Caramel", price: 4, tag: "RICH" },
-  { id: "dark-cherries", name: "Compote Cherries", price: 4, tag: "CLASSIC" },
-  { id: "choco-chips", name: "Belgian Choc Chunks", price: 3, tag: "CRUNCH" },
-  { id: "roasted-almonds", name: "Roasted Almonds", price: 4, tag: "NUTTY" },
-];
-
-const STYLES = [
-  { id: "luxury", name: "24K Gold Leaf & Drip", desc: "Dark chocolate drip + edible gold", price: 6 },
-  { id: "drip", name: "Signature Ganache Drip", desc: "Cascading couverture drip & berries", price: 5 },
-  { id: "berries", name: "Fresh Berry Crown", desc: "Hand-piped rosettes & macerated berries", price: 4 },
-  { id: "minimal", name: "Classic Patisserie", desc: "Clean artisanal frost & pearl finish", price: 0 },
-];
-
-const STEPS = [
-  { num: 1, label: "Weight" },
-  { num: 2, label: "Sponge" },
-  { num: 3, label: "Frosting" },
-  { num: 4, label: "Fillings" },
-  { num: 5, label: "Crown" },
-  { num: 6, label: "Plaque" },
+const CURATED_PINS: CakePin[] = [
+  {
+    id: "pin-butterfly-dream",
+    title: "3D Pastel Butterfly & Pearl Tier Cake",
+    category: "kids",
+    tags: ["butterfly", "pastel", "pink", "girls birthday", "pearl", "princess", "1st birthday"],
+    img: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=900&q=80",
+    startingWeight: "1.0 Kg",
+    priceInr: 1299,
+    servings: "10–12 Guests",
+    badge: "MOST SAVED PIN",
+    aspect: "tall",
+  },
+  {
+    id: "pin-vintage-heart-lambeth",
+    title: "Vintage Lambeth Red & Pink Heart Cake",
+    category: "vintage",
+    tags: ["vintage", "heart", "lambeth", "korean", "ribbon", "bow", "anniversary", "girlfriend", "wife"],
+    img: "https://images.unsplash.com/photo-1535141192574-5d4897c12636?auto=format&fit=crop&w=900&q=80",
+    startingWeight: "0.5 Kg",
+    priceInr: 899,
+    servings: "5–6 Guests",
+    badge: "VIRAL TREND",
+    aspect: "square",
+  },
+  {
+    id: "pin-royal-2tier-wedding",
+    title: "Royal 2-Tier White & 24K Gold Wedding Cake",
+    category: "wedding",
+    tags: ["wedding", "2 tier", "engagement", "ring ceremony", "gold", "floral", "white", "marriage", "shagun"],
+    img: "https://images.unsplash.com/photo-1535254973040-607b474cb50d?auto=format&fit=crop&w=900&q=80",
+    startingWeight: "2.5 Kg",
+    priceInr: 3299,
+    servings: "25–30 Guests",
+    badge: "WEDDING SPECIAL",
+    aspect: "tall",
+  },
+  {
+    id: "pin-belgian-ferrero-overload",
+    title: "Belgian Dark Chocolate & Ferrero Rocher Crown",
+    category: "luxury",
+    tags: ["chocolate", "ferrero rocher", "truffle", "drip", "gold", "husband", "boyfriend", "50th birthday"],
+    img: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?auto=format&fit=crop&w=900&q=80",
+    startingWeight: "1.0 Kg",
+    priceInr: 1399,
+    servings: "10–12 Guests",
+    badge: "BESTSELLER",
+    aspect: "classic",
+  },
+  {
+    id: "pin-unicorn-rainbow-magic",
+    title: "Magical Unicorn Pastel Horn & Macaron Cake",
+    category: "kids",
+    tags: ["unicorn", "rainbow", "kids", "daughter", "macaron", "5th birthday", "cartoon", "pastel"],
+    img: "https://images.unsplash.com/photo-1558301211-0d8c8ddee6ec?auto=format&fit=crop&w=900&q=80",
+    startingWeight: "1.5 Kg",
+    priceInr: 1699,
+    servings: "15–18 Guests",
+    badge: "KIDS FAVORITE",
+    aspect: "tall",
+  },
+  {
+    id: "pin-red-velvet-anniversary",
+    title: "Crimson Red Velvet Rose & Berry Romance Cake",
+    category: "anniversary",
+    tags: ["red velvet", "anniversary", "roses", "romantic", "couple", "25th anniversary", "1st anniversary", "heart"],
+    img: "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&w=900&q=80",
+    startingWeight: "1.0 Kg",
+    priceInr: 1199,
+    servings: "10–12 Guests",
+    badge: "ANNIVERSARY #1",
+    aspect: "square",
+  },
+  {
+    id: "pin-korean-bento-bow",
+    title: "Coquette Pink Ribbon Bow Korean Aesthetic Cake",
+    category: "vintage",
+    tags: ["korean", "bento", "bow", "ribbon", "pink", "aesthetic", "minimalist", "bestie", "pinterest"],
+    img: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&w=900&q=80",
+    startingWeight: "0.5 Kg",
+    priceInr: 849,
+    servings: "4–6 Guests",
+    badge: "PINTEREST HIT",
+    aspect: "classic",
+  },
+  {
+    id: "pin-jungle-safari-first",
+    title: "Jungle Safari Lion & Giraffe 1st Birthday Tier Cake",
+    category: "kids",
+    tags: ["jungle", "safari", "animals", "lion", "1st birthday", "baby boy", "fondant", "theme", "cocomelon"],
+    img: "https://images.unsplash.com/photo-1562440499-64c9a111f713?auto=format&fit=crop&w=900&q=80",
+    startingWeight: "2.0 Kg",
+    priceInr: 2499,
+    servings: "20–24 Guests",
+    badge: "1ST BIRTHDAY",
+    aspect: "tall",
+  },
+  {
+    id: "pin-bride-to-be-crown",
+    title: "Rose Gold Tiara 'Bride To Be' Bachelorette Cake",
+    category: "bride",
+    tags: ["bride to be", "bachelorette", "tiara", "crown", "rose gold", "bridal shower", "glitter"],
+    img: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&w=900&q=80",
+    startingWeight: "1.0 Kg",
+    priceInr: 1349,
+    servings: "10–12 Guests",
+    badge: "BRIDAL SHOWER",
+    aspect: "tall",
+  },
+  {
+    id: "pin-rasmalai-pistachio-royal",
+    title: "Royal Indian Rasmalai, Rose Petal & Sicilian Pistachio Cake",
+    category: "luxury",
+    tags: ["rasmalai", "pistachio", "gulab jamun", "indian fusion", "parents", "mom", "dad", "50th", "diwali"],
+    img: "https://images.unsplash.com/photo-1542826438-bd32f43d626f?auto=format&fit=crop&w=900&q=80",
+    startingWeight: "1.0 Kg",
+    priceInr: 1249,
+    servings: "10–12 Guests",
+    badge: "FUSION ROYAL",
+    aspect: "square",
+  },
+  {
+    id: "pin-superhero-spiderman",
+    title: "Marvel Superhero Spiderman & Avengers City Theme Cake",
+    category: "kids",
+    tags: ["spiderman", "avengers", "superhero", "batman", "boys birthday", "cartoon", "car", "action"],
+    img: "https://images.unsplash.com/photo-1557925923-33b27f891f88?auto=format&fit=crop&w=900&q=80",
+    startingWeight: "1.5 Kg",
+    priceInr: 1799,
+    servings: "15–18 Guests",
+    badge: "BOYS TOP PICK",
+    aspect: "classic",
+  },
+  {
+    id: "pin-edible-photo-memories",
+    title: "HD Edible Photo Polaroid & Golden Drip Memory Cake",
+    category: "photo",
+    tags: ["photo cake", "picture", "polaroid", "custom photo", "memories", "anniversary", "birthday", "pull me up"],
+    img: "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?auto=format&fit=crop&w=900&q=80",
+    startingWeight: "1.0 Kg",
+    priceInr: 1149,
+    servings: "10–12 Guests",
+    badge: "CUSTOM PHOTO",
+    aspect: "square",
+  },
+  {
+    id: "pin-3tier-floral-reception",
+    title: "Grand 3-Tier Pastel Peony & Champagne Reception Cake",
+    category: "wedding",
+    tags: ["3 tier", "wedding", "reception", "engagement", "grand", "peony", "flowers", "25th anniversary"],
+    img: "https://images.unsplash.com/photo-1519654793190-2e8a4806f1f2?auto=format&fit=crop&w=900&q=80",
+    startingWeight: "4.0 Kg",
+    priceInr: 5499,
+    servings: "45–50 Guests",
+    badge: "GRAND 3-TIER",
+    aspect: "tall",
+  },
+  {
+    id: "pin-strawberry-chantilly-cloud",
+    title: "Fresh Mahabaleshwar Strawberry & Mascarpone Chantilly Cake",
+    category: "anniversary",
+    tags: ["strawberry", "berry", "fresh fruit", "chantilly", "vanilla", "summer", "anniversary", "light"],
+    img: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=900&q=80",
+    startingWeight: "1.0 Kg",
+    priceInr: 1199,
+    servings: "10–12 Guests",
+    aspect: "tall",
+  },
+  {
+    id: "pin-salted-caramel-lotus-biscoff",
+    title: "Belgian Lotus Biscoff & Sea-Salt Caramel Speculoos Cake",
+    category: "luxury",
+    tags: ["biscoff", "lotus", "caramel", "butterscotch", "coffee", "corporate", "office", "boss"],
+    img: "https://images.unsplash.com/photo-1571115177098-24ec42ed204d?auto=format&fit=crop&w=900&q=80",
+    startingWeight: "1.0 Kg",
+    priceInr: 1299,
+    servings: "10–12 Guests",
+    badge: "BISCOFF DRIP",
+    aspect: "classic",
+  },
+  {
+    id: "pin-cricket-pitch-champion",
+    title: "Cricket Stadium Trophy & Bat Fondant Theme Cake",
+    category: "kids",
+    tags: ["cricket", "sports", "football", "gym", "ipl", "boys", "dad", "brother", "husband"],
+    img: "https://images.unsplash.com/photo-1621303837174-89787a7d4729?auto=format&fit=crop&w=900&q=80",
+    startingWeight: "1.5 Kg",
+    priceInr: 1899,
+    servings: "15–18 Guests",
+    badge: "CRICKET THEME",
+    aspect: "square",
+  },
+  {
+    id: "pin-pinata-hammer-surprise",
+    title: "3D Belgian Chocolate Pinata Hammer Smash Heart Cake",
+    category: "photo",
+    tags: ["pinata", "hammer", "smash", "surprise", "heart", "chocolate shell", "money pull out"],
+    img: "https://images.unsplash.com/photo-1576618148400-f54bed99fcfd?auto=format&fit=crop&w=900&q=80",
+    startingWeight: "1.0 Kg",
+    priceInr: 1399,
+    servings: "8–10 Guests",
+    badge: "WITH HAMMER",
+    aspect: "square",
+  },
+  {
+    id: "pin-groom-black-gold-whiskey",
+    title: "Noir Black & 24K Gold Gentleman King Crown Cake",
+    category: "bride",
+    tags: ["groom", "king", "black and gold", "husband", "men birthday", "boss", "30th birthday", "luxury"],
+    img: "https://image.qwenlm.ai/generated-images/19868aa6-1a8b-4213-bf76-a00a5c538bec/_result.png",
+    startingWeight: "1.5 Kg",
+    priceInr: 1849,
+    servings: "15–18 Guests",
+    badge: "GENTLEMAN EDITION",
+    aspect: "tall",
+  },
 ];
 
 export default function CustomBuilder() {
-  const { fmt, cartAdd, toast } = useStore();
-  const navigate = useNavigate();
+  const { toast } = useStore();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeCategory, setActiveCategory] = useState("all");
+  const [selectedWeight, setSelectedWeight] = useState("1.0 Kg");
+  const [selectedFlavor, setSelectedFlavor] = useState("Belgian Chocolate Truffle");
+  const [customPasteUrl, setCustomPasteUrl] = useState("");
+  const [previewPin, setPreviewPin] = useState<CakePin | null>(null);
+  const [customNote, setCustomNote] = useState("");
 
-  const [step, setStep] = useState(1);
-  const [size, setSize] = useState(SIZES[1]);
-  const [base, setBase] = useState(BASES[0]);
-  const [cream, setCream] = useState(CREAMS[0]);
-  const [selectedFillings, setSelectedFillings] = useState<string[]>(["hazelnut-praline", "choco-chips"]);
-  const [style, setStyle] = useState(STYLES[0]);
-  const [plaqueText, setPlaqueText] = useState("Happy Birthday!");
-  const [dietary, setDietary] = useState<"eggless" | "vegan">("eggless");
-  const [candles, setCandles] = useState<"sparkler" | "numeric" | "classic">("sparkler");
-  const [showMobileSpecs, setShowMobileSpecs] = useState(false);
+  // Live Wikimedia Commons / Web Cake Image Search for any custom keyword typed by user
+  const [webPins, setWebPins] = useState<CakePin[]>([]);
+  const [isSearchingWeb, setIsSearchingWeb] = useState(false);
 
-  const toggleFilling = (id: string) => {
-    if (selectedFillings.includes(id)) {
-      if (selectedFillings.length > 1) {
-        setSelectedFillings(selectedFillings.filter((i) => i !== id));
-      } else {
-        toast("info", "Select at least 1 center filling.");
-      }
-    } else {
-      if (selectedFillings.length >= 3) {
-        toast("info", "Maximum 3 center fillings for structural balance.");
-        return;
-      }
-      setSelectedFillings([...selectedFillings, id]);
+  useEffect(() => {
+    const q = searchQuery.trim();
+    if (q.length < 2) {
+      setWebPins([]);
+      return;
     }
+
+    const timer = setTimeout(async () => {
+      setIsSearchingWeb(true);
+      try {
+        const searchTerm = q.toLowerCase().includes("cake") ? q : `${q} cake`;
+        const apiUrl = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(
+          searchTerm
+        )}&gsrnamespace=6&gsrlimit=12&prop=imageinfo&iiprop=url&iiurlwidth=700&format=json&origin=*`;
+
+        const res = await fetch(apiUrl);
+        const data = await res.json();
+        const pages = data?.query?.pages ? Object.values(data.query.pages) : [];
+
+        const fetched: CakePin[] = [];
+        for (const p of pages as any[]) {
+          const thumb = p?.imageinfo?.[0]?.thumburl || p?.imageinfo?.[0]?.url;
+          const rawTitle: string = (p?.title || "").replace(/^File:/i, "").replace(/\.[a-zA-Z0-9]+$/, "").replace(/[_-]+/g, " ");
+          if (
+            thumb &&
+            !thumb.endsWith(".svg") &&
+            !thumb.endsWith(".pdf") &&
+            !thumb.endsWith(".tif")
+          ) {
+            fetched.push({
+              id: `web-${p.pageid}`,
+              title: rawTitle.length > 48 ? rawTitle.slice(0, 48) + "..." : rawTitle || `${q} Custom Cake`,
+              category: "custom",
+              tags: [q.toLowerCase(), "custom", "pinterest"],
+              img: thumb,
+              startingWeight: selectedWeight,
+              priceInr: 1199,
+              servings: "10–12 Guests",
+              badge: "LIVE WEB DESIGN",
+              aspect: fetched.length % 2 === 0 ? "tall" : "square",
+            });
+          }
+        }
+        setWebPins(fetched);
+      } catch {
+        setWebPins([]);
+      } finally {
+        setIsSearchingWeb(false);
+      }
+    }, 350);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery, selectedWeight]);
+
+  // Filter curated pins + merge live web search pins
+  const displayedPins = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    const filteredLocal = CURATED_PINS.filter((pin) => {
+      const matchesCat = activeCategory === "all" || pin.category === activeCategory;
+      if (!q) return matchesCat;
+      const inTitle = pin.title.toLowerCase().includes(q);
+      const inTags = pin.tags.some((t) => t.toLowerCase().includes(q));
+      const inCat = pin.category.toLowerCase().includes(q);
+      return inTitle || inTags || inCat;
+    });
+
+    if (!q) return filteredLocal;
+
+    // Combine matching local curated pins with live web cake pins
+    return [...filteredLocal, ...webPins];
+  }, [searchQuery, activeCategory, webPins]);
+
+  // Build WhatsApp URL with the Cake Image URL + details so it shows directly in WhatsApp chat
+  const buildWhatsAppLink = (pin: CakePin, extraNote?: string) => {
+    const lines = [
+      `Hi CakeUrban! 🎂 Mujhe ye custom cake design pasand aaya hai:`,
+      ``,
+      `📌 *Cake Design*: ${pin.title}`,
+      `🖼️ *Cake Image Link*: ${pin.img}`,
+      `⚖️ *Preferred Weight*: ${selectedWeight} (100% Eggless)`,
+      `🍫 *Flavor*: ${selectedFlavor}`,
+      `💰 *Ref Starting Price*: ₹${pin.priceInr}`,
+    ];
+    if (extraNote && extraNote.trim()) {
+      lines.push(`✍️ *Custom Note / Message*: ${extraNote.trim()}`);
+    }
+    lines.push(``, `Please share final price & delivery availability!`);
+    return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(lines.join("\n"))}`;
   };
 
-  const fillingsTotal = selectedFillings.reduce((sum, id) => {
-    const f = FILLINGS.find((x) => x.id === id);
-    return sum + (f ? f.price : 0);
-  }, 0);
-
-  const totalPrice = size.price + base.price + cream.price + fillingsTotal + style.price + (dietary === "vegan" ? 4 : 0);
-
-  const handleAddToCart = () => {
-    cartAdd("custom-hamper", cream.name, `${size.name} (${size.sub.split("·")[0].trim()})`, 1);
-    toast("success", `Custom ${size.name} ${cream.name} Cake added to bag!`);
-    navigate("/checkout");
+  const handleCustomLinkSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customPasteUrl.trim()) {
+      toast("error", "Please paste a Pinterest / Instagram link or cake description!");
+      return;
+    }
+    const msg = [
+      `Hi CakeUrban! 🎂 Maine Pinterest/Instagram par ek custom cake dekha hai:`,
+      ``,
+      `🔗 *Reference Link / Idea*: ${customPasteUrl.trim()}`,
+      `⚖️ *Weight*: ${selectedWeight} (100% Eggless)`,
+      `🍫 *Flavor*: ${selectedFlavor}`,
+      ``,
+      `Please check this image/link and share price & availability!`,
+    ].join("\n");
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, "_blank", "noopener,noreferrer");
   };
 
   return (
     <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-10 py-5 sm:py-10">
-      {/* Compact Header */}
-      <div className="text-center max-w-2xl mx-auto mb-5 sm:mb-8">
-        <span className="font-mono text-[10px] tracking-[0.25em] text-blaze-500 uppercase font-bold">
-          ✦ INTERACTIVE 3D CAKE STUDIO · 100% EGGLESS
-        </span>
-        <h1 className="font-display text-2xl sm:text-4xl md:text-5xl font-black uppercase mt-1.5 tracking-tight">
-          Design Your <span className="text-blaze-500">Custom Cake</span>
-        </h1>
-        <p className="text-ink-300 text-xs sm:text-sm mt-1">
-          Tap options below and watch your 3D cake update live. Freshly baked & delivered in 45 mins.
-        </p>
+      {/* Hero Header + Pinterest-Style Search Bar */}
+      <div className="relative overflow-hidden border border-ink-700/70 bg-gradient-to-b from-ink-850 via-ink-900 to-ink-950 p-4 sm:p-8 clip-tile mb-5 sm:mb-8">
+        <div className="max-w-3xl mx-auto text-center space-y-2.5 sm:space-y-3">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#E60023]/15 border border-[#E60023]/40 text-[#ff4d67] font-mono text-[9px] sm:text-[10px] tracking-[0.12em] sm:tracking-[0.18em] uppercase font-bold max-w-full">
+            <span className="w-2 h-2 rounded-full bg-[#E60023] animate-ping shrink-0" />
+            <span className="truncate">Pinterest Custom Cake Discovery · 100% Eggless</span>
+          </div>
+
+          <h1 className="font-display text-2xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight leading-tight">
+            Search Any <span className="text-blaze-500">Dream Cake</span> & Chat on WhatsApp
+          </h1>
+
+          <p className="text-ink-300 text-xs sm:text-sm max-w-xl mx-auto leading-relaxed">
+            Apna pasandida cake design search karein, aur kisi bhi photo ke niche{" "}
+            <span className="text-emerald-400 font-semibold">"Chat About This Cake"</span> dabayein — cake ki photo ke sath seedha WhatsApp par baat karein!
+          </p>
+
+          {/* Main Pinterest Search Input */}
+          <div className="pt-2">
+            <div className="relative flex items-center bg-ink-950 border-2 border-ink-700 focus-within:border-blaze-500 rounded-full overflow-hidden shadow-2xl transition-colors">
+              <span className="pl-4 sm:pl-5 text-ink-400">
+                <Ic.search className="w-4 h-4 sm:w-5 sm:h-5 text-blaze-500" />
+              </span>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search Pinterest cakes: 'Butterfly', 'Spiderman', '2 Tier Wedding', 'Heart'..."
+                className="w-full bg-transparent px-3 sm:px-4 py-3 sm:py-3.5 text-xs sm:text-sm text-ink-50 placeholder-ink-400 outline-none"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="px-2.5 text-ink-400 hover:text-ink-100 font-mono text-xs"
+                  aria-label="Clear search"
+                >
+                  ✕
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  const el = document.getElementById("pins-grid");
+                  el?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="mr-1.5 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full bg-blaze-500 hover:bg-blaze-400 text-ink-50 font-mono text-[11px] sm:text-xs uppercase font-bold tracking-wider transition-colors shrink-0"
+              >
+                Search
+              </button>
+            </div>
+          </div>
+
+          {/* Popular Search Chips (Scrollable on Mobile) */}
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-1 pb-0.5 justify-start sm:justify-center">
+            <span className="font-mono text-[9px] uppercase tracking-wider text-ink-400 shrink-0">Trending:</span>
+            {POPULAR_SEARCHES.map((term) => (
+              <button
+                key={term}
+                type="button"
+                onClick={() => {
+                  setSearchQuery(term);
+                  setActiveCategory("all");
+                }}
+                className={`px-2.5 py-1 rounded-full font-mono text-[10px] border transition-colors shrink-0 ${
+                  searchQuery.toLowerCase() === term.toLowerCase()
+                    ? "bg-blaze-500 text-white border-blaze-500 font-bold"
+                    : "bg-ink-900/90 text-ink-300 border-ink-700 hover:border-blaze-400 hover:text-ink-100"
+                }`}
+              >
+                🔍 {term}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Quick Weight & Flavor Selector Strip (Included in WhatsApp Message Automatically!) */}
+        <div className="mt-5 pt-4 border-t border-ink-800/80 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 max-w-4xl mx-auto">
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+            <span className="font-mono text-[10px] uppercase text-gold-400 shrink-0">1. Weight:</span>
+            {["0.5 Kg", "1.0 Kg", "1.5 Kg", "2.0 Kg (2-Tier)", "3.0 Kg+"].map((w) => (
+              <button
+                key={w}
+                type="button"
+                onClick={() => setSelectedWeight(w)}
+                className={`px-2.5 py-1 rounded font-mono text-[10px] border transition-colors shrink-0 ${
+                  selectedWeight === w
+                    ? "bg-volt-400/20 border-volt-400 text-volt-400 font-bold"
+                    : "bg-ink-950 border-ink-700 text-ink-300"
+                }`}
+              >
+                {w}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[10px] uppercase text-gold-400 shrink-0">2. Flavor:</span>
+            <select
+              value={selectedFlavor}
+              onChange={(e) => setSelectedFlavor(e.target.value)}
+              aria-label="Select cake flavor"
+              className="bg-ink-950 border border-ink-700 focus:border-blaze-500 rounded px-2.5 py-1 text-xs font-mono text-ink-100 outline-none flex-1 sm:flex-initial"
+            >
+              <option value="Belgian Chocolate Truffle">Belgian Chocolate Truffle</option>
+              <option value="Red Velvet Cream Cheese">Red Velvet Cream Cheese</option>
+              <option value="Fresh Pineapple Cloud">Fresh Pineapple Cloud</option>
+              <option value="Butterscotch Caramel Crunch">Butterscotch Caramel Crunch</option>
+              <option value="Royal Rasmalai Pistachio">Royal Rasmalai Pistachio</option>
+              <option value="Lotus Biscoff Speculoos">Lotus Biscoff Speculoos</option>
+              <option value="Fresh Strawberry Vanilla">Fresh Strawberry Vanilla</option>
+            </select>
+          </div>
+        </div>
       </div>
 
-      {/* Stepper Progress Pills (Scrollable on Mobile) */}
-      <div className="flex items-center sm:justify-center gap-1.5 sm:gap-2 mb-5 sm:mb-8 overflow-x-auto no-scrollbar pb-1">
-        {STEPS.map((s) => (
+      {/* Category Filter Tabs (Scrollable on Mobile) */}
+      <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar pb-2 mb-5">
+        {CATEGORIES.map((cat) => (
           <button
-            key={s.num}
-            onClick={() => setStep(s.num)}
-            className={`px-3 sm:px-4 py-2 font-mono text-[10px] sm:text-xs uppercase tracking-wider clip-tag border transition-all flex items-center gap-1.5 shrink-0 ${
-              step === s.num
-                ? "bg-blaze-500 text-ink-50 border-blaze-500 font-bold shadow-lg shadow-blaze-500/20"
-                : step > s.num
-                ? "bg-volt-400/10 text-volt-400 border-volt-400/40"
-                : "bg-ink-900 text-ink-400 border-ink-800"
+            key={cat.id}
+            type="button"
+            onClick={() => {
+              setActiveCategory(cat.id);
+              if (searchQuery) setSearchQuery("");
+            }}
+            className={`px-3.5 sm:px-4 py-2 rounded-full font-mono text-[10px] sm:text-xs uppercase tracking-wider border transition-all shrink-0 ${
+              activeCategory === cat.id && !searchQuery
+                ? "bg-blaze-500 text-white border-blaze-500 font-bold shadow-lg shadow-blaze-500/25"
+                : "bg-ink-900 text-ink-300 border-ink-700/80 hover:border-ink-500"
             }`}
           >
-            <span className="w-4 h-4 rounded-full bg-ink-950/50 grid place-items-center text-[9px]">
-              {step > s.num ? "✓" : s.num}
-            </span>
-            {s.label}
+            {cat.label}
           </button>
         ))}
       </div>
 
-      <div className="grid lg:grid-cols-[1fr_400px] gap-5 sm:gap-8 items-start">
-        {/* RIGHT/TOP ON MOBILE: Live 3D Cake Preview Card (order-first on mobile so users see 3D changes live!) */}
-        <aside className="order-first lg:order-last border border-ink-700/70 bg-ink-900 p-4 sm:p-6 clip-tile lg:sticky lg:top-24 space-y-4">
-          <div className="flex items-center justify-between border-b border-ink-800 pb-3">
-            <div>
-              <span className="font-mono text-[9px] tracking-[0.2em] text-volt-400 uppercase block">
-                ● Live 3D Preview
-              </span>
-              <h3 className="font-display font-bold text-sm sm:text-base uppercase text-ink-50">
-                {size.name} {cream.name}
-              </h3>
-            </div>
-            <div className="text-right">
-              <span className="font-mono text-[9px] text-ink-400 uppercase block">Total Price</span>
-              <span className="font-display text-lg sm:text-xl font-black text-blaze-400 tabnum">
-                {fmt(totalPrice)}
-              </span>
-            </div>
-          </div>
-
-          {/* 3D Interactive Cake Canvas */}
-          <div className="relative h-52 sm:h-64 rounded bg-gradient-to-b from-ink-950 via-ink-900 to-ink-950 border border-ink-800 overflow-hidden">
-            <Suspense
-              fallback={
-                <div className="w-full h-full grid place-items-center font-mono text-xs text-ink-400">
-                  Loading 3D Studio...
-                </div>
-              }
-            >
-              <ThreeCake
-                baseId={base.id}
-                creamId={cream.id}
-                styleId={style.id}
-                sizeId={size.id}
-                messageText={plaqueText}
-                className="w-full h-full"
-              />
-            </Suspense>
-            <span className="absolute top-2.5 left-2.5 px-2 py-0.5 bg-ink-950/85 border border-ink-700 font-mono text-[9px] text-gold-400 uppercase">
-              Drag to Rotate 360°
-            </span>
-            {plaqueText && (
-              <div className="absolute bottom-2.5 inset-x-3 bg-ink-950/90 border border-gold-400/40 px-2.5 py-1 text-center rounded">
-                <span className="font-display italic text-xs text-gold-300 truncate block">"{plaqueText}"</span>
-              </div>
-            )}
-          </div>
-
-          {/* Mobile Collapsible Toggle for Build Specs */}
+      {/* Status Bar when Searching */}
+      {searchQuery.trim() !== "" && (
+        <div className="flex items-center justify-between gap-2 mb-4 px-1">
+          <p className="font-mono text-xs text-ink-300">
+            Showing custom cake designs for <span className="text-blaze-400 font-bold">"{searchQuery}"</span>{" "}
+            {isSearchingWeb && <span className="text-gold-400 animate-pulse">(Fetching more live pins...)</span>}
+          </p>
           <button
             type="button"
-            onClick={() => setShowMobileSpecs((v) => !v)}
-            className="w-full lg:hidden flex items-center justify-between px-3 py-2 bg-ink-950 border border-ink-800 rounded font-mono text-[10px] uppercase tracking-wider text-ink-300"
+            onClick={() => setSearchQuery("")}
+            className="font-mono text-[11px] text-blaze-400 hover:underline"
           >
-            <span>
-              {size.name} · {base.name} · {selectedFillings.length} Fillings
-            </span>
-            <span className="text-blaze-400">{showMobileSpecs ? "Hide Specs ▲" : "View Specs ▼"}</span>
+            Reset Filter
           </button>
+        </div>
+      )}
 
-          {/* Build Summary Breakdown (Always visible on Desktop, Collapsible on Mobile) */}
-          <div className={`${showMobileSpecs ? "block" : "hidden"} lg:block space-y-2 text-xs font-mono border-t border-ink-800 pt-3`}>
-            <div className="flex justify-between">
-              <span className="text-ink-400">1. Weight:</span>
-              <span className="text-ink-100 font-bold">{size.name} ({fmt(size.price)})</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-ink-400">2. Sponge:</span>
-              <span className="text-ink-100">{base.name}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-ink-400">3. Frosting:</span>
-              <span className="text-ink-100">{cream.name}</span>
-            </div>
-            <div className="flex justify-between items-start gap-2">
-              <span className="text-ink-400 shrink-0">4. Fillings:</span>
-              <span className="text-right text-volt-400">
-                {selectedFillings.map((id) => FILLINGS.find((x) => x.id === id)?.name).join(", ")}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-ink-400">5. Crown Style:</span>
-              <span className="text-ink-100">{style.name}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-ink-400">6. Dietary:</span>
-              <span className="text-emerald-400 uppercase">{dietary === "eggless" ? "100% Eggless" : "Vegan"}</span>
-            </div>
-          </div>
+      {/* Pinterest-Style Responsive Feed (2 Columns on Phone, 3 on Tablet, 4 on Desktop) */}
+      <div id="pins-grid" className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-5">
+        {displayedPins.map((pin) => {
+          const waHref = buildWhatsAppLink(pin);
 
-          {/* Direct Add to Bag + WhatsApp Chef Help */}
-          <div className="grid grid-cols-2 lg:grid-cols-1 gap-2 pt-1">
-            <button
-              onClick={handleAddToCart}
-              className="w-full py-3 bg-blaze-500 hover:bg-blaze-400 text-ink-50 font-mono text-[11px] sm:text-xs uppercase tracking-[0.15em] clip-btn font-bold transition-colors shadow-lg shadow-blaze-500/20"
+          return (
+            <div
+              key={pin.id}
+              className="group bg-ink-900 border border-ink-800 hover:border-blaze-500/60 rounded-xl overflow-hidden flex flex-col justify-between transition-all duration-300 shadow-lg hover:shadow-blaze-500/10 min-w-0"
             >
-              Add to Bag · {fmt(totalPrice)}
-            </button>
-            <a
-              href={`https://wa.me/917318531953?text=${encodeURIComponent(
-                `Hi CakeUrban! I designed a custom ${size.name} ${cream.name} cake (${base.name} sponge) with message "${plaqueText}".`
-              )}`}
-              target="_blank"
-              rel="noreferrer"
-              className="w-full py-2.5 bg-emerald-600/15 hover:bg-emerald-600/25 border border-emerald-500/40 text-emerald-400 font-mono text-[10px] sm:text-xs uppercase tracking-wider rounded flex items-center justify-center gap-1.5 transition-colors font-bold"
-            >
-              <Ic.whatsapp className="w-3.5 h-3.5 fill-current shrink-0" /> Share Reference on WhatsApp
-            </a>
-          </div>
-        </aside>
-
-        {/* LEFT/BOTTOM ON MOBILE: Interactive Step Customizer */}
-        <div className="bg-ink-900 border border-ink-800 p-4 sm:p-7 clip-tile space-y-5">
-          {step === 1 && (
-            <div className="space-y-3.5">
-              <div className="flex items-center justify-between">
-                <h2 className="font-display text-lg sm:text-2xl font-bold uppercase">Step 1: Choose Cake Weight</h2>
-                <span className="font-mono text-[10px] text-ink-400 uppercase">Step 1 of 6</span>
-              </div>
-              <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
-                {SIZES.map((s) => (
-                  <button
-                    key={s.id}
-                    onClick={() => setSize(s)}
-                    className={`p-3.5 sm:p-5 text-left border clip-tile transition-all relative ${
-                      size.id === s.id
-                        ? "border-blaze-500 bg-blaze-500/10"
-                        : "border-ink-700 bg-ink-950 hover:border-ink-500"
-                    }`}
-                  >
-                    <span className="font-mono text-[8px] sm:text-[9px] tracking-[0.15em] px-1.5 py-0.5 bg-ink-900 border border-ink-700 text-gold-400 uppercase">
-                      {s.badge}
-                    </span>
-                    <div className="flex justify-between items-baseline mt-2 gap-1">
-                      <span className="font-display font-bold text-base sm:text-lg text-ink-50">{s.name}</span>
-                      <span className="font-mono text-xs sm:text-sm text-blaze-400 font-bold">{fmt(s.price)}</span>
-                    </div>
-                    <p className="text-[11px] sm:text-xs text-ink-400 mt-1">{s.sub}</p>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {step === 2 && (
-            <div className="space-y-3.5">
-              <div className="flex items-center justify-between">
-                <h2 className="font-display text-lg sm:text-2xl font-bold uppercase">Step 2: Select Sponge Base</h2>
-                <span className="font-mono text-[10px] text-ink-400 uppercase">Step 2 of 6</span>
-              </div>
-              <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
-                {BASES.map((b) => (
-                  <button
-                    key={b.id}
-                    onClick={() => setBase(b)}
-                    className={`p-3.5 sm:p-5 text-left border clip-tile transition-all ${
-                      base.id === b.id
-                        ? "border-blaze-500 bg-blaze-500/10"
-                        : "border-ink-700 bg-ink-950 hover:border-ink-500"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span
-                        className="w-5 h-5 rounded-full border border-white/20 shrink-0"
-                        style={{ backgroundColor: b.hex }}
-                      />
-                      <span className="font-mono text-[11px] text-blaze-400 font-bold">
-                        {b.price === 0 ? "Included" : `+${fmt(b.price)}`}
-                      </span>
-                    </div>
-                    <span className="font-display font-bold text-sm sm:text-base text-ink-50 block">{b.name}</span>
-                    <p className="text-[11px] text-ink-400 mt-1 line-clamp-1">{b.desc}</p>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {step === 3 && (
-            <div className="space-y-3.5">
-              <div className="flex items-center justify-between">
-                <h2 className="font-display text-lg sm:text-2xl font-bold uppercase">Step 3: Outer Frosting (Updates 3D)</h2>
-                <span className="font-mono text-[10px] text-volt-400 uppercase">● Live Color</span>
-              </div>
-              <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
-                {CREAMS.map((c) => (
-                  <button
-                    key={c.id}
-                    onClick={() => setCream(c)}
-                    className={`p-3.5 sm:p-5 text-left border clip-tile transition-all ${
-                      cream.id === c.id
-                        ? "border-blaze-500 bg-blaze-500/10"
-                        : "border-ink-700 bg-ink-950 hover:border-ink-500"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span
-                        className="w-6 h-6 rounded-full border-2 border-white/30 shadow-inner shrink-0"
-                        style={{ backgroundColor: c.hex }}
-                      />
-                      <span className="font-mono text-[11px] text-blaze-400 font-bold">
-                        {c.price === 0 ? "Included" : `+${fmt(c.price)}`}
-                      </span>
-                    </div>
-                    <span className="font-display font-bold text-sm sm:text-base text-ink-50 block">{c.name}</span>
-                    <p className="text-[11px] text-ink-400 mt-1 line-clamp-1">{c.desc}</p>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {step === 4 && (
-            <div className="space-y-3.5">
-              <div className="flex items-center justify-between">
-                <h2 className="font-display text-lg sm:text-2xl font-bold uppercase">Step 4: Layer Fillings (Pick 1–3)</h2>
-                <span className="font-mono text-[10px] text-gold-400 uppercase">{selectedFillings.length}/3 Selected</span>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3.5">
-                {FILLINGS.map((f) => {
-                  const active = selectedFillings.includes(f.id);
-                  return (
-                    <button
-                      key={f.id}
-                      onClick={() => toggleFilling(f.id)}
-                      className={`p-3 sm:p-4 text-left border clip-tile transition-all ${
-                        active
-                          ? "border-volt-400 bg-volt-400/10"
-                          : "border-ink-700 bg-ink-950 hover:border-ink-500"
-                      }`}
-                    >
-                      <div className="flex justify-between items-center">
-                        <span className="font-mono text-[8px] tracking-widest uppercase px-1.5 py-0.5 bg-ink-900 text-ink-300">
-                          {f.tag}
-                        </span>
-                        <span className="font-mono text-[11px] text-volt-400 font-bold">+{fmt(f.price)}</span>
-                      </div>
-                      <p className="font-display font-bold text-xs sm:text-sm mt-2 text-ink-50">{f.name}</p>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {step === 5 && (
-            <div className="space-y-3.5">
-              <div className="flex items-center justify-between">
-                <h2 className="font-display text-lg sm:text-2xl font-bold uppercase">Step 5: Crown & Finish Style</h2>
-                <span className="font-mono text-[10px] text-ink-400 uppercase">Step 5 of 6</span>
-              </div>
-              <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
-                {STYLES.map((st) => (
-                  <button
-                    key={st.id}
-                    onClick={() => setStyle(st)}
-                    className={`p-3.5 sm:p-5 text-left border clip-tile transition-all ${
-                      style.id === st.id
-                        ? "border-blaze-500 bg-blaze-500/10"
-                        : "border-ink-700 bg-ink-950 hover:border-ink-500"
-                    }`}
-                  >
-                    <div className="flex justify-between items-baseline gap-1">
-                      <span className="font-display font-bold text-sm sm:text-base text-ink-50">{st.name}</span>
-                      <span className="font-mono text-[11px] text-blaze-400 font-bold shrink-0">
-                        {st.price === 0 ? "Free" : `+${fmt(st.price)}`}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-ink-400 mt-1 line-clamp-2">{st.desc}</p>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {step === 6 && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="font-display text-lg sm:text-2xl font-bold uppercase">Step 6: Cake Message & Dietary</h2>
-                <span className="font-mono text-[10px] text-volt-400 uppercase">Final Step</span>
-              </div>
-
+              {/* Cake Image Container */}
               <div>
-                <label className="block font-mono text-[10px] uppercase tracking-wider text-ink-300 mb-1.5">
-                  Hand-Piped Chocolate Plaque Message (Free)
-                </label>
-                <input
-                  type="text"
-                  maxLength={35}
-                  value={plaqueText}
-                  onChange={(e) => setPlaqueText(e.target.value)}
-                  placeholder="e.g. Happy Birthday Ananya!"
-                  className="w-full bg-ink-950 border border-ink-700 focus:border-blaze-500 px-3.5 py-2.5 text-sm text-ink-100 outline-none"
-                />
-                <div className="flex flex-wrap gap-1.5 mt-2">
-                  {["Happy Birthday!", "Happy Anniversary ❤️", "Congratulations!", "Best Wishes"].map((preset) => (
-                    <button
-                      key={preset}
-                      type="button"
-                      onClick={() => setPlaqueText(preset)}
-                      className="px-2.5 py-1 bg-ink-950 border border-ink-700 hover:border-blaze-500 font-mono text-[10px] text-ink-300 rounded"
-                    >
-                      {preset}
-                    </button>
-                  ))}
+                <div
+                  onClick={() => setPreviewPin(pin)}
+                  className="relative aspect-[4/5] bg-ink-950 overflow-hidden cursor-pointer"
+                >
+                  <img
+                    src={pin.img}
+                    alt={pin.title}
+                    loading="lazy"
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+
+                  {/* Top Badges */}
+                  <div className="absolute top-2 left-2 right-2 flex items-center justify-between gap-1 pointer-events-none">
+                    {pin.badge ? (
+                      <span className="px-1.5 py-0.5 rounded-full bg-ink-950/85 backdrop-blur-sm border border-ink-700 font-mono text-[7.5px] sm:text-[9px] tracking-wider uppercase text-gold-400 font-bold truncate max-w-[68%]">
+                        {pin.badge}
+                      </span>
+                    ) : (
+                      <span />
+                    )}
+                    <span className="px-1.5 py-0.5 rounded-full bg-[#E60023] text-white font-mono text-[7.5px] sm:text-[9px] font-bold uppercase shadow shrink-0">
+                      📌 Pin
+                    </span>
+                  </div>
+
+                  {/* Bottom Gradient Overlay with Weight & Price */}
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink-950 via-ink-950/60 to-transparent p-2.5 sm:p-3 pt-8 flex items-end justify-between">
+                    <div>
+                      <span className="font-mono text-[9px] text-emerald-400 uppercase block">100% Eggless</span>
+                      <span className="font-mono text-[10px] sm:text-xs text-ink-200 font-bold">
+                        From {pin.startingWeight}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <span className="font-mono text-[9px] text-ink-400 block">Starts at</span>
+                      <span className="font-display font-black text-sm sm:text-base text-volt-400">
+                        ₹{pin.priceInr}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Cake Title */}
+                <div className="p-2.5 sm:p-3.5 pb-2">
+                  <h3
+                    onClick={() => setPreviewPin(pin)}
+                    className="font-display font-bold text-xs sm:text-sm text-ink-50 group-hover:text-blaze-400 transition-colors line-clamp-2 cursor-pointer leading-snug"
+                  >
+                    {pin.title}
+                  </h3>
+                  <p className="font-mono text-[9px] sm:text-[10px] text-ink-400 mt-1 truncate">
+                    {selectedWeight} · {selectedFlavor.split(" ")[0]}
+                  </p>
                 </div>
               </div>
 
-              <div className="grid sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-mono text-[10px] uppercase tracking-wider text-ink-300 mb-1.5">
-                    Dietary Preference
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setDietary("eggless")}
-                      className={`p-2.5 border text-left rounded font-mono text-xs ${
-                        dietary === "eggless" ? "border-emerald-500 bg-emerald-500/15 text-emerald-300 font-bold" : "border-ink-700 bg-ink-950 text-ink-400"
-                      }`}
-                    >
-                      🌱 100% Eggless (Free)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setDietary("vegan")}
-                      className={`p-2.5 border text-left rounded font-mono text-xs ${
-                        dietary === "vegan" ? "border-emerald-500 bg-emerald-500/15 text-emerald-300 font-bold" : "border-ink-700 bg-ink-950 text-ink-400"
-                      }`}
-                    >
-                      🥥 Plant Vegan (+{fmt(4)})
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block font-mono text-[10px] uppercase tracking-wider text-ink-300 mb-1.5">
-                    Complimentary Candles
-                  </label>
-                  <div className="grid grid-cols-3 gap-1.5">
-                    {(
-                      [
-                        ["sparkler", "✨ Sparkler"],
-                        ["numeric", "🔢 Age No."],
-                        ["classic", "🕯️ Golden"],
-                      ] as const
-                    ).map(([k, lbl]) => (
-                      <button
-                        key={k}
-                        type="button"
-                        onClick={() => setCandles(k)}
-                        className={`p-2.5 border text-center rounded font-mono text-[10px] ${
-                          candles === k ? "border-gold-400 bg-gold-400/15 text-gold-300 font-bold" : "border-ink-700 bg-ink-950 text-ink-400"
-                        }`}
-                      >
-                        {lbl}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+              {/* Direct "Chat About This Cake" WhatsApp Button Under Every Image */}
+              <div className="p-2 sm:p-3.5 pt-1">
+                <a
+                  href={waHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-2 sm:py-2.5 px-2 sm:px-3 rounded-lg bg-[#25D366] hover:bg-[#1fb855] text-ink-950 font-mono text-[9.5px] sm:text-xs font-extrabold uppercase tracking-tight sm:tracking-wider flex items-center justify-center gap-1 sm:gap-1.5 shadow-md transition-all active:scale-95 min-w-0"
+                >
+                  <Ic.whatsapp className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current shrink-0" />
+                  <span className="truncate">Chat About This Cake</span>
+                </a>
               </div>
             </div>
-          )}
+          );
+        })}
+      </div>
 
-          {/* Step Navigation Footer */}
-          <div className="flex justify-between items-center pt-4 border-t border-ink-800 gap-3">
-            <button
-              onClick={() => setStep(Math.max(1, step - 1))}
-              disabled={step === 1}
-              className="px-4 sm:px-5 py-2.5 border border-ink-700 font-mono text-xs uppercase disabled:opacity-40 hover:border-ink-500 transition-colors"
-            >
-              ← Prev
-            </button>
-            {step < 6 ? (
-              <button
-                onClick={() => setStep(step + 1)}
-                className="flex-1 sm:flex-initial px-6 py-2.5 bg-blaze-500 hover:bg-blaze-400 text-ink-50 font-mono text-xs uppercase clip-btn font-bold transition-colors"
-              >
-                Next: {STEPS[step]?.label} →
-              </button>
-            ) : (
-              <button
-                onClick={handleAddToCart}
-                className="flex-1 sm:flex-initial px-6 py-3 bg-volt-400 hover:bg-volt-300 text-ink-950 font-mono text-xs uppercase font-bold clip-btn transition-colors"
-              >
-                Add Custom Cake · {fmt(totalPrice)}
-              </button>
-            )}
+      {/* Empty Search Fallback — Let Customer Send Their Exact Search Query to WhatsApp */}
+      {displayedPins.length === 0 && !isSearchingWeb && (
+        <div className="my-8 p-6 sm:p-10 bg-ink-900 border border-ink-700 rounded-xl text-center max-w-xl mx-auto space-y-4">
+          <p className="font-display text-lg sm:text-2xl font-bold uppercase text-ink-50">
+            Want a Custom <span className="text-blaze-400">"{searchQuery}"</span> Cake?
+          </p>
+          <p className="text-xs sm:text-sm text-ink-300">
+            Hamare master chefs koi bhi custom design 100% pure eggless me bana sakte hain! Niche click karein aur seedha WhatsApp par apna design batayein.
+          </p>
+          <a
+            href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
+              `Hi CakeUrban! 🎂 Mujhe "${searchQuery}" theme me custom cake chahiye (${selectedWeight}, ${selectedFlavor}). Please share sample photos & price!`
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-[#25D366] hover:bg-[#1fb855] text-ink-950 font-mono text-xs font-bold uppercase tracking-wider"
+          >
+            <Ic.whatsapp className="w-4 h-4 fill-current" /> Chat About "{searchQuery}" Cake on WhatsApp
+          </a>
+        </div>
+      )}
+
+      {/* Paste Any Pinterest / Instagram Link Banner at Bottom */}
+      <div className="mt-8 sm:mt-12 border border-ink-700/80 bg-ink-850 p-4 sm:p-7 clip-tile">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-4 sm:gap-6 items-center">
+          <div className="min-w-0">
+            <span className="font-mono text-[10px] tracking-[0.2em] text-gold-400 uppercase font-bold">
+              📌 Have a Pinterest or Instagram Link?
+            </span>
+            <h2 className="font-display text-lg sm:text-2xl font-black uppercase mt-1">
+              Paste Any Cake Link or Idea & Get Instant Quote
+            </h2>
+            <p className="text-xs sm:text-sm text-ink-300 mt-1">
+              Agar aapke paas Pinterest/Instagram ka koi link ya screenshot hai, toh yahan paste karein ya WhatsApp par photo bhejein.
+            </p>
           </div>
+
+          <form onSubmit={handleCustomLinkSubmit} className="flex flex-col sm:flex-row gap-2">
+            <input
+              type="text"
+              value={customPasteUrl}
+              onChange={(e) => setCustomPasteUrl(e.target.value)}
+              placeholder="Paste Pinterest link or describe your dream cake..."
+              className="flex-1 bg-ink-950 border border-ink-700 focus:border-blaze-500 rounded-lg px-3.5 py-2.5 text-xs sm:text-sm text-ink-100 outline-none"
+            />
+            <button
+              type="submit"
+              className="px-5 py-2.5 rounded-lg bg-[#25D366] hover:bg-[#1fb855] text-ink-950 font-mono text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 shrink-0"
+            >
+              <Ic.whatsapp className="w-4 h-4 fill-current" /> Send to WhatsApp
+            </button>
+          </form>
         </div>
       </div>
+
+      {/* Quick Pin Zoom & Customize Modal when User Taps a Cake Photo */}
+      {previewPin && (
+        <div
+          onClick={() => setPreviewPin(null)}
+          className="fixed inset-0 z-[95] bg-ink-950/85 backdrop-blur-sm p-3.5 sm:p-6 flex items-center justify-center overflow-y-auto"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-ink-900 border border-ink-700 rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl grid grid-cols-1 sm:grid-cols-2"
+          >
+            <div className="relative aspect-square sm:aspect-auto sm:h-full bg-ink-950">
+              <img src={previewPin.img} alt={previewPin.title} className="w-full h-full object-cover" />
+              <button
+                type="button"
+                onClick={() => setPreviewPin(null)}
+                className="sm:hidden absolute top-3 right-3 w-8 h-8 rounded-full bg-ink-950/80 text-white grid place-items-center"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-4 sm:p-6 flex flex-col justify-between space-y-4">
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[10px] text-gold-400 uppercase tracking-wider">
+                    📌 Custom Cake Pin
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewPin(null)}
+                    className="hidden sm:inline-block text-ink-400 hover:text-white text-sm"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <h3 className="font-display text-lg sm:text-xl font-black uppercase text-ink-50 mt-1">
+                  {previewPin.title}
+                </h3>
+                <p className="font-mono text-xs text-volt-400 font-bold mt-1">
+                  Starting at ₹{previewPin.priceInr} ({previewPin.startingWeight} · 100% Eggless)
+                </p>
+
+                <div className="space-y-3 mt-4">
+                  <div>
+                    <label className="block font-mono text-[10px] text-ink-400 uppercase mb-1">
+                      Select Weight
+                    </label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {["0.5 Kg", "1.0 Kg", "1.5 Kg", "2.0 Kg (2-Tier)", "3.0 Kg+"].map((w) => (
+                        <button
+                          key={w}
+                          type="button"
+                          onClick={() => setSelectedWeight(w)}
+                          className={`px-2.5 py-1 rounded font-mono text-[10px] border ${
+                            selectedWeight === w
+                              ? "bg-blaze-500 text-white border-blaze-500 font-bold"
+                              : "bg-ink-950 text-ink-300 border-ink-700"
+                          }`}
+                        >
+                          {w}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-mono text-[10px] text-ink-400 uppercase mb-1">
+                      Cake Message / Custom Request (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={customNote}
+                      onChange={(e) => setCustomNote(e.target.value)}
+                      placeholder="e.g. Happy Birthday Aarav! Make it Pink..."
+                      className="w-full bg-ink-950 border border-ink-700 rounded px-3 py-2 text-xs text-ink-100 outline-none focus:border-blaze-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <a
+                href={buildWhatsAppLink(previewPin, customNote)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-3 px-4 rounded-xl bg-[#25D366] hover:bg-[#1fb855] text-ink-950 font-mono text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg"
+              >
+                <Ic.whatsapp className="w-4 h-4 fill-current" />
+                Chat About This Cake on WhatsApp
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

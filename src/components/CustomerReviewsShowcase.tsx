@@ -187,7 +187,7 @@ export function CustomerReviewsShowcase({
       </div>
 
       {/* Reviews Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {scopedReviews.map((r) => {
           const prod = getProductForReview(r);
           const hasPhoto = r.hasImage || !!r.photoUrl;
@@ -267,7 +267,7 @@ export function CustomerReviewsShowcase({
       {/* Lightbox Modal for Inspecting Customer Photo */}
       <Modal open={!!lightboxReview} onClose={() => setLightboxReview(null)} wide>
         {lightboxReview && (
-          <div className="grid md:grid-cols-2">
+          <div className="grid grid-cols-1 md:grid-cols-2">
             <div className="bg-ink-950 flex items-center justify-center p-4 sm:p-6 min-h-[300px]">
               <ImgX
                 src={getReviewImage(lightboxReview)}
@@ -360,7 +360,7 @@ export function CustomerReviewsShowcase({
             </div>
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block font-mono text-[10px] uppercase text-ink-400 mb-1">
                 Your Name *
@@ -393,7 +393,7 @@ export function CustomerReviewsShowcase({
           </div>
 
           {!productId && (
-            <div className="grid sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block font-mono text-[10px] uppercase text-ink-400 mb-1">
                   Product Ordered

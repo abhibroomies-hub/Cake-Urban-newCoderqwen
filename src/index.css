@@ -79,11 +79,21 @@ html.light {
   --vk-50: #14100e;
 }
 
+@layer base {
+  html, body, #root {
+    max-width: 100%;
+    overflow-x: clip;
+  }
+  .grid > * {
+    min-width: 0;
+  }
+}
+
 html { scroll-behavior: smooth; }
 body {
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+  overflow-x: clip;
   background: var(--vk-950);
   color: var(--vk-100);
   transition: background-color 0.35s ease, color 0.35s ease;

@@ -51,9 +51,9 @@ export default function Contact() {
         </p>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6 sm:gap-10">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-10">
         {/* Info & WhatsApp Direct Hotline (First on Mobile for instant action) */}
-        <div className="space-y-4 sm:space-y-6">
+        <div className="space-y-4 sm:space-y-6 min-w-0">
           <div className="bg-ink-900 border border-ink-800 p-5 sm:p-7 clip-tile space-y-4">
             <div className="flex items-center justify-between gap-2">
               <h3 className="font-display text-lg sm:text-2xl font-bold uppercase">Central Bakehouse HQ</h3>
