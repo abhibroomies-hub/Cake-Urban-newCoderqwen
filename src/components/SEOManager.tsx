@@ -1,227 +1,381 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useStore } from "../lib/store";
-import { generateAreaStructuredData } from "../lib/seoHelpers";
+import { DELHI_NCR_CITIES, getSeoAreaBySlug, SEO_INTENTS } from "../data/seoLocations";
+import { BLOG_POSTS } from "../data/catalog";
+
+const CITY_GEO_COORDS: Record<string, { region: string; placename: string; lat: number; lng: number; postal: string }> = {
+  faridabad: { region: "IN-HR", placename: "Faridabad, Haryana, Delhi NCR", lat: 28.4089, lng: 77.3178, postal: "121007" },
+  gurgaon: { region: "IN-HR", placename: "Gurgaon (Gurugram), Haryana, Delhi NCR", lat: 28.4595, lng: 77.0266, postal: "122002" },
+  noida: { region: "IN-UP", placename: "Noida & Greater Noida, Uttar Pradesh, Delhi NCR", lat: 28.5355, lng: 77.3910, postal: "201301" },
+  delhi: { region: "IN-DL", placename: "South Delhi & New Delhi, Delhi NCR", lat: 28.5494, lng: 77.2001, postal: "110048" },
+  ghaziabad: { region: "IN-UP", placename: "Indirapuram, Ghaziabad, Uttar Pradesh, Delhi NCR", lat: 28.6415, lng: 77.3714, postal: "201014" },
+};
 
 export function SEOManager() {
   const { pathname } = useLocation();
   const { products } = useStore();
 
   useEffect(() => {
-    const siteUrl = "https://www.cakeurban.com";
-    const currentUrl = `${siteUrl}${pathname}`;
-    let title = "CakeUrban — Luxury Gourmet Cakes, Cookies & Gift Hampers in Delhi NCR";
-    let desc = "Order handcrafted gourmet cookies, artisan cakes, and luxury gift hampers with express delivery across Delhi, Gurgaon, Noida, and Faridabad.";
-    let image = `${siteUrl}/og-image.jpg`;
-    let schemaList: any[] = [];
+    const origin = typeof window !== "undefined" ? window.location.origin : "https://www.cakeurban.com";
+    const canonicalUrl = `${origin}${pathname === "/" ? "" : pathname}`;
 
-    // Base Organization Schema with Geo coordinates and Bakery metadata
-    const orgSchema = {
-      "@context": "https://schema.org",
-      "@type": "Bakery",
-      "@id": `${siteUrl}/#bakery`,
-      "name": "CakeUrban",
-      "url": siteUrl,
-      "logo": `${siteUrl}/logo.png`,
-      "image": image,
-      "telephone": "+91-7318531953",
-      "priceRange": "₹₹",
-      "servesCuisine": "Artisan Bakery, Gourmet Cookies, 100% Eggless Cakes, Luxury Hampers",
-      "geo": {
-        "@type": "GeoCoordinates",
-        "latitude": 28.4089,
-        "longitude": 77.3178
-      },
-      "openingHoursSpecification": {
-        "@type": "OpeningHoursSpecification",
-        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-        "opens": "06:00",
-        "closes": "23:59"
-      },
-      "address": {
-        "@type": "PostalAddress",
-        "streetAddress": "Sector 15 / Central Kitchen Hub",
-        "addressLocality": "Faridabad",
-        "addressRegion": "Haryana",
-        "postalCode": "121007",
-        "addressCountry": "IN"
-      },
-      "areaServed": ["Faridabad", "Delhi", "Noida", "Gurgaon", "Ghaziabad"],
-      "sameAs": [
-        "https://www.instagram.com/cakeurban",
-        "https://www.facebook.com/cakeurban"
-      ]
-    };
-    schemaList.push(orgSchema);
+    let title =
+      "CakeUrban — #1 Eggless Cakes, Gourmet Cookies & Luxury Gift Hampers in Delhi NCR | 30-Min Express & Midnight Delivery";
+    let description =
+      "Order 100% pure eggless Belgian chocolate cakes, 72-hour cold-fermented cookies, crispy namkeens & luxury gift hampers across Faridabad, Gurgaon, Noida, South Delhi & Ghaziabad. 30-45 mins express & 12 AM midnight delivery. WhatsApp: +91 7318531953.";
+    let keywords =
+      "cake delivery faridabad, cake delivery gurgaon, cake delivery noida, midnight cake delivery delhi ncr, 100% eggless cake near me, gourmet cookies delhi ncr, luxury gift hampers faridabad, birthday gift hampers, anniversary cake delivery, corporate gift hampers gurgaon, cakeurban";
+    let ogImage = "https://image.qwenlm.ai/generated-images/19868aa6-1a8b-4213-bf76-a00a5c538bec/_result.png";
+    let ogType = "website";
+    let activeCityKey = "faridabad";
 
-    // Route-specific dynamic metadata & schema
-    if (pathname === "/") {
-      title = "CakeUrban — 100% Eggless Gourmet Cakes, Cookies & Luxury Hampers Delhi NCR";
-      desc = "Delhi NCR's premiere eggless artisan bakehouse. Handcrafted 72-hr fermented cookies, gourmet celebration cakes, and luxury gift hampers with 30-45 min express delivery.";
+    let pageSchema: Record<string, unknown> | null = null;
 
-      // Home FAQ schema for rich search snippets
-      const faqSchema = {
-        "@context": "https://schema.org",
-        "@type": "FAQPage",
-        "mainEntity": [
-          {
-            "@type": "Question",
-            "name": "Are 100% of your cakes eggless and vegetarian?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Yes, absolute 100%. Our dedicated artisan kitchens never use eggs, gelatin, or animal by-products. We use cultured dairy butter, real Belgian cocoa, and natural organic setting agents."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "How fast can I get a cake delivered in Delhi NCR?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Our express delivery hubs in Faridabad, Noida, Gurgaon, South Delhi, and Ghaziabad dispatch in specialized insulated carriers to deliver within 30 to 45 minutes of order confirmation."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Do you offer midnight birthday delivery?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Yes! We specialize in midnight surprise deliveries between 11:30 PM and 12:15 AM across Delhi NCR with live courier tracking."
-            }
-          }
-        ]
-      };
-      schemaList.push(faqSchema);
-    } else if (pathname === "/builder") {
-      title = "3D Custom Cake & Hamper Builder | Design Online | CakeUrban";
-      desc = "Design your custom celebration cake in real-time 3D. Choose tier sizes, sponge flavors, Belgian creams, ganache drips, and custom chocolate plaques with express NCR delivery.";
-    } else if (pathname.startsWith("/product/")) {
-      const productId = pathname.split("/product/")[1];
-      const product = products.find((p) => p.id === productId);
-      if (product) {
-        title = `${product.name} | Buy Online | CakeUrban`;
-        desc = product.desc || `Order fresh ${product.name} with express delivery across Delhi NCR.`;
-        if (product.img) image = product.img;
+    // 1. Product Detail Route
+    if (pathname.startsWith("/product/")) {
+      const prodId = pathname.replace("/product/", "");
+      const prod = products.find((p) => p.id === prodId);
+      if (prod) {
+        title = prod.seoTitle || `${prod.name} — 30-Min Express Delivery in Delhi NCR | CakeUrban`;
+        description =
+          prod.seoDesc ||
+          `Order ${prod.name} online at CakeUrban. ${prod.desc} 100% Pure Eggless, freshly baked to order with 30-45 mins express & 12 AM midnight delivery across Faridabad, Gurgaon, Noida & Delhi.`;
+        keywords =
+          prod.seoKeywords ||
+          `${prod.name.toLowerCase()}, buy ${prod.name.toLowerCase()} online delhi ncr, ${prod.category.toLowerCase()} delivery faridabad gurgaon noida, eggless ${prod.name.toLowerCase()}, cakeurban`;
+        ogImage = prod.img;
+        ogType = "product";
 
-        // Automated Product Schema
-        const productSchema = {
-          "@context": "https://schema.org",
+        pageSchema = {
           "@type": "Product",
-          "name": product.name,
-          "image": [product.img],
-          "description": product.desc,
-          "brand": {
+          "@id": `${canonicalUrl}#product`,
+          name: prod.name,
+          image: [prod.img],
+          description: prod.desc,
+          sku: prod.sku,
+          brand: {
             "@type": "Brand",
-            "name": "CakeUrban"
+            name: "CakeUrban",
           },
-          "offers": {
+          category: prod.category,
+          offers: {
             "@type": "Offer",
-            "url": currentUrl,
-            "priceCurrency": "INR",
-            "price": product.price,
-            "availability": "https://schema.org/InStock",
-            "seller": {
+            url: canonicalUrl,
+            priceCurrency: "INR",
+            price: Math.round(prod.price * 83.4),
+            priceValidUntil: "2027-12-31",
+            itemCondition: "https://schema.org/NewCondition",
+            availability: prod.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+            seller: {
               "@type": "Organization",
-              "name": "CakeUrban"
-            }
+              name: "CakeUrban Bakehouse Delhi NCR",
+            },
+            shippingDetails: {
+              "@type": "OfferShippingDetails",
+              shippingRate: {
+                "@type": "MonetaryAmount",
+                value: "0",
+                currency: "INR",
+              },
+              deliveryTime: {
+                "@type": "ShippingDeliveryTime",
+                handlingTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: 1, unitCode: "HUR" },
+                transitTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: 1, unitCode: "HUR" },
+              },
+            },
           },
-          "aggregateRating": {
+          aggregateRating: {
             "@type": "AggregateRating",
-            "ratingValue": product.rating || "4.9",
-            "reviewCount": (product as any).reviewsCount || "128"
-          }
+            ratingValue: prod.rating.toString(),
+            reviewCount: prod.ratingCount.toString(),
+            bestRating: "5",
+            worstRating: "1",
+          },
         };
-
-        const breadcrumbSchema = {
-          "@context": "https://schema.org",
-          "@type": "BreadcrumbList",
-          "itemListElement": [
-            { "@type": "ListItem", "position": 1, "name": "Home", "item": siteUrl },
-            { "@type": "ListItem", "position": 2, "name": "Shop", "item": `${siteUrl}/shop` },
-            { "@type": "ListItem", "position": 3, "name": product.name, "item": currentUrl }
-          ]
-        };
-
-        schemaList.push(productSchema, breadcrumbSchema);
       }
-    } else if (pathname === "/shop") {
-      title = "Shop Gourmet Cookies, Cakes & Gift Hampers | CakeUrban";
-      desc = "Explore our handcrafted menu of 72-hr fermented cookies, gourmet celebration cakes, and festive gift hampers.";
-    } else if (pathname.startsWith("/cookies-")) {
-      const city = pathname.replace("/cookies-", "");
-      const cityName = city.charAt(0).toUpperCase() + city.slice(1);
-      title = `Best Gourmet Cookies in ${cityName} | Luxury Cookie Boxes | CakeUrban`;
-      desc = `Order freshly baked gourmet cookies in ${cityName} with express delivery. Try our signature choc-chip, red velvet, and sea-salt caramel cookies.`;
-    } else if (pathname.startsWith("/cakes-in/")) {
-      const city = pathname.split("/cakes-in/")[1];
-      const cityName = city ? city.charAt(0).toUpperCase() + city.slice(1) : "Delhi NCR";
-      title = `Online Cake & Gift Delivery in ${cityName} | Same Day & Midnight | CakeUrban`;
-      desc = `Order delicious cakes and gift hampers in ${cityName}. 100% eggless options available with midnight and express delivery.`;
-    } else if (pathname.startsWith("/cake-delivery-in/")) {
-      const areaSlug = pathname.split("/cake-delivery-in/")[1];
-      title = `Cake & Cookie Delivery in ${areaSlug?.replace(/-/g, " ")} | CakeUrban`;
-      desc = `Freshly baked cakes and gourmet cookies delivered directly to your doorstep in ${areaSlug?.replace(/-/g, " ")}. Order online now!`;
+    }
+    // 2. City Hub Route (/cakes-in/:citySlug)
+    else if (pathname.startsWith("/cakes-in/")) {
+      const citySlug = pathname.replace("/cakes-in/", "").toLowerCase();
+      const city = DELHI_NCR_CITIES[citySlug];
+      if (city) {
+        activeCityKey = citySlug in CITY_GEO_COORDS ? citySlug : "faridabad";
+        title = city.title;
+        description = city.metaDesc;
+        keywords = `cake delivery in ${city.cityName.toLowerCase()}, midnight cake delivery ${city.cityName.toLowerCase()}, eggless bakery ${city.cityName.toLowerCase()}, gift hampers ${city.cityName.toLowerCase()}, gourmet cookies ${city.cityName.toLowerCase()}, cakeurban ${city.cityName.toLowerCase()}`;
+      }
+    }
+    // 3. Hyperlocal Area Intent Routes (all 10 SEO_INTENTS prefixes)
+    else if (
+      Object.values(SEO_INTENTS).some((cfg) => pathname.startsWith(`/${cfg.prefix}/`))
+    ) {
+      let matchedIntent = "standard";
+      let areaSlug = "";
+      for (const [key, cfg] of Object.entries(SEO_INTENTS)) {
+        if (pathname.startsWith(`/${cfg.prefix}/`)) {
+          matchedIntent = key;
+          areaSlug = pathname.replace(`/${cfg.prefix}/`, "");
+          break;
+        }
+      }
+      const area = getSeoAreaBySlug(areaSlug, matchedIntent);
+      if (area) {
+        activeCityKey = area.citySlug in CITY_GEO_COORDS ? area.citySlug : "faridabad";
+        title = area.title;
+        description = area.metaDesc;
+        keywords = `${area.areaName.toLowerCase()} cake delivery, midnight cake delivery ${area.areaName.toLowerCase()}, eggless cake ${area.areaName.toLowerCase()} ${area.pincode}, best bakery near ${area.landmarks[0]?.toLowerCase() || area.areaName.toLowerCase()}, gift hampers ${area.cityName.toLowerCase()}`;
+      }
+    }
+    // 4. Cookies & Hampers City Routes
+    else if (pathname.startsWith("/cookies-") || pathname.startsWith("/cookies/")) {
+      const cityKey = pathname.replace(/^\/cookies[-/]/, "").toLowerCase();
+      if (cityKey in CITY_GEO_COORDS) activeCityKey = cityKey;
+      const cityName = cityKey.charAt(0).toUpperCase() + cityKey.slice(1);
+      title = `Best Gourmet Cookies, Namkeens & Luxury Gift Hampers in ${cityName} | 35-Min Delivery | CakeUrban`;
+      description = `Order 72-hour cold-fermented choc-chip cookies, French macarons, roasted makhana & luxury corporate/birthday gift hampers in ${cityName} with 35-min express & midnight delivery.`;
+      keywords = `gourmet cookies ${cityKey}, gift hampers ${cityKey}, corporate gifting ${cityKey}, choc chip cookies delivery ${cityKey}, namkeen gift box ${cityKey}`;
+    }
+    // 5. Other Core Routes
+    else if (pathname === "/shop") {
+      title = "Shop Gourmet Cookies, Eggless Cakes, Namkeens & Luxury Gift Hampers | CakeUrban Delhi NCR";
+      description =
+        "Browse CakeUrban's complete menu of 100% eggless Belgian chocolate cakes, molten choc-chip cookies, royal Bikaneri namkeens, and luxury gift hampers. 30-45 mins express delivery.";
+    } else if (pathname === "/builder") {
+      title = "3D Custom Cake Studio — Design Your Own Eggless Cake Online | CakeUrban Delhi NCR";
+      description =
+        "Customize your cake in real-time 3D! Choose weight (0.5kg to 2kg), 72% Belgian dark sponge, truffle or pistachio frosting, center fillings & free chocolate plaque message.";
+      keywords = "custom 3d cake builder online, design your own cake delhi ncr, custom birthday cake faridabad gurgaon noida, photo cake customizer";
+    } else if (pathname === "/track") {
+      title = "Live Order & GPS Rider Tracker — Cold-Chain Telemetry | CakeUrban";
+      description =
+        "Track your CakeUrban order in real time from oven baking and 4°C cold-box sealing to live GPS rider arrival across Faridabad, Gurgaon, Noida & Delhi.";
+    } else if (pathname === "/delivery-locations") {
+      title = "Express Cake & Gift Hamper Delivery Locations Across Delhi NCR (100+ Sectors) | CakeUrban";
+      description =
+        "View all 5 CakeUrban kitchen hubs and 100+ express delivery sectors across Faridabad, Gurgaon, Noida, South Delhi, and Ghaziabad with 30-45 min SLA.";
+    } else if (pathname.startsWith("/blog")) {
+      const slug = pathname.replace("/blog/", "").replace("/blog", "");
+      const post = BLOG_POSTS.find((p) => p.slug === slug);
+      if (post) {
+        title = `${post.title} | CakeUrban Journal`;
+        description = post.excerpt;
+        ogImage = post.img;
+        ogType = "article";
+        pageSchema = {
+          "@type": "BlogPosting",
+          headline: post.title,
+          description: post.excerpt,
+          image: post.img,
+          datePublished: post.date,
+          author: { "@type": "Organization", name: "CakeUrban Bakehouse" },
+          publisher: { "@id": `${origin}/#bakery` },
+          mainEntityOfPage: canonicalUrl,
+        };
+      } else {
+        title = "The CakeUrban Journal — Artisan Baking & Delhi NCR Celebration Guides";
+        description =
+          "Read expert guides on 72-hour cold-fermented cookies, pure eggless patisserie science, and the best birthday & Diwali gift hampers in Faridabad, Gurgaon, Noida & Delhi.";
+      }
+    } else if (pathname === "/about") {
+      title = "About CakeUrban — 100% Pure Eggless Artisan Bakehouse in Delhi NCR";
+      description =
+        "Founded in 2021, CakeUrban bakes 100% pure eggless Belgian chocolate cakes, 72-hour fermented cookies & luxury hampers across 5 kitchen hubs in Delhi NCR.";
+    } else if (pathname === "/contact") {
+      title = "Contact CakeUrban — 24×7 Express & Midnight Delivery Hotline (+91 7318531953)";
+      description =
+        "Contact CakeUrban Central Bakehouse in Sector 15 Faridabad, Delhi NCR. Call or WhatsApp +91 7318531953 for urgent 30-min cake delivery, custom cakes & bulk corporate hampers.";
     }
 
-    // Update document head elements
+    // Apply Document Title
     document.title = title;
 
-    // Update or create meta description
-    let metaDesc = document.querySelector("meta[name='description']");
-    if (!metaDesc) {
-      metaDesc = document.createElement("meta");
-      metaDesc.setAttribute("name", "description");
-      document.head.appendChild(metaDesc);
-    }
-    metaDesc.setAttribute("content", desc);
+    // Helper to update or create meta tags
+    const setMetaTag = (attrName: "name" | "property", attrValue: string, content: string) => {
+      let el = document.querySelector(`meta[${attrName}="${attrValue}"]`) as HTMLMetaElement | null;
+      if (!el) {
+        el = document.createElement("meta");
+        el.setAttribute(attrName, attrValue);
+        document.head.appendChild(el);
+      }
+      el.setAttribute("content", content);
+    };
 
-    // Update or create canonical link
-    let canonical = document.querySelector("link[rel='canonical']");
+    const geoInfo = CITY_GEO_COORDS[activeCityKey] || CITY_GEO_COORDS.faridabad;
+
+    setMetaTag("name", "description", description);
+    setMetaTag("name", "keywords", keywords);
+    setMetaTag("name", "robots", "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1");
+    setMetaTag("name", "geo.region", geoInfo.region);
+    setMetaTag("name", "geo.placename", geoInfo.placename);
+    setMetaTag("name", "geo.position", `${geoInfo.lat};${geoInfo.lng}`);
+    setMetaTag("name", "ICBM", `${geoInfo.lat}, ${geoInfo.lng}`);
+
+    // OpenGraph & Twitter Cards
+    setMetaTag("property", "og:title", title);
+    setMetaTag("property", "og:description", description);
+    setMetaTag("property", "og:url", canonicalUrl);
+    setMetaTag("property", "og:image", ogImage);
+    setMetaTag("property", "og:type", ogType);
+    setMetaTag("property", "og:locale", "en_IN");
+    setMetaTag("name", "twitter:card", "summary_large_image");
+    setMetaTag("name", "twitter:title", title);
+    setMetaTag("name", "twitter:description", description);
+    setMetaTag("name", "twitter:image", ogImage);
+
+    // Canonical Link
+    let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
     if (!canonical) {
       canonical = document.createElement("link");
       canonical.setAttribute("rel", "canonical");
       document.head.appendChild(canonical);
     }
-    canonical.setAttribute("href", currentUrl);
+    canonical.setAttribute("href", canonicalUrl);
 
-    // OpenGraph tags
-    const ogTags = [
-      { property: "og:title", content: title },
-      { property: "og:description", content: desc },
-      { property: "og:url", content: currentUrl },
-      { property: "og:image", content: image },
-      { property: "og:type", content: "website" },
-      { property: "twitter:card", content: "summary_large_image" },
-      { property: "twitter:title", content: title },
-      { property: "twitter:description", content: desc },
-      { property: "twitter:image", content: image }
+    // Build BreadcrumbList dynamically
+    const segments = pathname.split("/").filter(Boolean);
+    const breadcrumbItems = [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: origin,
+      },
+      ...segments.map((seg, index) => ({
+        "@type": "ListItem",
+        position: index + 2,
+        name: seg.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+        item: `${origin}/${segments.slice(0, index + 1).join("/")}`,
+      })),
     ];
 
-    ogTags.forEach((tag) => {
-      let el = document.querySelector(`meta[property='${tag.property}'], meta[name='${tag.property}']`);
-      if (!el) {
-        el = document.createElement("meta");
-        if (tag.property.startsWith("twitter:")) {
-          el.setAttribute("name", tag.property);
-        } else {
-          el.setAttribute("property", tag.property);
-        }
-        document.head.appendChild(el);
-      }
-      el.setAttribute("content", tag.content);
-    });
+    // Multi-Hub LocalBusiness + GEO Answer Engine Knowledge Graph
+    const graphNodes: Record<string, unknown>[] = [
+      {
+        "@type": ["Bakery", "FoodEstablishment", "LocalBusiness"],
+        "@id": `${origin}/#bakery`,
+        name: "CakeUrban",
+        alternateName: ["Cake Urban", "CakeUrban Bakehouse", "CakeUrban Delhi NCR", "CakeUrban Faridabad"],
+        url: origin,
+        telephone: "+91-7318531953",
+        email: "hello@cakeurban.com",
+        priceRange: "₹₹",
+        image: ogImage,
+        logo: ogImage,
+        servesCuisine: [
+          "100% Pure Eggless Cakes",
+          "Belgian Chocolate Truffle Cakes",
+          "72-Hour Cold-Fermented Gourmet Cookies",
+          "Luxury Birthday, Anniversary & Corporate Gift Hampers",
+          "Traditional Royal Bikaneri Namkeens & Roasted Makhana",
+        ],
+        address: {
+          "@type": "PostalAddress",
+          streetAddress: "Sector 15 Central Bakehouse Hub",
+          addressLocality: "Faridabad",
+          addressRegion: "Haryana",
+          postalCode: geoInfo.postal,
+          addressCountry: "IN",
+        },
+        geo: {
+          "@type": "GeoCoordinates",
+          latitude: geoInfo.lat,
+          longitude: geoInfo.lng,
+        },
+        areaServed: [
+          {
+            "@type": "GeoCircle",
+            geoMidpoint: { "@type": "GeoCoordinates", latitude: 28.5245, longitude: 77.2500 },
+            geoRadius: "45000",
+          },
+          { "@type": "City", name: "Faridabad" },
+          { "@type": "City", name: "Gurgaon" },
+          { "@type": "City", name: "Noida" },
+          { "@type": "City", name: "New Delhi" },
+          { "@type": "City", name: "Ghaziabad" },
+        ],
+        department: Object.entries(CITY_GEO_COORDS).map(([slug, g]) => ({
+          "@type": "Bakery",
+          name: `CakeUrban ${slug.charAt(0).toUpperCase() + slug.slice(1)} Express Hub`,
+          telephone: "+91-7318531953",
+          url: `${origin}/cakes-in/${slug}`,
+          address: {
+            "@type": "PostalAddress",
+            addressLocality: slug.charAt(0).toUpperCase() + slug.slice(1),
+            addressRegion: g.region,
+            postalCode: g.postal,
+            addressCountry: "IN",
+          },
+          geo: {
+            "@type": "GeoCoordinates",
+            latitude: g.lat,
+            longitude: g.lng,
+          },
+        })),
+        aggregateRating: {
+          "@type": "AggregateRating",
+          ratingValue: "4.9",
+          bestRating: "5",
+          worstRating: "1",
+          ratingCount: "2480",
+          reviewCount: "2480",
+        },
+        openingHoursSpecification: [
+          {
+            "@type": "OpeningHoursSpecification",
+            dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+            opens: "00:00",
+            closes: "23:59",
+          },
+        ],
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${origin}/#website`,
+        url: origin,
+        name: "CakeUrban",
+        publisher: { "@id": `${origin}/#bakery` },
+        potentialAction: {
+          "@type": "SearchAction",
+          target: `${origin}/shop?q={search_term_string}`,
+          "query-input": "required name=search_term_string",
+        },
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": `${canonicalUrl}#breadcrumb`,
+        itemListElement: breadcrumbItems,
+      },
+      {
+        "@type": "ItemList",
+        "@id": `${origin}/#bestsellers`,
+        name: "CakeUrban Top Selling Cakes, Cookies & Luxury Gift Hampers",
+        itemListElement: products.slice(0, 6).map((p, idx) => ({
+          "@type": "ListItem",
+          position: idx + 1,
+          url: `${origin}/product/${p.id}`,
+          name: p.name,
+        })),
+      },
+    ];
 
-    // Remove previous dynamic JSON-LD scripts
-    document.querySelectorAll("script.dynamic-seo-schema").forEach((el) => el.remove());
+    if (pageSchema) {
+      graphNodes.push(pageSchema);
+    }
 
-    // Inject JSON-LD schema graphs
-    schemaList.forEach((schema) => {
-      const script = document.createElement("script");
-      script.type = "application/ld+json";
-      script.className = "dynamic-seo-schema";
-      script.text = JSON.stringify(schema);
-      document.head.appendChild(script);
+    let scriptTag = document.getElementById("dynamic-seo-json-ld") as HTMLScriptElement | null;
+    if (!scriptTag) {
+      scriptTag = document.createElement("script");
+      scriptTag.id = "dynamic-seo-json-ld";
+      scriptTag.setAttribute("type", "application/ld+json");
+      document.head.appendChild(scriptTag);
+    }
+    scriptTag.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@graph": graphNodes,
     });
   }, [pathname, products]);
 
   return null;
 }
+export default SEOManager;

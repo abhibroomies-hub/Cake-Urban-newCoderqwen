@@ -218,6 +218,21 @@ export const PRODUCTS: Product[] = [
     desc: "Flaky, golden-brown mathri infused with sun-dried fenugreek leaves (methi) and crushed black peppercorns. Layered to perfection for the ultimate evening chai companion.",
     specs: [["Herb", "Sun-dried fenugreek"], ["Flour", "Refined wheat & ajwain"], ["Texture", "Flaky & crunchy"], ["Shelf Life", "3 months"]],
   },
+  {
+    id: "custom-hamper", name: "Bespoke 3D Custom Celebration Cake", brand: "Noir Collection", category: "Gift Hampers",
+    price: 38, compareAt: 48, img: IMG.cakes, crop: CROP.TL, tag: "3D CUSTOM",
+    rating: 5.0, ratingCount: 840, stock: 30, sku: "CU-3D-CUST",
+    colors: [
+      { name: "Belgian Dark Truffle", hex: "#3b2314" },
+      { name: "Madagascar Vanilla Bean", hex: "#f5ead6" },
+      { name: "Wild Berry Coulis", hex: "#d63e63" },
+      { name: "Sicilian Pistachio", hex: "#9cb86e" },
+    ],
+    sizes: ["0.5 KG (4–6 SERVINGS)", "1.0 KG (8–10 SERVINGS)", "1.5 KG (12–15 SERVINGS)", "2.0 KG (2 TIER GRAND)"],
+    desc: "Handcrafted to your exact specifications in our 3D Cake Studio — 100% pure eggless sponge, artisanal frosting, gourmet center filling, and hand-piped Belgian chocolate plaque.",
+    specs: [["Dietary", "100% Pure Eggless"], ["Customization", "Live 3D Studio Spec"], ["Plaque", "Hand-piped Chocolate"], ["Delivery", "Chilled 4°C Express Box"]],
+    featured: false,
+  },
 ];
 
 export type Review = {

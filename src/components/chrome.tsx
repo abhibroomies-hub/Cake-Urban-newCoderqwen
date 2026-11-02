@@ -1229,6 +1229,67 @@ export function Footer() {
           </div>
         ))}
       </div>
+      {/* Collapsible Hyperlocal SEO & GEO Directory (Zero UI clutter, 100% Search Crawler Indexable) */}
+      <div className="border-t border-ink-800/70 bg-ink-950/50">
+        <details className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-3 group">
+          <summary className="cursor-pointer list-none flex items-center justify-between font-mono text-[10px] tracking-[0.18em] text-ink-500 hover:text-ink-300 uppercase">
+            <span>📍 Delhi NCR Express Cake, Cookie & Gift Hamper Delivery Directory (100+ Sectors)</span>
+            <span className="text-blaze-400 group-open:rotate-180 transition-transform">▼</span>
+          </summary>
+          <div className="pt-4 pb-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 text-[11px] text-ink-400 border-t border-ink-800/60 mt-3">
+            <div>
+              <p className="font-mono text-[9px] text-gold-400 uppercase mb-1.5">Faridabad Hub</p>
+              <div className="flex flex-col gap-1">
+                <Link to="/cakes-in/faridabad" className="hover:text-blaze-400">Cakes in Faridabad</Link>
+                <Link to="/cookies-faridabad" className="hover:text-blaze-400">Cookies in Faridabad</Link>
+                <Link to="/cake-delivery-in/sector-15-faridabad" className="hover:text-blaze-400">Sector 15 Faridabad</Link>
+                <Link to="/cake-delivery-in/sector-16-faridabad" className="hover:text-blaze-400">Sector 16 Faridabad</Link>
+                <Link to="/midnight-cake-delivery-in/sector-15-faridabad" className="hover:text-blaze-400">Midnight Delivery Faridabad</Link>
+              </div>
+            </div>
+            <div>
+              <p className="font-mono text-[9px] text-gold-400 uppercase mb-1.5">Gurgaon Hub</p>
+              <div className="flex flex-col gap-1">
+                <Link to="/cakes-in/gurgaon" className="hover:text-blaze-400">Cakes in Gurgaon</Link>
+                <Link to="/cookies-gurgaon" className="hover:text-blaze-400">Cookies in Gurgaon</Link>
+                <Link to="/cake-delivery-in/dlf-phase-5-gurgaon" className="hover:text-blaze-400">DLF Phase 5 Gurgaon</Link>
+                <Link to="/cake-delivery-in/cyber-city-gurgaon" className="hover:text-blaze-400">Cyber City Gurgaon</Link>
+                <Link to="/midnight-cake-delivery-in/dlf-phase-5-gurgaon" className="hover:text-blaze-400">Midnight Delivery Gurgaon</Link>
+              </div>
+            </div>
+            <div>
+              <p className="font-mono text-[9px] text-gold-400 uppercase mb-1.5">Noida Hub</p>
+              <div className="flex flex-col gap-1">
+                <Link to="/cakes-in/noida" className="hover:text-blaze-400">Cakes in Noida</Link>
+                <Link to="/cookies-noida" className="hover:text-blaze-400">Cookies in Noida</Link>
+                <Link to="/cake-delivery-in/sector-18-noida" className="hover:text-blaze-400">Sector 18 Noida</Link>
+                <Link to="/cake-delivery-in/sector-62-noida" className="hover:text-blaze-400">Sector 62 Noida</Link>
+                <Link to="/eggless-cake-delivery-in/sector-18-noida" className="hover:text-blaze-400">Eggless Cakes Noida</Link>
+              </div>
+            </div>
+            <div>
+              <p className="font-mono text-[9px] text-gold-400 uppercase mb-1.5">Delhi Hub</p>
+              <div className="flex flex-col gap-1">
+                <Link to="/cakes-in/delhi" className="hover:text-blaze-400">Cakes in South Delhi</Link>
+                <Link to="/cookies-delhi" className="hover:text-blaze-400">Cookies in Delhi</Link>
+                <Link to="/cake-delivery-in/greater-kailash-delhi" className="hover:text-blaze-400">Greater Kailash (GK)</Link>
+                <Link to="/cake-delivery-in/saket-delhi" className="hover:text-blaze-400">Saket & Hauz Khas</Link>
+                <Link to="/birthday-cake-delivery-in/greater-kailash-delhi" className="hover:text-blaze-400">Birthday Cakes Delhi</Link>
+              </div>
+            </div>
+            <div>
+              <p className="font-mono text-[9px] text-gold-400 uppercase mb-1.5">Ghaziabad & More</p>
+              <div className="flex flex-col gap-1">
+                <Link to="/cakes-in/ghaziabad" className="hover:text-blaze-400">Cakes in Ghaziabad</Link>
+                <Link to="/cookies-ghaziabad" className="hover:text-blaze-400">Cookies in Ghaziabad</Link>
+                <Link to="/cake-delivery-in/indirapuram-ghaziabad" className="hover:text-blaze-400">Indirapuram Hub</Link>
+                <Link to="/about" className="hover:text-blaze-400">About CakeUrban</Link>
+                <Link to="/contact" className="hover:text-blaze-400">24×7 Support (+91 7318531953)</Link>
+              </div>
+            </div>
+          </div>
+        </details>
+      </div>
       {/* Bottom Bar */}
       <div className="border-t border-ink-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
@@ -1243,7 +1304,7 @@ export function Footer() {
       <Modal open={!!policy} onClose={() => setPolicy(null)}>
         {policy && (
           <div className="p-8">
-            <p className="font-mono text-[11px] tracking-[0.3em] text-blaze-500 uppercase">VOLTA Legal</p>
+            <p className="font-mono text-[11px] tracking-[0.3em] text-blaze-500 uppercase">CakeUrban Legal</p>
             <h3 className="font-display text-2xl font-bold mt-2 mb-5">{POLICIES[policy].title}</h3>
             <div className="space-y-4 text-sm text-ink-300 leading-relaxed">{POLICIES[policy].body.map((p, i) => <p key={i}>{p}</p>)}</div>
           </div>

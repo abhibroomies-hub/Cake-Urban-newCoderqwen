@@ -169,26 +169,26 @@ export default function Checkout() {
   const inp = "w-full bg-ink-950 border border-ink-600 focus:border-blaze-500 outline-none px-4 py-3 text-sm transition-colors placeholder:text-ink-500";
 
   return (
-    <div className="max-w-6xl mx-auto px-6 lg:px-10 py-12">
-      <p className="font-mono text-[11px] tracking-[0.3em] text-blaze-500">SECURE CHECKOUT</p>
-      <h1 className="font-display text-4xl md:text-5xl font-black uppercase mt-2">{t("checkout")}</h1>
+    <div className="max-w-6xl mx-auto px-3.5 sm:px-6 lg:px-10 py-6 sm:py-12">
+      <p className="font-mono text-[10px] tracking-[0.25em] text-blaze-500 uppercase">SECURE CHECKOUT</p>
+      <h1 className="font-display text-2xl sm:text-4xl md:text-5xl font-black uppercase mt-1">{t("checkout")}</h1>
 
       {/* step indicator */}
-      <div className="flex items-center gap-0 mt-8 mb-10">
+      <div className="flex items-center gap-0 mt-5 sm:mt-8 mb-6 sm:mb-10">
         {STEPS.map((s, i) => (
           <div key={s} className="flex items-center flex-1 last:flex-none">
-            <button onClick={() => i < step && setStep(i)} className={`flex items-center gap-2.5 ${i < step ? "cursor-pointer" : "cursor-default"}`}>
-              <span className={`w-8 h-8 grid place-items-center font-mono text-xs border transition-colors ${i < step ? "bg-volt-400 text-ink-950 border-volt-400" : i === step ? "bg-blaze-500 text-ink-50 border-blaze-500" : "border-ink-600 text-ink-500"}`}>
-                {i < step ? <Ic.check className="w-4 h-4" /> : i + 1}
+            <button onClick={() => i < step && setStep(i)} className={`flex items-center gap-1.5 sm:gap-2.5 ${i < step ? "cursor-pointer" : "cursor-default"}`}>
+              <span className={`w-7 h-7 sm:w-8 sm:h-8 grid place-items-center font-mono text-xs border transition-colors ${i < step ? "bg-volt-400 text-ink-950 border-volt-400" : i === step ? "bg-blaze-500 text-ink-50 border-blaze-500" : "border-ink-600 text-ink-500"}`}>
+                {i < step ? <Ic.check className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : i + 1}
               </span>
-              <span className={`font-mono text-[10px] tracking-[0.2em] uppercase hidden sm:block ${i === step ? "text-ink-100" : "text-ink-500"}`}>{s}</span>
+              <span className={`font-mono text-[9px] sm:text-[10px] tracking-[0.12em] sm:tracking-[0.2em] uppercase ${i === step ? "text-ink-100 font-bold" : "text-ink-500 hidden xs:block sm:block"}`}>{s}</span>
             </button>
-            {i < 2 && <span className={`flex-1 h-px mx-4 ${i < step ? "bg-volt-400" : "bg-ink-700"}`} />}
+            {i < 2 && <span className={`flex-1 h-px mx-2 sm:mx-4 ${i < step ? "bg-volt-400" : "bg-ink-700"}`} />}
           </div>
         ))}
       </div>
 
-      <div className="grid lg:grid-cols-[1.5fr_1fr] gap-10 items-start">
+      <div className="grid lg:grid-cols-[1.5fr_1fr] gap-6 sm:gap-10 items-start">
         <div>
           <motion.div key={step} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.35 }}>
             {step === 0 && (

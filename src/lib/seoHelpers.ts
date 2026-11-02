@@ -6,103 +6,118 @@ export interface SchemaOptions {
   reviewCount?: string;
 }
 
+const CITY_COORDS: Record<string, { lat: number; lng: number; region: string }> = {
+  faridabad: { lat: 28.4089, lng: 77.3178, region: "Haryana" },
+  gurgaon: { lat: 28.4595, lng: 77.0266, region: "Haryana" },
+  noida: { lat: 28.5355, lng: 77.3910, region: "Uttar Pradesh" },
+  delhi: { lat: 28.5494, lng: 77.2001, region: "Delhi" },
+  ghaziabad: { lat: 28.6415, lng: 77.3714, region: "Uttar Pradesh" },
+};
+
 /**
- * Generates advanced JSON-LD structured data graph for area pages.
- * Incorporates LocalBusiness/FoodEstablishment, AggregateRating, BreadcrumbList, and FAQPage.
+ * Generates advanced JSON-LD structured data graph for hyperlocal area pages.
+ * Incorporates Bakery/LocalBusiness, GeoCoordinates, Service Area, AggregateRating, BreadcrumbList, and FAQPage.
  */
 export function generateAreaStructuredData(area: AreaData, options: SchemaOptions = {}) {
-  const baseUrl = options.siteUrl || "https://cakeurban.com";
-  const rating = options.ratingValue || "4.8";
-  const reviews = options.reviewCount || "142";
+  const baseUrl =
+    options.siteUrl || (typeof window !== "undefined" ? window.location.origin : "https://www.cakeurban.com");
+  const rating = options.ratingValue || "4.9";
+  const reviews = options.reviewCount || "318";
+  const coords = CITY_COORDS[area.citySlug] || CITY_COORDS.faridabad;
 
   return {
     "@context": "https://schema.org",
     "@graph": [
       {
-        "@type": "FoodEstablishment",
-        "@id": `${baseUrl}/#bakery`,
-        "name": `CakeUrban - ${area.areaName} ${area.cityName}`,
-        "description": area.metaDesc,
-        "url": `${baseUrl}/cake-delivery-in/${area.slug}`,
-        "telephone": "+91-7318531953",
-        "priceRange": "₹₹",
-        "servesCuisine": "Luxury Gift Hampers, Gourmet Cookies, Crispy Namkeens, Birthday Gifting, Anniversary Boxes, Corporate Hampers",
-        "areaServed": {
-          "@type": "AdministrativeArea",
-          "name": `${area.areaName}, ${area.cityName}`
+        "@type": ["Bakery", "FoodEstablishment", "LocalBusiness"],
+        "@id": `${baseUrl}/cake-delivery-in/${area.slug}#localbusiness`,
+        name: `CakeUrban — ${area.areaName}, ${area.cityName}`,
+        description: area.metaDesc,
+        url: `${baseUrl}/cake-delivery-in/${area.slug}`,
+        telephone: "+91-7318531953",
+        priceRange: "₹₹",
+        servesCuisine: [
+          "100% Pure Eggless Cakes",
+          "Belgian Chocolate Truffle",
+          "72-Hour Cold-Fermented Cookies",
+          "Luxury Gift Hampers",
+          "Crispy Traditional Namkeens",
+        ],
+        address: {
+          "@type": "PostalAddress",
+          streetAddress: `Near ${area.landmarks[0] || area.areaName}`,
+          addressLocality: `${area.areaName}, ${area.cityName}`,
+          addressRegion: coords.region,
+          postalCode: area.pincode,
+          addressCountry: "IN",
         },
-        "aggregateRating": {
+        geo: {
+          "@type": "GeoCoordinates",
+          latitude: coords.lat,
+          longitude: coords.lng,
+        },
+        areaServed: {
+          "@type": "Place",
+          name: `${area.areaName}, ${area.cityName} (${area.pincode})`,
+        },
+        aggregateRating: {
           "@type": "AggregateRating",
-          "ratingValue": rating,
-          "reviewCount": reviews,
-          "bestRating": "5",
-          "worstRating": "1"
+          ratingValue: rating,
+          reviewCount: reviews,
+          bestRating: "5",
+          worstRating: "1",
         },
-        "openingHoursSpecification": {
+        openingHoursSpecification: {
           "@type": "OpeningHoursSpecification",
-          "dayOfWeek": [
-            "Monday",
-            "Tuesday",
-            "Wednesday",
-            "Thursday",
-            "Friday",
-            "Saturday",
-            "Sunday"
-          ],
-          "opens": "09:00",
-          "closes": "00:00"
-        }
+          dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+          opens: "00:00",
+          closes: "23:59",
+        },
       },
       {
         "@type": "BreadcrumbList",
-        "itemListElement": [
+        itemListElement: [
           {
             "@type": "ListItem",
-            "position": 1,
-            "name": "Home",
-            "item": baseUrl
+            position: 1,
+            name: "Home",
+            item: baseUrl,
           },
           {
             "@type": "ListItem",
-            "position": 2,
-            "name": `${area.cityName} Hub`,
-            "item": `${baseUrl}/cakes-in/${area.citySlug}`
+            position: 2,
+            name: `${area.cityName} Hub`,
+            item: `${baseUrl}/cakes-in/${area.citySlug}`,
           },
           {
             "@type": "ListItem",
-            "position": 3,
-            "name": area.areaName,
-            "item": `${baseUrl}/cake-delivery-in/${area.slug}`
-          }
-        ]
+            position: 3,
+            name: area.areaName,
+            item: `${baseUrl}/cake-delivery-in/${area.slug}`,
+          },
+        ],
       },
       {
         "@type": "FAQPage",
-        "mainEntity": area.faqs.map((faq) => ({
+        mainEntity: area.faqs.map((faq) => ({
           "@type": "Question",
-          "name": faq.q,
-          "acceptedAnswer": {
+          name: faq.q,
+          acceptedAnswer: {
             "@type": "Answer",
-            "text": faq.a
-          }
-        }))
-      }
-    ]
+            text: faq.a,
+          },
+        })),
+      },
+    ],
   };
 }
 
-/**
- * Automated Internal Linking Utility:
- * Scans text content and injects internal hyperlinks for known area or city keywords.
- */
 export function injectInternalLinks(content: string, allAreas: AreaData[]): string {
   let processed = content;
-  // Sort areas by name length descending to avoid partial replacements
   const sortedAreas = [...allAreas].sort((a, b) => b.areaName.length - a.areaName.length);
 
   for (const area of sortedAreas.slice(0, 15)) {
     const regex = new RegExp(`\\b(${area.areaName})\\b`, "gi");
-    // Replace only the first occurrence in the text to avoid spamming links
     let replaced = false;
     processed = processed.replace(regex, (match) => {
       if (!replaced) {
@@ -115,16 +130,16 @@ export function injectInternalLinks(content: string, allAreas: AreaData[]): stri
   return processed;
 }
 
-/**
- * Generates an XML Sitemap string for all static and programmatic SEO routes.
- */
-export function generateXmlSitemap(baseUrl: string = "https://cakeurban.com", areas: AreaData[]): string {
+export function generateXmlSitemap(baseUrl: string = "https://www.cakeurban.com", areas: AreaData[]): string {
   const staticUrls = [
     { url: baseUrl, priority: "1.0", changefreq: "daily" },
     { url: `${baseUrl}/shop`, priority: "0.9", changefreq: "daily" },
-    { url: `${baseUrl}/delivery-locations`, priority: "0.8", changefreq: "weekly" },
-    { url: `${baseUrl}/builder`, priority: "0.7", changefreq: "monthly" },
-    { url: `${baseUrl}/contact`, priority: "0.5", changefreq: "monthly" },
+    { url: `${baseUrl}/delivery-locations`, priority: "0.9", changefreq: "weekly" },
+    { url: `${baseUrl}/builder`, priority: "0.8", changefreq: "weekly" },
+    { url: `${baseUrl}/track`, priority: "0.7", changefreq: "weekly" },
+    { url: `${baseUrl}/blog`, priority: "0.8", changefreq: "weekly" },
+    { url: `${baseUrl}/about`, priority: "0.6", changefreq: "monthly" },
+    { url: `${baseUrl}/contact`, priority: "0.7", changefreq: "monthly" },
   ];
 
   let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
@@ -144,7 +159,7 @@ export function generateXmlSitemap(baseUrl: string = "https://cakeurban.com", ar
     xml += `    <loc>${baseUrl}/cake-delivery-in/${area.slug}</loc>\n`;
     xml += `    <lastmod>${new Date().toISOString()}</lastmod>\n`;
     xml += `    <changefreq>weekly</changefreq>\n`;
-    xml += `    <priority>0.6</priority>\n`;
+    xml += `    <priority>0.8</priority>\n`;
     xml += `  </url>\n`;
   }
 

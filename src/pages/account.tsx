@@ -52,7 +52,7 @@ function Invoice({ order, onClose }: { order: Order; onClose: () => void }) {
         </div>
         <div className="grid grid-cols-2 gap-6 py-5 text-sm">
           <div><p className="font-mono text-[10px] tracking-[0.2em] text-ink-500 uppercase mb-1.5">Billed to</p><p className="font-semibold">{order.email}</p><p className="text-ink-300 text-sm mt-1">{order.address}</p></div>
-          <div className="text-right"><p className="font-mono text-[10px] tracking-[0.2em] text-ink-500 uppercase mb-1.5">Fulfilled by</p><p className="font-semibold">CakeUrban Bakehouse</p><p className="text-ink-300 text-sm mt-1">14 Sugar Lane, Austin TX</p></div>
+          <div className="text-right"><p className="font-mono text-[10px] tracking-[0.2em] text-ink-500 uppercase mb-1.5">Fulfilled by</p><p className="font-semibold">CakeUrban Bakehouse</p><p className="text-ink-300 text-sm mt-1">Sector 15 Hub, Faridabad (Delhi NCR)</p></div>
         </div>
         <table className="w-full text-sm">
           <thead><tr className="font-mono text-[10px] tracking-[0.15em] text-ink-500 uppercase border-b border-ink-700"><th className="text-left py-2.5">Item</th><th className="text-center">Qty</th><th className="text-right">Amount</th></tr></thead>
@@ -216,8 +216,8 @@ export default function Account() {
   const spend = shown.reduce((s, o) => s + o.total, 0);
 
   return (
-    <div className="max-w-7xl mx-auto px-6 lg:px-10 py-12">
-      <div className="flex flex-wrap items-center justify-between gap-6 mb-10 pb-8 border-b border-ink-800">
+    <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-10 py-6 sm:py-12">
+      <div className="flex flex-wrap items-center justify-between gap-4 sm:gap-6 mb-6 sm:mb-10 pb-5 sm:pb-8 border-b border-ink-800">
         <div className="flex items-center gap-4">
           <div className="relative w-16 h-16 rounded-full overflow-hidden bg-ink-800 border-2 border-blaze-500 shrink-0 grid place-items-center">
             {user.photoURL ? (
