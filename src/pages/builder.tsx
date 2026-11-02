@@ -1,382 +1,679 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Ic } from "../components/ui";
-import { useStore } from "../lib/store";
 
 const WHATSAPP_NUMBER = "917318531953";
 
-export type CakePin = {
+const FALLBACK_CAKE_IMG =
+  "https://i.pinimg.com/736x/11/63/1e/11631ec40ef315f65ce7876b5bdbc4c4.jpg";
+
+interface CakePin {
   id: string;
   title: string;
   category: string;
-  tags: string[];
   img: string;
   startingWeight: string;
   priceInr: number;
-  servings: string;
+  tags: string[];
   badge?: string;
-  aspect?: "tall" | "square" | "classic";
-};
+  pinUrl?: string;
+}
 
 const CATEGORIES = [
   { id: "all", label: "🔥 All Trending" },
-  { id: "kids", label: "🎈 Kids & Theme" },
+  { id: "birthday", label: "🎂 Birthday" },
+  { id: "wedding", label: "💍 Wedding & 2-Tier" },
   { id: "anniversary", label: "❤️ Anniversary & Heart" },
-  { id: "wedding", label: "💍 2-3 Tier Wedding" },
-  { id: "vintage", label: "🎀 Korean & Vintage" },
-  { id: "luxury", label: "✨ Gold & Chocolate" },
-  { id: "photo", label: "📸 Photo & Pinata" },
-  { id: "bride", label: "👑 Bride / Groom To Be" },
+  { id: "kids", label: "🎈 Kids & Cartoon" },
+  { id: "aesthetic", label: "✨ Korean & Butterfly" },
+  { id: "chocolate", label: "🍫 Truffle & Rasmalai" },
 ];
 
 const POPULAR_SEARCHES = [
   "Butterfly Cake",
   "Vintage Heart",
-  "2 Tier Wedding",
   "Spiderman",
-  "Unicorn",
-  "Jungle Safari",
-  "Belgian Truffle",
+  "Doraemon",
+  "Barbie Doll",
+  "Korean Bento",
+  "2 Tier Wedding",
+  "Engagement Ring",
   "Rasmalai Cake",
-  "Bride To Be",
-  "Cricket Theme",
   "Cocomelon",
+  "Unicorn",
+  "Bride To Be",
+  "25th Anniversary",
   "50th Birthday Gold",
+  "Cricket Theme",
+  "Photo Cake",
 ];
 
+// 100% Authentic Pinterest Cake Pins (i.pinimg.com/736x)
 const CURATED_PINS: CakePin[] = [
+  // Aesthetic / Butterfly / Bento / Vintage Heart
   {
-    id: "pin-butterfly-dream",
-    title: "3D Pastel Butterfly & Pearl Tier Cake",
-    category: "kids",
-    tags: ["butterfly", "pastel", "pink", "girls birthday", "pearl", "princess", "1st birthday"],
-    img: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=900&q=80",
-    startingWeight: "1.0 Kg",
-    priceInr: 1299,
-    servings: "10–12 Guests",
-    badge: "MOST SAVED PIN",
-    aspect: "tall",
-  },
-  {
-    id: "pin-vintage-heart-lambeth",
-    title: "Vintage Lambeth Red & Pink Heart Cake",
-    category: "vintage",
-    tags: ["vintage", "heart", "lambeth", "korean", "ribbon", "bow", "anniversary", "girlfriend", "wife"],
-    img: "https://images.unsplash.com/photo-1535141192574-5d4897c12636?auto=format&fit=crop&w=900&q=80",
-    startingWeight: "0.5 Kg",
-    priceInr: 899,
-    servings: "5–6 Guests",
-    badge: "VIRAL TREND",
-    aspect: "square",
-  },
-  {
-    id: "pin-royal-2tier-wedding",
-    title: "Royal 2-Tier White & 24K Gold Wedding Cake",
-    category: "wedding",
-    tags: ["wedding", "2 tier", "engagement", "ring ceremony", "gold", "floral", "white", "marriage", "shagun"],
-    img: "https://images.unsplash.com/photo-1535254973040-607b474cb50d?auto=format&fit=crop&w=900&q=80",
-    startingWeight: "2.5 Kg",
-    priceInr: 3299,
-    servings: "25–30 Guests",
-    badge: "WEDDING SPECIAL",
-    aspect: "tall",
-  },
-  {
-    id: "pin-belgian-ferrero-overload",
-    title: "Belgian Dark Chocolate & Ferrero Rocher Crown",
-    category: "luxury",
-    tags: ["chocolate", "ferrero rocher", "truffle", "drip", "gold", "husband", "boyfriend", "50th birthday"],
-    img: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?auto=format&fit=crop&w=900&q=80",
-    startingWeight: "1.0 Kg",
-    priceInr: 1399,
-    servings: "10–12 Guests",
-    badge: "BESTSELLER",
-    aspect: "classic",
-  },
-  {
-    id: "pin-unicorn-rainbow-magic",
-    title: "Magical Unicorn Pastel Horn & Macaron Cake",
-    category: "kids",
-    tags: ["unicorn", "rainbow", "kids", "daughter", "macaron", "5th birthday", "cartoon", "pastel"],
-    img: "https://images.unsplash.com/photo-1558301211-0d8c8ddee6ec?auto=format&fit=crop&w=900&q=80",
-    startingWeight: "1.5 Kg",
-    priceInr: 1699,
-    servings: "15–18 Guests",
-    badge: "KIDS FAVORITE",
-    aspect: "tall",
-  },
-  {
-    id: "pin-red-velvet-anniversary",
-    title: "Crimson Red Velvet Rose & Berry Romance Cake",
-    category: "anniversary",
-    tags: ["red velvet", "anniversary", "roses", "romantic", "couple", "25th anniversary", "1st anniversary", "heart"],
-    img: "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&w=900&q=80",
+    id: "pin-butterfly-lavender",
+    title: "Lavender Butterfly Dream Cake 🦋",
+    category: "aesthetic",
+    img: "https://i.pinimg.com/736x/11/63/1e/11631ec40ef315f65ce7876b5bdbc4c4.jpg",
     startingWeight: "1.0 Kg",
     priceInr: 1199,
-    servings: "10–12 Guests",
-    badge: "ANNIVERSARY #1",
-    aspect: "square",
+    badge: "Pinterest #1",
+    tags: ["butterfly", "lavender", "purple", "aesthetic", "girl", "birthday", "pastel", "trending"],
   },
   {
-    id: "pin-korean-bento-bow",
-    title: "Coquette Pink Ribbon Bow Korean Aesthetic Cake",
-    category: "vintage",
-    tags: ["korean", "bento", "bow", "ribbon", "pink", "aesthetic", "minimalist", "bestie", "pinterest"],
-    img: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&w=900&q=80",
+    id: "pin-butterfly-coquette",
+    title: "Butterfly Vintage Purple Coquette Cake 🦋✨",
+    category: "aesthetic",
+    img: "https://i.pinimg.com/736x/66/43/4f/66434f01e84504790655519b5e6dcd35.jpg",
+    startingWeight: "1.0 Kg",
+    priceInr: 1299,
+    badge: "Trending",
+    tags: ["butterfly", "vintage", "purple", "coquette", "aesthetic", "birthday", "girl"],
+  },
+  {
+    id: "pin-butterfly-bento",
+    title: "Pastel Butterfly & Pearl Korean Aesthetic Cake",
+    category: "aesthetic",
+    img: "https://i.pinimg.com/736x/78/2b/27/782b276ce3ac3a102ca8f4d1732d9325.jpg",
     startingWeight: "0.5 Kg",
     priceInr: 849,
-    servings: "4–6 Guests",
-    badge: "PINTEREST HIT",
-    aspect: "classic",
+    badge: "Korean Style",
+    tags: ["butterfly", "bento", "korean", "pastel", "minimal", "birthday", "aesthetic"],
   },
   {
-    id: "pin-jungle-safari-first",
-    title: "Jungle Safari Lion & Giraffe 1st Birthday Tier Cake",
-    category: "kids",
-    tags: ["jungle", "safari", "animals", "lion", "1st birthday", "baby boy", "fondant", "theme", "cocomelon"],
-    img: "https://images.unsplash.com/photo-1562440499-64c9a111f713?auto=format&fit=crop&w=900&q=80",
-    startingWeight: "2.0 Kg",
-    priceInr: 2499,
-    servings: "20–24 Guests",
-    badge: "1ST BIRTHDAY",
-    aspect: "tall",
-  },
-  {
-    id: "pin-bride-to-be-crown",
-    title: "Rose Gold Tiara 'Bride To Be' Bachelorette Cake",
-    category: "bride",
-    tags: ["bride to be", "bachelorette", "tiara", "crown", "rose gold", "bridal shower", "glitter"],
-    img: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&w=900&q=80",
+    id: "pin-vintage-heart-pink",
+    title: "Pink Vintage Lambeth Heart Floral Cake",
+    category: "anniversary",
+    img: "https://i.pinimg.com/736x/ed/63/f8/ed63f8e078267950345acfc4b0c970ec.jpg",
     startingWeight: "1.0 Kg",
-    priceInr: 1349,
-    servings: "10–12 Guests",
-    badge: "BRIDAL SHOWER",
-    aspect: "tall",
+    priceInr: 1099,
+    badge: "Most Saved",
+    tags: ["vintage", "heart", "pink", "lambeth", "ribbon", "bow", "anniversary", "girlfriend", "wife", "birthday"],
   },
   {
-    id: "pin-rasmalai-pistachio-royal",
-    title: "Royal Indian Rasmalai, Rose Petal & Sicilian Pistachio Cake",
-    category: "luxury",
-    tags: ["rasmalai", "pistachio", "gulab jamun", "indian fusion", "parents", "mom", "dad", "50th", "diwali"],
-    img: "https://images.unsplash.com/photo-1542826438-bd32f43d626f?auto=format&fit=crop&w=900&q=80",
-    startingWeight: "1.0 Kg",
-    priceInr: 1249,
-    servings: "10–12 Guests",
-    badge: "FUSION ROYAL",
-    aspect: "square",
-  },
-  {
-    id: "pin-superhero-spiderman",
-    title: "Marvel Superhero Spiderman & Avengers City Theme Cake",
-    category: "kids",
-    tags: ["spiderman", "avengers", "superhero", "batman", "boys birthday", "cartoon", "car", "action"],
-    img: "https://images.unsplash.com/photo-1557925923-33b27f891f88?auto=format&fit=crop&w=900&q=80",
-    startingWeight: "1.5 Kg",
-    priceInr: 1799,
-    servings: "15–18 Guests",
-    badge: "BOYS TOP PICK",
-    aspect: "classic",
-  },
-  {
-    id: "pin-edible-photo-memories",
-    title: "HD Edible Photo Polaroid & Golden Drip Memory Cake",
-    category: "photo",
-    tags: ["photo cake", "picture", "polaroid", "custom photo", "memories", "anniversary", "birthday", "pull me up"],
-    img: "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?auto=format&fit=crop&w=900&q=80",
+    id: "pin-vintage-heart-blue",
+    title: "Vintage Blue Heart Lambeth Coquette Cake 💙",
+    category: "aesthetic",
+    img: "https://i.pinimg.com/736x/35/83/9a/35839a9db0cd2ab92eb49a4a4327439a.jpg",
     startingWeight: "1.0 Kg",
     priceInr: 1149,
-    servings: "10–12 Guests",
-    badge: "CUSTOM PHOTO",
-    aspect: "square",
+    badge: "Coquette Pin",
+    tags: ["vintage", "heart", "blue", "lambeth", "coquette", "aesthetic", "birthday"],
   },
   {
-    id: "pin-3tier-floral-reception",
-    title: "Grand 3-Tier Pastel Peony & Champagne Reception Cake",
-    category: "wedding",
-    tags: ["3 tier", "wedding", "reception", "engagement", "grand", "peony", "flowers", "25th anniversary"],
-    img: "https://images.unsplash.com/photo-1519654793190-2e8a4806f1f2?auto=format&fit=crop&w=900&q=80",
-    startingWeight: "4.0 Kg",
-    priceInr: 5499,
-    servings: "45–50 Guests",
-    badge: "GRAND 3-TIER",
-    aspect: "tall",
-  },
-  {
-    id: "pin-strawberry-chantilly-cloud",
-    title: "Fresh Mahabaleshwar Strawberry & Mascarpone Chantilly Cake",
+    id: "pin-vintage-heart-red",
+    title: "Romantic Red & White Vintage Heart Cake",
     category: "anniversary",
-    tags: ["strawberry", "berry", "fresh fruit", "chantilly", "vanilla", "summer", "anniversary", "light"],
-    img: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=900&q=80",
-    startingWeight: "1.0 Kg",
-    priceInr: 1199,
-    servings: "10–12 Guests",
-    aspect: "tall",
+    img: "https://i.pinimg.com/736x/e5/6a/dc/e56adc2fc6f5f5c28ccd3bec689e40e0.jpg",
+    startingWeight: "0.5 Kg",
+    priceInr: 899,
+    tags: ["vintage", "heart", "red", "romantic", "anniversary", "valentine", "couple"],
   },
   {
-    id: "pin-salted-caramel-lotus-biscoff",
-    title: "Belgian Lotus Biscoff & Sea-Salt Caramel Speculoos Cake",
-    category: "luxury",
-    tags: ["biscoff", "lotus", "caramel", "butterscotch", "coffee", "corporate", "office", "boss"],
-    img: "https://images.unsplash.com/photo-1571115177098-24ec42ed204d?auto=format&fit=crop&w=900&q=80",
-    startingWeight: "1.0 Kg",
-    priceInr: 1299,
-    servings: "10–12 Guests",
-    badge: "BISCOFF DRIP",
-    aspect: "classic",
+    id: "pin-korean-bento-beige",
+    title: "Minimalist Korean Bento Lunchbox Cake",
+    category: "aesthetic",
+    img: "https://i.pinimg.com/736x/1a/c8/61/1ac861c2bda7a57bfdce825c56682338.jpg",
+    startingWeight: "0.5 Kg",
+    priceInr: 599,
+    badge: "Bento Box",
+    tags: ["korean", "bento", "lunchbox", "minimal", "aesthetic", "cute", "mini", "birthday"],
   },
   {
-    id: "pin-cricket-pitch-champion",
-    title: "Cricket Stadium Trophy & Bat Fondant Theme Cake",
-    category: "kids",
-    tags: ["cricket", "sports", "football", "gym", "ipl", "boys", "dad", "brother", "husband"],
-    img: "https://images.unsplash.com/photo-1621303837174-89787a7d4729?auto=format&fit=crop&w=900&q=80",
+    id: "pin-korean-bento-pastel",
+    title: "Cute Pastel Korean Bento Cake in Box",
+    category: "aesthetic",
+    img: "https://i.pinimg.com/736x/2f/56/c9/2f56c9e8e26c647d3f0fa015ffda3c1f.jpg",
+    startingWeight: "0.5 Kg",
+    priceInr: 649,
+    tags: ["korean", "bento", "lunchbox", "pastel", "cute", "aesthetic", "friend"],
+  },
+
+  // Wedding / Engagement / 2-Tier
+  {
+    id: "pin-wedding-2tier-floral",
+    title: "2-Tier White Floral & Monogram Wedding Cake",
+    category: "wedding",
+    img: "https://i.pinimg.com/736x/ef/a4/a5/efa4a5fe51293d20f286d240d56890b4.jpg",
+    startingWeight: "2.0 Kg",
+    priceInr: 2499,
+    badge: "Luxury 2-Tier",
+    tags: ["2 tier", "two tier", "wedding", "white", "floral", "rose", "reception", "engagement", "tier"],
+  },
+  {
+    id: "pin-wedding-2tier-elegance",
+    title: "Royal 2-Tier Ivory Rose Wedding Cake",
+    category: "wedding",
+    img: "https://i.pinimg.com/736x/29/12/20/29122018d930c3481b8d25c7563f7cf9.jpg",
+    startingWeight: "2.5 Kg",
+    priceInr: 2899,
+    badge: "Wedding Hit",
+    tags: ["2 tier", "two tier", "wedding", "ivory", "floral", "grand", "reception", "tier"],
+  },
+  {
+    id: "pin-wedding-botanical",
+    title: "2-Tier White Roses & Greenery Wedding Cake",
+    category: "wedding",
+    img: "https://i.pinimg.com/736x/72/ae/02/72ae0291f51e306acf0b44770f036cf1.jpg",
+    startingWeight: "2.0 Kg",
+    priceInr: 2399,
+    tags: ["2 tier", "two tier", "wedding", "white", "flowers", "greenery", "tier"],
+  },
+  {
+    id: "pin-engagement-ring-1",
+    title: "Romantic Engagement Ring Ceremony Cake 💍",
+    category: "wedding",
+    img: "https://i.pinimg.com/736x/a2/c9/64/a2c9646ec78d638175a84758a0245b82.jpg",
+    startingWeight: "1.5 Kg",
+    priceInr: 1799,
+    badge: "Ring Ceremony",
+    tags: ["engagement", "ring", "ceremony", "roka", "couple", "wedding", "floral", "gold"],
+  },
+  {
+    id: "pin-engagement-ring-2",
+    title: "Pastel Floral & Gold Engagement Celebration Cake",
+    category: "wedding",
+    img: "https://i.pinimg.com/736x/a9/78/4b/a9784b28522b82c668a35582a0691224.jpg",
     startingWeight: "1.5 Kg",
     priceInr: 1899,
-    servings: "15–18 Guests",
-    badge: "CRICKET THEME",
-    aspect: "square",
+    tags: ["engagement", "ring", "ceremony", "roka", "wedding", "couple", "anniversary"],
   },
   {
-    id: "pin-pinata-hammer-surprise",
-    title: "3D Belgian Chocolate Pinata Hammer Smash Heart Cake",
-    category: "photo",
-    tags: ["pinata", "hammer", "smash", "surprise", "heart", "chocolate shell", "money pull out"],
-    img: "https://images.unsplash.com/photo-1576618148400-f54bed99fcfd?auto=format&fit=crop&w=900&q=80",
+    id: "pin-engagement-luxury",
+    title: "Royal Gold Leaf Engagement Ceremony Cake",
+    category: "wedding",
+    img: "https://i.pinimg.com/736x/48/d1/96/48d1962ea768655dbe6fbbbda2832474.jpg",
+    startingWeight: "2.0 Kg",
+    priceInr: 2199,
+    tags: ["engagement", "ring", "gold", "wedding", "2 tier", "roka"],
+  },
+
+  // Kids & Cartoon (Spiderman, Doraemon, Barbie, Unicorn, Cocomelon, Safari)
+  {
+    id: "pin-kids-spiderman-1",
+    title: "Marvel Spiderman Web-Slinger Birthday Cake 🕷️",
+    category: "kids",
+    img: "https://i.pinimg.com/736x/5b/06/c1/5b06c18ef82a734ce8e7308d46546b1c.jpg",
     startingWeight: "1.0 Kg",
-    priceInr: 1399,
-    servings: "8–10 Guests",
-    badge: "WITH HAMMER",
-    aspect: "square",
+    priceInr: 1199,
+    badge: "Boys #1 Pick",
+    tags: ["spiderman", "marvel", "superhero", "avengers", "kids", "boy", "red", "blue", "cartoon", "birthday"],
   },
   {
-    id: "pin-groom-black-gold-whiskey",
-    title: "Noir Black & 24K Gold Gentleman King Crown Cake",
-    category: "bride",
-    tags: ["groom", "king", "black and gold", "husband", "men birthday", "boss", "30th birthday", "luxury"],
-    img: "https://image.qwenlm.ai/generated-images/19868aa6-1a8b-4213-bf76-a00a5c538bec/_result.png",
+    id: "pin-kids-spiderman-2",
+    title: "2-Tier Spiderman Action Superhero Cake",
+    category: "kids",
+    img: "https://i.pinimg.com/736x/c5/96/59/c596597cb22bbd2cbaff42be8d026645.jpg",
     startingWeight: "1.5 Kg",
-    priceInr: 1849,
-    servings: "15–18 Guests",
-    badge: "GENTLEMAN EDITION",
-    aspect: "tall",
+    priceInr: 1599,
+    tags: ["spiderman", "superhero", "marvel", "kids", "boy", "2 tier", "birthday"],
+  },
+  {
+    id: "pin-kids-spiderman-comic",
+    title: "Spiderman POW ZAP Comic Theme Birthday Cake",
+    category: "kids",
+    img: "https://i.pinimg.com/736x/d4/a9/47/d4a947ad96540a1fd5ab93504540461a.jpg",
+    startingWeight: "1.0 Kg",
+    priceInr: 1249,
+    tags: ["spiderman", "comic", "superhero", "boy", "kids", "birthday"],
+  },
+  {
+    id: "pin-kids-doraemon-1",
+    title: "3D Doraemon Blue Cartoon Birthday Cake 🔔",
+    category: "kids",
+    img: "https://i.pinimg.com/736x/be/98/d1/be98d1fd1125788bc158c3ad4de19c09.jpg",
+    startingWeight: "1.0 Kg",
+    priceInr: 1099,
+    badge: "Kids Favorite",
+    tags: ["doraemon", "doremon", "cartoon", "blue", "kids", "boy", "girl", "birthday", "anime"],
+  },
+  {
+    id: "pin-kids-doraemon-2",
+    title: "Cute Doraemon & Nobita Clouds Birthday Cake",
+    category: "kids",
+    img: "https://i.pinimg.com/736x/3c/92/af/3c92aff4aca619b833b4c2561f682c71.jpg",
+    startingWeight: "1.0 Kg",
+    priceInr: 1149,
+    tags: ["doraemon", "doremon", "cartoon", "kids", "blue", "birthday"],
+  },
+  {
+    id: "pin-kids-barbie-1",
+    title: "Pink & White Barbie Princess Doll Dress Cake 👑",
+    category: "kids",
+    img: "https://i.pinimg.com/736x/83/b9/2c/83b92cc3a8a2afd941924b6f48013b67.jpg",
+    startingWeight: "1.5 Kg",
+    priceInr: 1499,
+    badge: "Princess Hit",
+    tags: ["barbie", "doll", "princess", "pink", "girl", "kids", "dress", "crown", "birthday"],
+  },
+  {
+    id: "pin-kids-barbie-2",
+    title: "Rose Gown Barbie Doll Birthday Cake",
+    category: "kids",
+    img: "https://i.pinimg.com/736x/76/19/12/761912c0fc2081eecf269c339b2213c9.jpg",
+    startingWeight: "1.5 Kg",
+    priceInr: 1449,
+    tags: ["barbie", "doll", "princess", "pink", "roses", "girl", "kids", "birthday"],
+  },
+  {
+    id: "pin-kids-unicorn-1",
+    title: "Magical Pastel Rainbow Unicorn Horn Cake 🦄",
+    category: "kids",
+    img: "https://i.pinimg.com/736x/38/ee/b3/38eeb308bdffa4fc365eaec9878b9165.jpg",
+    startingWeight: "1.0 Kg",
+    priceInr: 1199,
+    badge: "Magical Pin",
+    tags: ["unicorn", "rainbow", "pastel", "girl", "kids", "magical", "1st birthday", "birthday"],
+  },
+  {
+    id: "pin-kids-unicorn-2",
+    title: "Unicorn & Pastel Balloons Cloud Birthday Cake",
+    category: "kids",
+    img: "https://i.pinimg.com/736x/93/05/40/930540f8ed9cfa57e5103a35375d96a7.jpg",
+    startingWeight: "1.5 Kg",
+    priceInr: 1499,
+    tags: ["unicorn", "balloons", "pastel", "girl", "kids", "birthday"],
+  },
+  {
+    id: "pin-kids-cocomelon-1",
+    title: "Cocomelon 1st Birthday Rainbow Theme Cake 🍉",
+    category: "kids",
+    img: "https://i.pinimg.com/736x/8e/f4/53/8ef453a90bee444304ac8e3a380b9e84.jpg",
+    startingWeight: "1.5 Kg",
+    priceInr: 1499,
+    badge: "1st Birthday",
+    tags: ["cocomelon", "1st birthday", "first birthday", "baby", "kids", "cartoon", "rainbow", "boy", "girl"],
+  },
+  {
+    id: "pin-kids-safari-1",
+    title: "Luxury Jungle Safari Lion & Giraffe Theme Cake 🦁",
+    category: "kids",
+    img: "https://i.pinimg.com/736x/84/ff/5c/84ff5ccd4b1d62d19191f63de01ab728.jpg",
+    startingWeight: "1.5 Kg",
+    priceInr: 1599,
+    badge: "Jungle Theme",
+    tags: ["jungle", "safari", "animals", "lion", "baby", "1st birthday", "kids", "boy", "birthday"],
+  },
+  {
+    id: "pin-kids-safari-2",
+    title: "Cute Pastel Rainbow & Animal Faces Safari Cake",
+    category: "kids",
+    img: "https://i.pinimg.com/736x/20/98/2e/20982ed74d2cc5db871e128c75a3a3ba.jpg",
+    startingWeight: "1.0 Kg",
+    priceInr: 1299,
+    tags: ["jungle", "safari", "animals", "rainbow", "kids", "1st birthday", "birthday"],
+  },
+
+  // Anniversary & Milestone Birthday (25th, 50th, Red Velvet Heart, Bride to Be, Mens Black Gold, Cricket, Photo)
+  {
+    id: "pin-anniv-redvelvet-heart",
+    title: "Romantic Heart-Shaped Red Velvet Anniversary Cake ❤️",
+    category: "anniversary",
+    img: "https://i.pinimg.com/736x/5e/66/f6/5e66f6cf71264fe96681ee9908febd91.jpg",
+    startingWeight: "1.0 Kg",
+    priceInr: 1099,
+    badge: "Couple Favorite",
+    tags: ["red velvet", "heart", "anniversary", "romantic", "couple", "wife", "husband", "red", "valentine"],
+  },
+  {
+    id: "pin-anniv-calendar-heart",
+    title: "Save The Date Calendar Red Velvet Anniversary Cake",
+    category: "anniversary",
+    img: "https://i.pinimg.com/736x/08/b7/31/08b731aeea08622d4918def6f57ce9e6.jpg",
+    startingWeight: "1.0 Kg",
+    priceInr: 1149,
+    badge: "Date Calendar",
+    tags: ["calendar", "date", "red velvet", "anniversary", "heart", "couple", "romantic", "birthday"],
+  },
+  {
+    id: "pin-anniv-25th-silver-1",
+    title: "25th Anniversary Silver Jubilee Grand Cake ✨",
+    category: "anniversary",
+    img: "https://i.pinimg.com/736x/94/b7/be/94b7bef7139130bdd411e3949c599030.jpg",
+    startingWeight: "1.5 Kg",
+    priceInr: 1699,
+    badge: "Silver Jubilee",
+    tags: ["25th", "25th anniversary", "silver", "jubilee", "parents", "mom dad", "anniversary", "wedding"],
+  },
+  {
+    id: "pin-anniv-25th-silver-2",
+    title: "Elegant Silver & White 25th Anniversary Cake",
+    category: "anniversary",
+    img: "https://i.pinimg.com/736x/61/78/29/61782944c2ea84f345e38e0a33e2fbf4.jpg",
+    startingWeight: "1.5 Kg",
+    priceInr: 1599,
+    tags: ["25th", "25th anniversary", "silver", "jubilee", "parents", "anniversary"],
+  },
+  {
+    id: "pin-anniv-50th-gold-1",
+    title: "50th Golden Jubilee & Milestone Luxury Gold Cake 👑",
+    category: "anniversary",
+    img: "https://i.pinimg.com/736x/9e/5b/b4/9e5bb41d0029e1fab0a2c7e745a7f6dd.jpg",
+    startingWeight: "1.5 Kg",
+    priceInr: 1799,
+    badge: "Golden Jubilee",
+    tags: ["50th", "50th birthday", "50th anniversary", "gold", "golden", "jubilee", "parents", "dad", "mom", "birthday"],
+  },
+  {
+    id: "pin-anniv-50th-gold-2",
+    title: "Royal Gold Drip 50th Celebration Cake",
+    category: "birthday",
+    img: "https://i.pinimg.com/736x/20/ba/cd/20bacd473e5ad0ff04d37d5186bf2435.jpg",
+    startingWeight: "1.5 Kg",
+    priceInr: 1699,
+    tags: ["50th", "50th birthday", "50th anniversary", "gold", "golden", "birthday", "anniversary"],
+  },
+  {
+    id: "pin-bride-to-be-1",
+    title: "Glam Bride To Be Crown & Bow Bachelorette Cake 👰‍♀️",
+    category: "birthday",
+    img: "https://i.pinimg.com/736x/4a/02/d9/4a02d9f459793a1699da464de3573d68.jpg",
+    startingWeight: "1.0 Kg",
+    priceInr: 1199,
+    badge: "Bride To Be",
+    tags: ["bride", "bride to be", "bachelorette", "bridal shower", "wedding", "pink", "girl", "party"],
+  },
+  {
+    id: "pin-bride-to-be-bow",
+    title: "White Coquette Bow Bride To Be Gold Lettering Cake",
+    category: "birthday",
+    img: "https://i.pinimg.com/736x/40/88/d8/4088d83d94169078b49467f7de0936e9.jpg",
+    startingWeight: "1.0 Kg",
+    priceInr: 1249,
+    tags: ["bride", "bride to be", "bachelorette", "bow", "white", "gold", "wedding"],
+  },
+  {
+    id: "pin-mens-black-gold-1",
+    title: "Royal Black & Gold Metallic Men's Birthday Cake 🥂",
+    category: "birthday",
+    img: "https://i.pinimg.com/736x/2b/1f/43/2b1f4360e6f0566fab491be54ee1cb99.jpg",
+    startingWeight: "1.0 Kg",
+    priceInr: 1299,
+    badge: "For Him",
+    tags: ["black", "gold", "mens", "husband", "boyfriend", "brother", "dad", "groom", "50th birthday", "birthday"],
+  },
+  {
+    id: "pin-mens-black-gold-2",
+    title: "Luxury Black & Gold Crown Gentleman Cake",
+    category: "birthday",
+    img: "https://i.pinimg.com/736x/a1/c2/d3/a1c2d3d56b0b2fa48ccec134375cc68c.jpg",
+    startingWeight: "1.5 Kg",
+    priceInr: 1549,
+    tags: ["black", "gold", "mens", "dad", "husband", "50th birthday", "70th", "birthday"],
+  },
+  {
+    id: "pin-cricket-theme",
+    title: "Cricket Pitch Bat & Ball Champion Birthday Cake 🏏",
+    category: "kids",
+    img: "https://i.pinimg.com/736x/f4/03/87/f403879d102aa75263021db7e985c4d5.jpg",
+    startingWeight: "1.0 Kg",
+    priceInr: 1199,
+    badge: "Cricket Fan",
+    tags: ["cricket", "ipl", "sports", "bat", "boy", "kids", "mens", "birthday"],
+  },
+  {
+    id: "pin-photo-polaroid-1",
+    title: "Edible Polaroid Photo Memories Birthday Cake 📸",
+    category: "birthday",
+    img: "https://i.pinimg.com/736x/c2/dc/ca/c2dcca42e45875fc20fc247fcfb2bba7.jpg",
+    startingWeight: "1.0 Kg",
+    priceInr: 1299,
+    badge: "Custom Photo",
+    tags: ["photo", "polaroid", "picture", "memories", "custom photo", "birthday", "anniversary", "best friend"],
+  },
+  {
+    id: "pin-photo-polaroid-2",
+    title: "Vintage Film Strip & Photo Collage Celebration Cake",
+    category: "birthday",
+    img: "https://i.pinimg.com/736x/31/64/02/31640294c8b1fa6e01e753d0f6f088eb.jpg",
+    startingWeight: "1.0 Kg",
+    priceInr: 1349,
+    tags: ["photo", "polaroid", "picture", "collage", "birthday", "anniversary"],
+  },
+
+  // Chocolate Truffle & Royal Rasmalai
+  {
+    id: "pin-rasmalai-pistachio-1",
+    title: "Royal Rasmalai Pistachio & Rose Petals Fusion Cake 🌹",
+    category: "chocolate",
+    img: "https://i.pinimg.com/736x/c3/73/b2/c373b25454d332e53147e0cdb060bb1b.jpg",
+    startingWeight: "1.0 Kg",
+    priceInr: 1099,
+    badge: "NCR Bestseller",
+    tags: ["rasmalai", "pistachio", "indian", "fusion", "rabri", "saffron", "rose", "parents", "birthday", "anniversary"],
+  },
+  {
+    id: "pin-rasmalai-saffron-2",
+    title: "Kesar Rasmalai Cardamom Crown Celebration Cake",
+    category: "chocolate",
+    img: "https://i.pinimg.com/736x/0a/81/d8/0a81d824714f5966d5418f45bc1456f2.jpg",
+    startingWeight: "1.0 Kg",
+    priceInr: 1149,
+    tags: ["rasmalai", "kesar", "saffron", "pistachio", "mithai", "indian", "birthday"],
+  },
+  {
+    id: "pin-choc-truffle-drip-1",
+    title: "Belgian Dark Chocolate Overload & Ferrero Drip Cake 🍫",
+    category: "chocolate",
+    img: "https://i.pinimg.com/736x/08/24/b3/0824b390c3438b5657a7952f93516cb3.jpg",
+    startingWeight: "1.0 Kg",
+    priceInr: 1099,
+    badge: "Choc Lover #1",
+    tags: ["chocolate", "truffle", "belgian", "ferrero", "rocher", "drip", "oreo", "kitkat", "birthday"],
+  },
+  {
+    id: "pin-choc-truffle-drip-2",
+    title: "Rich Ganache Chocolate Truffle & Berries Crown Cake",
+    category: "chocolate",
+    img: "https://i.pinimg.com/736x/f4/76/aa/f476aafd17311ae3a3a7e8101735354e.jpg",
+    startingWeight: "1.0 Kg",
+    priceInr: 1199,
+    tags: ["chocolate", "truffle", "ganache", "drip", "belgian", "birthday", "anniversary"],
+  },
+  {
+    id: "pin-choc-luxury-3",
+    title: "Signature Chocolate Fudge & Macaron Tower Cake",
+    category: "chocolate",
+    img: "https://i.pinimg.com/736x/e6/17/38/e61738f2e027798b56f85e9828e20efd.jpg",
+    startingWeight: "1.0 Kg",
+    priceInr: 1249,
+    tags: ["chocolate", "fudge", "truffle", "macaron", "birthday"],
   },
 ];
 
-export default function CustomBuilder() {
-  const { toast } = useStore();
+const STOP_WORDS = new Set([
+  "cake",
+  "cakes",
+  "design",
+  "designs",
+  "pinterest",
+  "custom",
+  "theme",
+  "for",
+  "with",
+  "and",
+  "the",
+  "in",
+  "on",
+  "of",
+  "a",
+  "an",
+  "ideas",
+  "idea",
+  "photo",
+  "image",
+]);
+
+function scorePinAgainstQuery(pin: CakePin, rawQuery: string): number {
+  const q = rawQuery.trim().toLowerCase();
+  if (!q) return 1;
+
+  const haystack = [
+    pin.title.toLowerCase(),
+    pin.category.toLowerCase(),
+    (pin.badge || "").toLowerCase(),
+    ...pin.tags.map((t) => t.toLowerCase()),
+  ].join(" ");
+
+  // Exact full phrase match gets highest boost
+  let score = 0;
+  if (haystack.includes(q)) {
+    score += 100;
+  }
+
+  // Tokenize query and ignore generic stop words ("cake", "design", etc.)
+  const rawTokens = q
+    .split(/[\s,/-]+/)
+    .map((t) => t.trim())
+    .filter((t) => t.length > 1);
+
+  const meaningfulTokens = rawTokens.filter((t) => !STOP_WORDS.has(t));
+  const tokensToUse = meaningfulTokens.length > 0 ? meaningfulTokens : rawTokens;
+
+  let matchedCount = 0;
+  for (const token of tokensToUse) {
+    if (haystack.includes(token)) {
+      matchedCount += 1;
+      score += 25;
+      if (pin.title.toLowerCase().includes(token)) {
+        score += 15;
+      }
+      if (pin.tags.some((tag) => tag.toLowerCase() === token)) {
+        score += 20;
+      }
+    }
+  }
+
+  // Require at least one meaningful token match
+  if (matchedCount === 0) return 0;
+
+  // Bonus if ALL meaningful tokens matched
+  if (matchedCount === tokensToUse.length) {
+    score += 50;
+  }
+
+  return score;
+}
+
+export default function CustomCakePinterestFinder() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
   const [selectedWeight, setSelectedWeight] = useState("1.0 Kg");
   const [selectedFlavor, setSelectedFlavor] = useState("Belgian Chocolate Truffle");
-  const [customPasteUrl, setCustomPasteUrl] = useState("");
+  const [livePins, setLivePins] = useState<CakePin[]>([]);
+  const [isSearchingWeb, setIsSearchingWeb] = useState(false);
   const [previewPin, setPreviewPin] = useState<CakePin | null>(null);
   const [customNote, setCustomNote] = useState("");
+  const [customPasteUrl, setCustomPasteUrl] = useState("");
 
-  // Live Wikimedia Commons / Web Cake Image Search for any custom keyword typed by user
-  const [webPins, setWebPins] = useState<CakePin[]>([]);
-  const [isSearchingWeb, setIsSearchingWeb] = useState(false);
-
+  // Live Pinterest Search via our /api/pinterest-search endpoint when user types a query
   useEffect(() => {
     const q = searchQuery.trim();
     if (q.length < 2) {
-      setWebPins([]);
+      setLivePins([]);
+      setIsSearchingWeb(false);
       return;
     }
 
+    const controller = new AbortController();
     const timer = setTimeout(async () => {
       setIsSearchingWeb(true);
       try {
-        const searchTerm = q.toLowerCase().includes("cake") ? q : `${q} cake`;
-        const apiUrl = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(
-          searchTerm
-        )}&gsrnamespace=6&gsrlimit=12&prop=imageinfo&iiprop=url&iiurlwidth=700&format=json&origin=*`;
-
-        const res = await fetch(apiUrl);
+        const res = await fetch(`/api/pinterest-search?q=${encodeURIComponent(q)}`, {
+          signal: controller.signal,
+        });
+        if (!res.ok) throw new Error("API error");
         const data = await res.json();
-        const pages = data?.query?.pages ? Object.values(data.query.pages) : [];
-
-        const fetched: CakePin[] = [];
-        for (const p of pages as any[]) {
-          const thumb = p?.imageinfo?.[0]?.thumburl || p?.imageinfo?.[0]?.url;
-          const rawTitle: string = (p?.title || "").replace(/^File:/i, "").replace(/\.[a-zA-Z0-9]+$/, "").replace(/[_-]+/g, " ");
-          if (
-            thumb &&
-            !thumb.endsWith(".svg") &&
-            !thumb.endsWith(".pdf") &&
-            !thumb.endsWith(".tif")
-          ) {
-            fetched.push({
-              id: `web-${p.pageid}`,
-              title: rawTitle.length > 48 ? rawTitle.slice(0, 48) + "..." : rawTitle || `${q} Custom Cake`,
-              category: "custom",
-              tags: [q.toLowerCase(), "custom", "pinterest"],
-              img: thumb,
-              startingWeight: selectedWeight,
-              priceInr: 1199,
-              servings: "10–12 Guests",
-              badge: "LIVE WEB DESIGN",
-              aspect: fetched.length % 2 === 0 ? "tall" : "square",
-            });
-          }
+        const fetchedPins: CakePin[] = (data?.pins || []).map((p: any, idx: number) => ({
+          id: p.id || `live-pin-${idx}-${Date.now()}`,
+          title: p.title || `Custom ${q} Cake`,
+          category: "custom",
+          img: p.img,
+          startingWeight: p.startingWeight || "1.0 Kg",
+          priceInr: p.priceInr || 999,
+          tags: [q.toLowerCase(), "pinterest", "custom"],
+          badge: p.badge || "Pinterest Live",
+          pinUrl: p.pinUrl,
+        }));
+        setLivePins(fetchedPins);
+      } catch (err: any) {
+        if (err?.name !== "AbortError") {
+          setLivePins([]);
         }
-        setWebPins(fetched);
-      } catch {
-        setWebPins([]);
       } finally {
-        setIsSearchingWeb(false);
+        if (!controller.signal.aborted) {
+          setIsSearchingWeb(false);
+        }
       }
-    }, 350);
+    }, 280);
 
-    return () => clearTimeout(timer);
-  }, [searchQuery, selectedWeight]);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [searchQuery]);
 
-  // Filter curated pins + merge live web search pins
+  // Combine Curated Pinterest Pins + Live Fetched Pinterest Pins
   const displayedPins = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    const filteredLocal = CURATED_PINS.filter((pin) => {
-      const matchesCat = activeCategory === "all" || pin.category === activeCategory;
-      if (!q) return matchesCat;
-      const inTitle = pin.title.toLowerCase().includes(q);
-      const inTags = pin.tags.some((t) => t.toLowerCase().includes(q));
-      const inCat = pin.category.toLowerCase().includes(q);
-      return inTitle || inTags || inCat;
-    });
+    const q = searchQuery.trim();
 
-    if (!q) return filteredLocal;
+    if (!q) {
+      return CURATED_PINS.filter(
+        (pin) => activeCategory === "all" || pin.category === activeCategory
+      );
+    }
 
-    // Combine matching local curated pins with live web cake pins
-    return [...filteredLocal, ...webPins];
-  }, [searchQuery, activeCategory, webPins]);
+    // Score & sort curated pins across ALL categories when searching
+    const scoredLocal = CURATED_PINS.map((pin) => ({
+      pin,
+      score: scorePinAgainstQuery(pin, q),
+    }))
+      .filter((item) => item.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .map((item) => item.pin);
 
-  // Build WhatsApp URL with the Cake Image URL + details so it shows directly in WhatsApp chat
+    // Deduplicate by image URL between local curated pins and live Pinterest pins
+    const seenImgs = new Set<string>();
+    const combined: CakePin[] = [];
+
+    for (const p of [...scoredLocal, ...livePins]) {
+      if (!p.img || seenImgs.has(p.img)) continue;
+      seenImgs.add(p.img);
+      combined.push(p);
+    }
+
+    return combined;
+  }, [searchQuery, activeCategory, livePins]);
+
+  // Build Direct WhatsApp Chat Link With Cake Image URL & Customer Preferences
   const buildWhatsAppLink = (pin: CakePin, extraNote?: string) => {
     const lines = [
-      `Hi CakeUrban! 🎂 Mujhe ye custom cake design pasand aaya hai:`,
+      `Hi CakeUrban! 🎂 Mujhe ye custom cake banwana hai:`,
       ``,
-      `📌 *Cake Design*: ${pin.title}`,
-      `🖼️ *Cake Image Link*: ${pin.img}`,
-      `⚖️ *Preferred Weight*: ${selectedWeight} (100% Eggless)`,
-      `🍫 *Flavor*: ${selectedFlavor}`,
-      `💰 *Ref Starting Price*: ₹${pin.priceInr}`,
+      `📌 *Cake Design:* ${pin.title}`,
+      `⚖️ *Selected Weight:* ${selectedWeight}`,
+      `🍫 *Preferred Flavor:* ${selectedFlavor} (100% Eggless)`,
+      `💰 *Ref Starting Price:* ₹${pin.priceInr}`,
+      ...(extraNote?.trim() ? [`✍️ *Custom Note:* ${extraNote.trim()}`] : []),
+      ``,
+      `🖼️ *Pinterest Cake Photo Link:*`,
+      pin.img,
+      ...(pin.pinUrl ? [`🔗 *Pinterest Pin:* ${pin.pinUrl}`] : []),
+      ``,
+      `Please confirm final price & delivery slot!`,
     ];
-    if (extraNote && extraNote.trim()) {
-      lines.push(`✍️ *Custom Note / Message*: ${extraNote.trim()}`);
-    }
-    lines.push(``, `Please share final price & delivery availability!`);
     return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(lines.join("\n"))}`;
   };
 
   const handleCustomLinkSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!customPasteUrl.trim()) {
-      toast("error", "Please paste a Pinterest / Instagram link or cake description!");
-      return;
-    }
+    if (!customPasteUrl.trim()) return;
     const msg = [
-      `Hi CakeUrban! 🎂 Maine Pinterest/Instagram par ek custom cake dekha hai:`,
+      `Hi CakeUrban! 🎂 Maine Pinterest/Instagram par ye custom cake dekha hai:`,
       ``,
-      `🔗 *Reference Link / Idea*: ${customPasteUrl.trim()}`,
-      `⚖️ *Weight*: ${selectedWeight} (100% Eggless)`,
-      `🍫 *Flavor*: ${selectedFlavor}`,
+      `🔗 *Cake Link / Idea:* ${customPasteUrl.trim()}`,
+      `⚖️ *Weight:* ${selectedWeight}`,
+      `🍫 *Flavor:* ${selectedFlavor} (100% Eggless)`,
       ``,
       `Please check this image/link and share price & availability!`,
     ].join("\n");
@@ -390,53 +687,59 @@ export default function CustomBuilder() {
         <div className="max-w-3xl mx-auto text-center space-y-2.5 sm:space-y-3">
           <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#E60023]/15 border border-[#E60023]/40 text-[#ff4d67] font-mono text-[9px] sm:text-[10px] tracking-[0.12em] sm:tracking-[0.18em] uppercase font-bold max-w-full">
             <span className="w-2 h-2 rounded-full bg-[#E60023] animate-ping shrink-0" />
-            <span className="truncate">Pinterest Custom Cake Discovery · 100% Eggless</span>
+            <span className="truncate">Live Pinterest Custom Cake Search · 100% Eggless</span>
           </div>
 
           <h1 className="font-display text-2xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight leading-tight">
-            Search Any <span className="text-blaze-500">Dream Cake</span> & Chat on WhatsApp
+            Search Any <span className="text-blaze-500">Pinterest Cake</span> & Chat on WhatsApp
           </h1>
 
           <p className="text-ink-300 text-xs sm:text-sm max-w-xl mx-auto leading-relaxed">
-            Apna pasandida cake design search karein, aur kisi bhi photo ke niche{" "}
-            <span className="text-emerald-400 font-semibold">"Chat About This Cake"</span> dabayein — cake ki photo ke sath seedha WhatsApp par baat karein!
+            Koi bhi cake theme search karein (jaise Doraemon, Butterfly, 2-Tier Engagement) aur pasand aane par photo ke niche{" "}
+            <span className="text-emerald-400 font-semibold">"Chat About This Cake"</span> dabayein!
           </p>
 
           {/* Main Pinterest Search Input */}
-          <div className="pt-2">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const el = document.getElementById("pins-grid");
+              el?.scrollIntoView({ behavior: "smooth" });
+            }}
+            className="pt-2"
+          >
             <div className="relative flex items-center bg-ink-950 border-2 border-ink-700 focus-within:border-blaze-500 rounded-full overflow-hidden shadow-2xl transition-colors">
-              <span className="pl-4 sm:pl-5 text-ink-400">
+              <span className="pl-3.5 sm:pl-5 text-ink-400 shrink-0">
                 <Ic.search className="w-4 h-4 sm:w-5 sm:h-5 text-blaze-500" />
               </span>
               <input
                 type="text"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search Pinterest cakes: 'Butterfly', 'Spiderman', '2 Tier Wedding', 'Heart'..."
-                className="w-full bg-transparent px-3 sm:px-4 py-3 sm:py-3.5 text-xs sm:text-sm text-ink-50 placeholder-ink-400 outline-none"
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  if (activeCategory !== "all") setActiveCategory("all");
+                }}
+                placeholder="Search any Pinterest cake: 'Butterfly', 'Doraemon', 'Shinchan', '2 Tier'..."
+                className="w-full min-w-0 bg-transparent px-2.5 sm:px-4 py-3 sm:py-3.5 text-xs sm:text-sm text-ink-50 placeholder-ink-400 outline-none"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery("")}
-                  className="px-2.5 text-ink-400 hover:text-ink-100 font-mono text-xs"
+                  className="px-2 text-ink-400 hover:text-ink-100 font-mono text-xs shrink-0"
                   aria-label="Clear search"
                 >
                   ✕
                 </button>
               )}
               <button
-                type="button"
-                onClick={() => {
-                  const el = document.getElementById("pins-grid");
-                  el?.scrollIntoView({ behavior: "smooth" });
-                }}
-                className="mr-1.5 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full bg-blaze-500 hover:bg-blaze-400 text-ink-50 font-mono text-[11px] sm:text-xs uppercase font-bold tracking-wider transition-colors shrink-0"
+                type="submit"
+                className="mr-1.5 px-3.5 sm:px-6 py-2 sm:py-2.5 rounded-full bg-[#E60023] hover:bg-[#cc001f] text-white font-mono text-[10px] sm:text-xs uppercase font-bold tracking-wider transition-colors shrink-0"
               >
                 Search
               </button>
             </div>
-          </div>
+          </form>
 
           {/* Popular Search Chips (Scrollable on Mobile) */}
           <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-1 pb-0.5 justify-start sm:justify-center">
@@ -451,11 +754,11 @@ export default function CustomBuilder() {
                 }}
                 className={`px-2.5 py-1 rounded-full font-mono text-[10px] border transition-colors shrink-0 ${
                   searchQuery.toLowerCase() === term.toLowerCase()
-                    ? "bg-blaze-500 text-white border-blaze-500 font-bold"
+                    ? "bg-[#E60023] text-white border-[#E60023] font-bold"
                     : "bg-ink-900/90 text-ink-300 border-ink-700 hover:border-blaze-400 hover:text-ink-100"
                 }`}
               >
-                🔍 {term}
+                📌 {term}
               </button>
             ))}
           </div>
@@ -463,7 +766,7 @@ export default function CustomBuilder() {
 
         {/* Quick Weight & Flavor Selector Strip (Included in WhatsApp Message Automatically!) */}
         <div className="mt-5 pt-4 border-t border-ink-800/80 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 max-w-4xl mx-auto">
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar">
             <span className="font-mono text-[10px] uppercase text-gold-400 shrink-0">1. Weight:</span>
             {["0.5 Kg", "1.0 Kg", "1.5 Kg", "2.0 Kg (2-Tier)", "3.0 Kg+"].map((w) => (
               <button
@@ -481,13 +784,13 @@ export default function CustomBuilder() {
             ))}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 min-w-0">
             <span className="font-mono text-[10px] uppercase text-gold-400 shrink-0">2. Flavor:</span>
             <select
               value={selectedFlavor}
               onChange={(e) => setSelectedFlavor(e.target.value)}
               aria-label="Select cake flavor"
-              className="bg-ink-950 border border-ink-700 focus:border-blaze-500 rounded px-2.5 py-1 text-xs font-mono text-ink-100 outline-none flex-1 sm:flex-initial"
+              className="bg-ink-950 border border-ink-700 focus:border-blaze-500 rounded px-2.5 py-1 text-xs font-mono text-ink-100 outline-none flex-1 sm:flex-initial min-w-0 truncate"
             >
               <option value="Belgian Chocolate Truffle">Belgian Chocolate Truffle</option>
               <option value="Red Velvet Cream Cheese">Red Velvet Cream Cheese</option>
@@ -524,18 +827,43 @@ export default function CustomBuilder() {
 
       {/* Status Bar when Searching */}
       {searchQuery.trim() !== "" && (
-        <div className="flex items-center justify-between gap-2 mb-4 px-1">
-          <p className="font-mono text-xs text-ink-300">
-            Showing custom cake designs for <span className="text-blaze-400 font-bold">"{searchQuery}"</span>{" "}
-            {isSearchingWeb && <span className="text-gold-400 animate-pulse">(Fetching more live pins...)</span>}
-          </p>
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-4 px-1">
+          <div className="flex items-center gap-2 min-w-0">
+            <p className="font-mono text-xs text-ink-300 truncate">
+              Pinterest results for <span className="text-blaze-400 font-bold">"{searchQuery}"</span>{" "}
+              <span className="text-ink-400">({displayedPins.length} pins)</span>
+            </p>
+            {isSearchingWeb && (
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#E60023]/20 border border-[#E60023]/40 text-[#ff4d67] font-mono text-[10px] animate-pulse shrink-0">
+                Loading live Pinterest pins...
+              </span>
+            )}
+          </div>
           <button
             type="button"
             onClick={() => setSearchQuery("")}
-            className="font-mono text-[11px] text-blaze-400 hover:underline"
+            className="font-mono text-[11px] text-blaze-400 hover:underline shrink-0"
           >
-            Reset Filter
+            Clear Search ✕
           </button>
+        </div>
+      )}
+
+      {/* Loading Skeleton when Searching Live Pinterest with 0 Local Matches Yet */}
+      {isSearchingWeb && displayedPins.length === 0 && (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-5 mb-6">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div
+              key={i}
+              className="bg-ink-900 border border-ink-800 rounded-xl overflow-hidden animate-pulse"
+            >
+              <div className="aspect-[4/5] bg-ink-800/70" />
+              <div className="p-3 space-y-2">
+                <div className="h-3.5 bg-ink-800 rounded w-3/4" />
+                <div className="h-8 bg-ink-800 rounded w-full mt-2" />
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
@@ -559,6 +887,13 @@ export default function CustomBuilder() {
                     src={pin.img}
                     alt={pin.title}
                     loading="lazy"
+                    referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      if (target.src !== FALLBACK_CAKE_IMG) {
+                        target.src = FALLBACK_CAKE_IMG;
+                      }
+                    }}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
 
@@ -667,7 +1002,7 @@ export default function CustomBuilder() {
               value={customPasteUrl}
               onChange={(e) => setCustomPasteUrl(e.target.value)}
               placeholder="Paste Pinterest link or describe your dream cake..."
-              className="flex-1 bg-ink-950 border border-ink-700 focus:border-blaze-500 rounded-lg px-3.5 py-2.5 text-xs sm:text-sm text-ink-100 outline-none"
+              className="flex-1 min-w-0 bg-ink-950 border border-ink-700 focus:border-blaze-500 rounded-lg px-3.5 py-2.5 text-xs sm:text-sm text-ink-100 outline-none"
             />
             <button
               type="submit"
@@ -690,7 +1025,18 @@ export default function CustomBuilder() {
             className="bg-ink-900 border border-ink-700 rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl grid grid-cols-1 sm:grid-cols-2"
           >
             <div className="relative aspect-square sm:aspect-auto sm:h-full bg-ink-950">
-              <img src={previewPin.img} alt={previewPin.title} className="w-full h-full object-cover" />
+              <img
+                src={previewPin.img}
+                alt={previewPin.title}
+                referrerPolicy="no-referrer"
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  if (target.src !== FALLBACK_CAKE_IMG) {
+                    target.src = FALLBACK_CAKE_IMG;
+                  }
+                }}
+                className="w-full h-full object-cover"
+              />
               <button
                 type="button"
                 onClick={() => setPreviewPin(null)}
