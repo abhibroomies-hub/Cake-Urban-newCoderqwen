@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { Ic } from "../components/ui";
 
 const WHATSAPP_NUMBER = "917318531953";
@@ -576,6 +577,16 @@ export default function CustomCakePinterestFinder() {
     setPreviewPin(null);
   };
 
+  // Lock background page scroll while the full-size cake preview modal is open
+  useEffect(() => {
+    if (!previewPin) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [previewPin]);
+
   // Live Custom Cake Search via our /api/pinterest-search endpoint when user types a query
   useEffect(() => {
     const q = searchQuery.trim();
@@ -989,96 +1000,99 @@ export default function CustomCakePinterestFinder() {
         </div>
       </div>
 
-      {/* Full-Size Cake Lightbox & Zoom Modal when User Taps a Cake Photo */}
-      {previewPin && (
-        <div
-          onClick={closeCakePreview}
-          className="fixed inset-0 z-[95] bg-ink-950/95 backdrop-blur-md p-2 sm:p-5 flex items-center justify-center overflow-y-auto"
-        >
+      {/* Full-Size Cake Lightbox & Zoom Modal Mounted Directly on document.body */}
+      {previewPin &&
+        typeof document !== "undefined" &&
+        createPortal(
           <div
-            onClick={(e) => e.stopPropagation()}
-            className="bg-ink-900 border border-ink-700 rounded-2xl max-w-4xl w-full max-h-[94vh] flex flex-col overflow-hidden shadow-2xl"
+            onClick={closeCakePreview}
+            className="fixed inset-0 z-[9999] bg-ink-950/95 backdrop-blur-md p-2 sm:p-5 flex items-center justify-center overflow-hidden"
           >
-            {/* Top Bar with Title, Zoom Button & Close Button */}
-            <div className="flex items-center justify-between gap-2 px-3.5 sm:px-5 py-2.5 sm:py-3 border-b border-ink-800 bg-ink-950/90 shrink-0">
-              <div className="min-w-0">
-                <span className="font-mono text-[9px] sm:text-[10px] text-gold-400 uppercase tracking-wider block">
-                  🎂 Full Cake Preview · 100% Pure Eggless
-                </span>
-                <h3 className="font-display text-sm sm:text-lg font-black uppercase text-ink-50 truncate">
-                  {previewPin.title}
-                </h3>
-              </div>
-
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setIsImageZoomed((z) => !z)}
-                  className="px-2.5 sm:px-3 py-1.5 rounded-lg bg-ink-800 hover:bg-ink-700 border border-ink-600 text-ink-100 font-mono text-[10px] sm:text-xs font-bold transition-colors"
-                >
-                  {isImageZoomed ? "🔍 Fit Screen" : "🔍 Zoom In +"}
-                </button>
-                <button
-                  type="button"
-                  onClick={closeCakePreview}
-                  aria-label="Close full image preview"
-                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-ink-800 hover:bg-blaze-500 text-white grid place-items-center text-sm font-bold transition-colors"
-                >
-                  ✕
-                </button>
-              </div>
-            </div>
-
-            {/* Full Uncropped Cake Photo Viewer (Tap to Zoom In/Out) */}
             <div
-              onClick={() => setIsImageZoomed((z) => !z)}
-              className={`relative bg-ink-950 flex-1 overflow-auto flex items-center justify-center p-2 sm:p-4 select-none ${
-                isImageZoomed ? "cursor-zoom-out items-start" : "cursor-zoom-in"
-              }`}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-ink-900 border border-ink-700 rounded-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden shadow-2xl"
             >
-              <img
-                src={previewPin.img.replace(/\/(236x|474x)\//, "/736x/")}
-                alt={previewPin.title}
-                referrerPolicy="no-referrer"
-                onError={(e) => {
-                  const target = e.currentTarget;
-                  if (target.src !== previewPin.img) {
-                    target.src = previewPin.img;
-                  } else if (target.src !== FALLBACK_CAKE_IMG) {
-                    target.src = FALLBACK_CAKE_IMG;
-                  }
-                }}
-                className={`transition-all duration-300 rounded-lg shadow-2xl ${
-                  isImageZoomed
-                    ? "w-full sm:w-[85%] max-w-none h-auto object-contain mx-auto"
-                    : "max-h-[58vh] sm:max-h-[66vh] w-auto max-w-full object-contain mx-auto"
+              {/* Top Bar with Title, Zoom Button & Close Button */}
+              <div className="flex items-center justify-between gap-2 px-3.5 sm:px-5 py-2.5 sm:py-3 border-b border-ink-800 bg-ink-950/90 shrink-0">
+                <div className="min-w-0">
+                  <span className="font-mono text-[9px] sm:text-[10px] text-gold-400 uppercase tracking-wider block">
+                    🎂 Full Cake Preview · 100% Pure Eggless
+                  </span>
+                  <h3 className="font-display text-sm sm:text-lg font-black uppercase text-ink-50 truncate">
+                    {previewPin.title}
+                  </h3>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setIsImageZoomed((z) => !z)}
+                    className="px-2.5 sm:px-3 py-1.5 rounded-lg bg-ink-800 hover:bg-ink-700 border border-ink-600 text-ink-100 font-mono text-[10px] sm:text-xs font-bold transition-colors"
+                  >
+                    {isImageZoomed ? "🔍 Fit Screen" : "🔍 Zoom In +"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={closeCakePreview}
+                    aria-label="Close full image preview"
+                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-ink-800 hover:bg-blaze-500 text-white grid place-items-center text-sm font-bold transition-colors"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+
+              {/* Full Uncropped Cake Photo Viewer (Tap to Zoom In/Out) */}
+              <div
+                onClick={() => setIsImageZoomed((z) => !z)}
+                className={`relative bg-ink-950 flex-1 overflow-auto flex items-center justify-center p-2 sm:p-4 select-none ${
+                  isImageZoomed ? "cursor-zoom-out items-start" : "cursor-zoom-in"
                 }`}
-              />
-            </div>
-
-            {/* Bottom Customize & WhatsApp Action Bar */}
-            <div className="p-3 sm:p-4 border-t border-ink-800 bg-ink-900 shrink-0 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3">
-              <input
-                type="text"
-                value={customNote}
-                onChange={(e) => setCustomNote(e.target.value)}
-                placeholder="Cake message or custom note (e.g. Happy Birthday Aarav!)..."
-                className="flex-1 min-w-0 bg-ink-950 border border-ink-700 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-ink-100 outline-none focus:border-blaze-500"
-              />
-
-              <a
-                href={buildWhatsAppLink(previewPin, customNote)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="py-2.5 sm:py-3 px-4 sm:px-6 rounded-xl bg-[#25D366] hover:bg-[#1fb855] text-ink-950 font-mono text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shrink-0"
               >
-                <Ic.whatsapp className="w-4 h-4 fill-current shrink-0" />
-                <span>Chat About This Cake on WhatsApp</span>
-              </a>
+                <img
+                  src={previewPin.img.replace(/\/(236x|474x)\//, "/736x/")}
+                  alt={previewPin.title}
+                  referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    if (target.src !== previewPin.img) {
+                      target.src = previewPin.img;
+                    } else if (target.src !== FALLBACK_CAKE_IMG) {
+                      target.src = FALLBACK_CAKE_IMG;
+                    }
+                  }}
+                  className={`transition-all duration-300 rounded-lg shadow-2xl ${
+                    isImageZoomed
+                      ? "w-full sm:w-[85%] max-w-none h-auto object-contain mx-auto"
+                      : "max-h-[58vh] sm:max-h-[66vh] w-auto max-w-full object-contain mx-auto"
+                  }`}
+                />
+              </div>
+
+              {/* Bottom Customize & WhatsApp Action Bar */}
+              <div className="p-3 sm:p-4 border-t border-ink-800 bg-ink-900 shrink-0 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3">
+                <input
+                  type="text"
+                  value={customNote}
+                  onChange={(e) => setCustomNote(e.target.value)}
+                  placeholder="Cake message or custom note (e.g. Happy Birthday Aarav!)..."
+                  className="flex-1 min-w-0 bg-ink-950 border border-ink-700 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-ink-100 outline-none focus:border-blaze-500"
+                />
+
+                <a
+                  href={buildWhatsAppLink(previewPin, customNote)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="py-2.5 sm:py-3 px-4 sm:px-6 rounded-xl bg-[#25D366] hover:bg-[#1fb855] text-ink-950 font-mono text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shrink-0"
+                >
+                  <Ic.whatsapp className="w-4 h-4 fill-current shrink-0" />
+                  <span>Chat About This Cake on WhatsApp</span>
+                </a>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </div>
   );
 }
