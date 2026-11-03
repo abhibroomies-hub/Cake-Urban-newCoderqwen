@@ -78,10 +78,18 @@ async function searchPinterestCakes(rawQuery: string): Promise<LivePinItem[]> {
     return cached.pins;
   }
 
-  const baseClean = rawQuery.trim().replace(/\bcake(s)?(\s+design(s)?)?\b/gi, "").trim() || rawQuery.trim();
+  const baseClean =
+    rawQuery
+      .trim()
+      .replace(/\b(custom\s+)?cake(s)?(\s+design(s)?)?(\s+ideas?)?\b/gi, "")
+      .replace(/\s+/g, " ")
+      .trim() || rawQuery.trim();
+
+  // High-precision Pinterest cake queries without unrelated filler words
   const searchQueries = [
+    `${baseClean} cake`,
     `${baseClean} cake design`,
-    `${baseClean} custom birthday cake aesthetic ideas`,
+    `${baseClean} custom cake`,
   ];
 
   let session = await ensurePinterestSession(false);
@@ -131,21 +139,37 @@ async function searchPinterestCakes(rawQuery: string): Promise<LivePinItem[]> {
     );
   }
 
-  const allResults: any[] = [];
+  const queryBatchLists: any[][] = [];
   for (const r of responses) {
     if (r.status === "fulfilled" && r.value.ok) {
       try {
         const json: any = await r.value.json();
         const items: any[] = json?.resource_response?.data?.results || [];
-        allResults.push(...items);
+        queryBatchLists.push(items);
       } catch {
         // Ignore individual parse errors
       }
     }
   }
 
+  // Interleave results across the 3 exact queries so top hits from each appear early
+  const allResults: any[] = [];
+  const maxLen = Math.max(0, ...queryBatchLists.map((l) => l.length));
+  for (let idx = 0; idx < maxLen; idx++) {
+    for (const list of queryBatchLists) {
+      if (idx < list.length) {
+        allResults.push(list[idx]);
+      }
+    }
+  }
+
+  const queryTokens = baseClean
+    .toLowerCase()
+    .split(/[\s,/-]+/)
+    .filter((t) => t.length > 1 && !["cake", "cakes", "design", "custom", "for", "with", "the", "and"].includes(t));
+
   const seenUrls = new Set<string>();
-  const pins: LivePinItem[] = [];
+  const scoredCandidates: { pin: LivePinItem; relevance: number; order: number }[] = [];
 
   const isTieredQuery = /2\s*tier|3\s*tier|wedding|engagement|anniversary|ring/i.test(baseClean);
 
@@ -167,22 +191,57 @@ async function searchPinterestCakes(rawQuery: string): Promise<LivePinItem[]> {
       item?.description ||
       "";
 
+    const fullText = [
+      item?.grid_title,
+      item?.title,
+      item?.seo_alt_text,
+      item?.description,
+      item?.rich_summary?.display_name,
+      item?.rich_summary?.display_description,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+
+    // Calculate relevance score so exact subject matches rank at the top
+    let relevance = 10;
+    if (fullText.includes(baseClean.toLowerCase())) {
+      relevance += 50;
+    }
+    for (const tok of queryTokens) {
+      if (fullText.includes(tok)) {
+        relevance += 25;
+      }
+    }
+    if (fullText.includes("cake") || fullText.includes("bento") || fullText.includes("fondant") || fullText.includes("frosting")) {
+      relevance += 15;
+    }
+
     const title = cleanPinTitle(String(rawTitle), baseClean);
     const basePrice = isTieredQuery ? 1599 + (i % 5) * 200 : 799 + (i % 6) * 100;
     const startingWeight = isTieredQuery ? "1.5 Kg" : i % 3 === 0 ? "0.5 Kg" : "1.0 Kg";
 
-    pins.push({
-      id: `pin-live-${item?.id || i}-${Date.now()}`,
-      title,
-      img: imgUrl,
-      priceInr: basePrice,
-      startingWeight,
-      badge: "Custom Design",
-      pinUrl: item?.id ? `https://www.pinterest.com/pin/${item.id}/` : undefined,
+    scoredCandidates.push({
+      relevance,
+      order: i,
+      pin: {
+        id: `pin-live-${item?.id || i}-${Date.now()}`,
+        title,
+        img: imgUrl,
+        priceInr: basePrice,
+        startingWeight,
+        badge: "Custom Design",
+        pinUrl: item?.id ? `https://www.pinterest.com/pin/${item.id}/` : undefined,
+      },
     });
-
-    if (pins.length >= 40) break;
   }
+
+  scoredCandidates.sort((a, b) => {
+    if (b.relevance !== a.relevance) return b.relevance - a.relevance;
+    return a.order - b.order;
+  });
+
+  const pins = scoredCandidates.slice(0, 44).map((c) => c.pin);
 
   if (pins.length > 0) {
     searchCache.set(normalized, { timestamp: Date.now(), pins });
@@ -190,6 +249,86 @@ async function searchPinterestCakes(rawQuery: string): Promise<LivePinItem[]> {
 
   return pins;
 }
+
+const SITEMAP_THEME_SLUGS = [
+  "birthday-cake",
+  "anniversary-cake",
+  "butterfly-cake",
+  "doraemon-cake",
+  "spiderman-cake",
+  "barbie-doll-cake",
+  "2-tier-wedding-cake",
+  "engagement-ring-cake",
+  "vintage-heart-cake",
+  "unicorn-cake",
+  "cocomelon-cake",
+  "shinchan-cake",
+  "1st-birthday-cake",
+  "boss-baby-cake",
+  "jungle-safari-cake",
+  "cricket-theme-cake",
+  "frozen-elsa-cake",
+  "avengers-cake",
+  "car-theme-cake",
+  "bento-lunchbox-cake",
+  "bride-to-be-cake",
+  "baby-shower-cake",
+  "25th-anniversary-cake",
+  "50th-anniversary-cake",
+  "rasmalai-cake",
+  "belgian-chocolate-cake",
+  "red-velvet-heart-cake",
+  "pinata-smash-cake",
+  "photo-cake",
+  "makeup-theme-cake",
+  "peppa-pig-cake",
+  "minions-cake",
+  "harry-potter-cake",
+  "football-theme-cake",
+  "gym-fitness-cake",
+  "princess-crown-cake",
+  "doctor-theme-cake",
+  "ca-chartered-accountant-cake",
+  "mahakal-shiva-cake",
+  "khatu-shyam-cake",
+  "thar-suv-cake",
+  "bullet-bike-cake",
+  "motu-patlu-cake",
+  "naruto-anime-cake",
+  "bts-kpop-cake",
+  "free-fire-pubg-cake",
+  "haldi-mehndi-cake",
+  "roka-ceremony-cake",
+  "karwa-chauth-cake",
+  "parents-anniversary-cake",
+];
+
+const SITEMAP_CITIES = ["faridabad", "gurgaon", "noida", "delhi", "ghaziabad"];
+
+const SITEMAP_SECTORS = [
+  "sector-15-faridabad",
+  "sector-16-faridabad",
+  "sector-21c-faridabad",
+  "nit-faridabad",
+  "greenfield-colony-faridabad",
+  "greater-faridabad-neharpar",
+  "dlf-phase-5-gurgaon",
+  "cyber-city-gurgaon",
+  "golf-course-road-gurgaon",
+  "sohna-road-gurgaon",
+  "sushant-lok-gurgaon",
+  "sector-18-noida",
+  "sector-62-noida",
+  "sector-137-noida",
+  "greater-noida-west",
+  "greater-kailash-delhi",
+  "saket-delhi",
+  "hauz-khas-delhi",
+  "defence-colony-delhi",
+  "vasant-kunj-delhi",
+  "indirapuram-ghaziabad",
+  "vaishali-ghaziabad",
+];
 
 async function startServer() {
   const app = express();
@@ -209,6 +348,90 @@ async function startServer() {
       console.error("Pinterest search error:", err?.message || err);
       res.status(200).json({ query: q, count: 0, pins: [], error: "fallback" });
     }
+  });
+
+  // Dynamic Auto-Expanding XML Sitemap (300+ High-Intent SEO & Programmatic Theme × City URLs)
+  app.get("/sitemap.xml", (req, res) => {
+    const baseUrl = process.env.APP_URL || `https://${req.get("host") || "www.cakeurban.com"}`;
+    const urls: { loc: string; changefreq: string; priority: string }[] = [
+      { loc: `${baseUrl}/`, changefreq: "daily", priority: "1.0" },
+      { loc: `${baseUrl}/builder`, changefreq: "daily", priority: "0.99" },
+      { loc: `${baseUrl}/shop`, changefreq: "daily", priority: "0.95" },
+      { loc: `${baseUrl}/delivery-locations`, changefreq: "daily", priority: "0.95" },
+      { loc: `${baseUrl}/track`, changefreq: "weekly", priority: "0.85" },
+      { loc: `${baseUrl}/blog`, changefreq: "weekly", priority: "0.85" },
+      { loc: `${baseUrl}/about`, changefreq: "monthly", priority: "0.75" },
+      { loc: `${baseUrl}/contact`, changefreq: "monthly", priority: "0.80" },
+    ];
+
+    // 50+ Custom Theme Cake Landing Pages
+    for (const slug of SITEMAP_THEME_SLUGS) {
+      urls.push({
+        loc: `${baseUrl}/custom-cake/${slug}`,
+        changefreq: "daily",
+        priority: "0.94",
+      });
+    }
+
+    // Programmatic Theme × City Combinations (Top 25 Themes × 5 Cities = 125 Hyperlocal Theme Pages)
+    for (const slug of SITEMAP_THEME_SLUGS.slice(0, 25)) {
+      for (const city of SITEMAP_CITIES) {
+        urls.push({
+          loc: `${baseUrl}/custom-cake/${slug}-in-${city}`,
+          changefreq: "daily",
+          priority: "0.91",
+        });
+      }
+    }
+
+    // City Hubs & Cookie Hubs
+    for (const city of SITEMAP_CITIES) {
+      urls.push({ loc: `${baseUrl}/cakes-in/${city}`, changefreq: "daily", priority: "0.95" });
+      urls.push({ loc: `${baseUrl}/cookies-${city}`, changefreq: "weekly", priority: "0.90" });
+    }
+
+    // Hyperlocal Sector Intent Pages
+    const intents = [
+      "cake-delivery-in",
+      "midnight-cake-delivery-in",
+      "birthday-cake-delivery-in",
+      "eggless-cake-delivery-in",
+      "custom-cake-delivery-in",
+      "anniversary-cake-delivery-in",
+    ];
+    for (const sector of SITEMAP_SECTORS) {
+      for (const intent of intents) {
+        urls.push({
+          loc: `${baseUrl}/${intent}/${sector}`,
+          changefreq: "weekly",
+          priority: "0.88",
+        });
+      }
+    }
+
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls
+      .map(
+        (u) =>
+          `  <url><loc>${u.loc}</loc><changefreq>${u.changefreq}</changefreq><priority>${u.priority}</priority></url>`
+      )
+      .join("\n")}\n</urlset>`;
+
+    res.setHeader("Content-Type", "application/xml; charset=utf-8");
+    res.send(xml);
+  });
+
+  // Machine-Readable GEO Knowledge Feed for AI Search Crawlers (ChatGPT, Perplexity, Gemini, SGE)
+  app.get("/api/geo-feed", (_req, res) => {
+    res.json({
+      brand: "CakeUrban",
+      dietary: "100% Pure Vegetarian & Eggless",
+      whatsappHotline: "+91 7318531953",
+      expressSlaMinutes: "30-45",
+      midnightDeliveryWindow: "11:30 PM - 12:15 AM",
+      citiesServed: ["Faridabad", "Gurgaon", "Noida", "Delhi", "Ghaziabad"],
+      supportedCustomCakeThemes: SITEMAP_THEME_SLUGS,
+      customCakeSearchUrl: "/builder",
+    });
   });
 
   if (process.env.NODE_ENV !== "production") {

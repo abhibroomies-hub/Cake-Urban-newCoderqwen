@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import { useStore } from "../lib/store";
 import { DELHI_NCR_CITIES, getSeoAreaBySlug, SEO_INTENTS } from "../data/seoLocations";
 import { BLOG_POSTS } from "../data/catalog";
-import { SEO_CUSTOM_CAKE_THEMES, slugToThemeQuery } from "../pages/builder";
+import { SEO_CUSTOM_CAKE_THEMES, parseThemeAndCityFromSlug } from "../pages/builder";
 
 const CITY_GEO_COORDS: Record<string, { region: string; placename: string; lat: number; lng: number; postal: string }> = {
   faridabad: { region: "IN-HR", placename: "Faridabad, Haryana, Delhi NCR", lat: 28.4089, lng: 77.3178, postal: "121007" },
@@ -144,31 +144,36 @@ export function SEOManager() {
       const slugPart = pathname.startsWith("/custom-cake/")
         ? pathname.replace("/custom-cake/", "").trim()
         : "";
-      const matchedTheme = slugPart
-        ? SEO_CUSTOM_CAKE_THEMES.find((t) => t.slug.toLowerCase() === slugPart.toLowerCase())
-        : undefined;
+      const parsedSlug = slugPart ? parseThemeAndCityFromSlug(slugPart) : null;
+      if (parsedSlug?.citySlug && parsedSlug.citySlug in CITY_GEO_COORDS) {
+        activeCityKey = parsedSlug.citySlug;
+      }
+
       const activeThemeName = queryParam
         ? queryParam.replace(/\b\w/g, (l) => l.toUpperCase())
-        : matchedTheme
-        ? matchedTheme.label
-        : slugPart
-        ? slugToThemeQuery(slugPart)
+        : parsedSlug
+        ? parsedSlug.themeLabel
         : "";
+
+      const targetCityLabel = parsedSlug?.cityName || "Delhi NCR (Faridabad, Gurgaon, Noida, Delhi & Ghaziabad)";
 
       if (activeThemeName) {
         const cleanTheme = /cake/i.test(activeThemeName) ? activeThemeName : `${activeThemeName} Cake`;
-        title = `Best Custom ${cleanTheme} Designs Online (100% Eggless) — Same Day Delivery in Delhi NCR | CakeUrban`;
-        description =
-          matchedTheme?.desc
-            ? `${matchedTheme.desc}. Browse 40+ latest ${cleanTheme} designs & order 100% pure eggless on WhatsApp (+91 7318531953) with express & 12 AM midnight delivery in Faridabad, Gurgaon, Noida, Delhi & Ghaziabad.`
-            : `Explore 40+ trending custom ${cleanTheme} designs at CakeUrban! 100% pure eggless, freshly baked to order with same-day & midnight delivery across Faridabad, Gurgaon, Noida, Delhi & Ghaziabad. Chat on WhatsApp: +91 7318531953.`;
-        keywords = `${cleanTheme.toLowerCase()}, custom ${cleanTheme.toLowerCase()} online, ${cleanTheme.toLowerCase()} design photo, eggless ${cleanTheme.toLowerCase()} near me, ${cleanTheme.toLowerCase()} delivery faridabad gurgaon noida delhi, order ${cleanTheme.toLowerCase()} on whatsapp, cakeurban`;
+        title = parsedSlug?.cityName
+          ? `Custom ${cleanTheme} Delivery in ${parsedSlug.cityName} (100% Eggless) — 30-45 Min & Midnight | CakeUrban`
+          : `Best Custom ${cleanTheme} Designs Online (100% Eggless) — Same Day Delivery in Delhi NCR | CakeUrban`;
+        description = parsedSlug?.matchedTheme?.desc
+          ? `${parsedSlug.matchedTheme.desc}. Browse 40+ latest ${cleanTheme} designs in ${targetCityLabel} & order 100% pure eggless on WhatsApp (+91 7318531953) with express & 12 AM midnight delivery.`
+          : `Explore 40+ trending custom ${cleanTheme} designs in ${targetCityLabel} at CakeUrban! 100% pure eggless, freshly baked to order with same-day & midnight delivery. Chat on WhatsApp: +91 7318531953.`;
+        keywords = `${cleanTheme.toLowerCase()}, custom ${cleanTheme.toLowerCase()} in ${targetCityLabel.toLowerCase()}, ${cleanTheme.toLowerCase()} design photo, eggless ${cleanTheme.toLowerCase()} near me, ${cleanTheme.toLowerCase()} delivery faridabad gurgaon noida delhi, order ${cleanTheme.toLowerCase()} on whatsapp, cakeurban`;
         ogType = "product";
 
         pageSchema = {
           "@type": "Product",
           "@id": `${canonicalUrl}#custom-theme-cake`,
-          name: `Custom ${cleanTheme} (100% Pure Eggless)`,
+          name: parsedSlug?.cityName
+            ? `Custom ${cleanTheme} in ${parsedSlug.cityName} (100% Pure Eggless)`
+            : `Custom ${cleanTheme} (100% Pure Eggless)`,
           image: [ogImage],
           description,
           brand: { "@type": "Brand", name: "CakeUrban" },
@@ -179,7 +184,7 @@ export function SEOManager() {
             priceCurrency: "INR",
             lowPrice: "599",
             highPrice: "4999",
-            offerCount: "40",
+            offerCount: "44",
             availability: "https://schema.org/InStock",
             seller: { "@type": "Organization", name: "CakeUrban Custom Cake Studio" },
           },
@@ -413,10 +418,54 @@ export function SEOManager() {
         itemListElement: breadcrumbItems,
       },
       {
+        "@type": "WebPage",
+        "@id": `${canonicalUrl}#webpage`,
+        url: canonicalUrl,
+        name: title,
+        description,
+        isPartOf: { "@id": `${origin}/#website` },
+        about: { "@id": `${origin}/#bakery` },
+        speakable: {
+          "@type": "SpeakableSpecification",
+          cssSelector: ["#seo-main-heading", "#seo-direct-summary", "#geo-answer-capsule", "h1"],
+        },
+      },
+      {
+        "@type": "HowTo",
+        "@id": `${origin}/#howto-custom-cake`,
+        name: "How to Order Any Custom Theme Cake Online at CakeUrban",
+        description:
+          "Order any custom birthday, anniversary, cartoon, butterfly, or 2-tier wedding cake in 100% pure eggless with express delivery across Delhi NCR.",
+        totalTime: "PT2M",
+        step: [
+          {
+            "@type": "HowToStep",
+            position: 1,
+            name: "Search Any Cake Theme",
+            text: "Visit CakeUrban.com/builder and search your desired cake theme (such as Butterfly, Doraemon, Spiderman, Barbie, 2-Tier Wedding, Doctor, or Vintage Heart).",
+            url: `${origin}/builder`,
+          },
+          {
+            "@type": "HowToStep",
+            position: 2,
+            name: "Preview Full Uncropped Cake Photo",
+            text: "Tap any cake photo to open the full-screen zoomable preview and type your custom cake message or note.",
+            url: `${origin}/builder`,
+          },
+          {
+            "@type": "HowToStep",
+            position: 3,
+            name: "Chat Directly on WhatsApp (+91 7318531953)",
+            text: "Tap 'Chat About This Cake' to send the selected cake photo directly to our head bakers on WhatsApp for instant price quote and 30–45 min or midnight delivery.",
+            url: "https://wa.me/917318531953",
+          },
+        ],
+      },
+      {
         "@type": "ItemList",
         "@id": `${origin}/#custom-cake-themes`,
         name: "CakeUrban Popular Custom Theme Cakes (100% Eggless)",
-        itemListElement: SEO_CUSTOM_CAKE_THEMES.slice(0, 20).map((t, idx) => ({
+        itemListElement: SEO_CUSTOM_CAKE_THEMES.slice(0, 30).map((t, idx) => ({
           "@type": "ListItem",
           position: idx + 1,
           url: `${origin}/custom-cake/${t.slug}`,

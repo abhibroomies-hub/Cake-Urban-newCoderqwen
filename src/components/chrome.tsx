@@ -265,8 +265,8 @@ export function NcrExpressHubBanner() {
 
   return (
     <>
-      <div className="bg-ink-950 border-b border-ink-800/80 text-ink-200 px-4 sm:px-6 lg:px-10 h-8 flex items-center text-[11px] font-mono">
-        <div className="max-w-7xl w-full mx-auto flex items-center justify-between gap-2 overflow-hidden">
+      <div className="bg-ink-950 border-b border-ink-800/80 text-ink-200 px-3.5 sm:px-5 lg:px-6 xl:px-8 h-8 flex items-center text-[11px] font-mono">
+        <div className="w-full max-w-none mx-auto flex items-center justify-between gap-2 overflow-hidden">
           <div className="flex items-center gap-2 min-w-0 whitespace-nowrap">
             <span className="text-ink-400 hidden sm:inline">📍 Delivering to:</span>
             <button
@@ -388,7 +388,7 @@ export function Header({ onCart, onCompare }: { onCart: () => void; onCompare: (
         <NcrExpressHubBanner />
 
         {/* Clean 3-Zone Main Bar */}
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 sm:gap-6 px-3.5 sm:px-6 lg:px-10 h-14 sm:h-16">
+        <div className="w-full max-w-none mx-auto flex items-center justify-between gap-3 sm:gap-6 px-3.5 sm:px-5 lg:px-6 xl:px-8 h-14 sm:h-16">
           {/* Zone 1: Mobile Menu Trigger + Brand Wordmark */}
           <div className="flex items-center gap-2 shrink-0">
             <button
@@ -512,7 +512,7 @@ export function Header({ onCart, onCompare }: { onCart: () => void; onCompare: (
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.25 }}
               onMouseEnter={() => setMega(true)} onMouseLeave={() => setMega(false)}
               className="hidden lg:block absolute inset-x-0 top-full bg-ink-950/98 backdrop-blur-xl border-b border-ink-800 shadow-lift">
-              <div className="px-8 py-8 max-w-7xl mx-auto grid grid-cols-6 gap-6">
+              <div className="px-6 xl:px-8 py-8 w-full max-w-none mx-auto grid grid-cols-6 gap-6">
                 {navCategories.map((c) => (
                   <div key={c.name} className="flex flex-col">
                     <Link to={`/shop?cat=${encodeURIComponent(c.name)}`} className="font-display font-bold text-sm uppercase tracking-wide text-ink-50 hover:text-blaze-400 transition-colors border-b border-ink-800 pb-2 mb-3">{c.name}</Link>
@@ -544,7 +544,7 @@ export function Header({ onCart, onCompare }: { onCart: () => void; onCompare: (
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.25 }}
               onMouseEnter={() => setCakesMega(true)} onMouseLeave={() => setCakesMega(false)}
               className="hidden lg:block absolute inset-x-0 top-full bg-ink-950/98 backdrop-blur-xl border-b border-ink-800 shadow-lift">
-              <div className="px-8 py-8 max-w-7xl mx-auto grid grid-cols-4 gap-8">
+              <div className="px-6 xl:px-8 py-8 w-full max-w-none mx-auto grid grid-cols-4 gap-8">
                 <div className="flex flex-col">
                   <p className="font-display font-bold text-sm uppercase tracking-wider text-blaze-400 border-b border-ink-800 pb-2 mb-3">🎨 Theme-Wise Cakes</p>
                   <div className="space-y-2.5">
@@ -1195,7 +1195,7 @@ export function Footer() {
   return (
     <footer className="relative border-t border-ink-800 bg-ink-900 dark:bg-ink-950 mt-12 sm:mt-16">
       {/* Compact Link Columns */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-10 sm:py-12 grid grid-cols-2 md:grid-cols-5 gap-8">
+      <div className="w-full max-w-none mx-auto px-3.5 sm:px-5 lg:px-6 xl:px-8 py-10 sm:py-12 grid grid-cols-2 md:grid-cols-5 gap-8">
         <div className="col-span-2 md:col-span-2">
           <div className="flex items-center gap-2 text-ink-50">
             <Ic.cake className="w-6 h-6 text-blaze-500" />
@@ -1233,19 +1233,19 @@ export function Footer() {
       </div>
       {/* Collapsible Hyperlocal SEO & GEO Directory (Zero UI clutter, 100% Search Crawler Indexable) */}
       <div className="border-t border-ink-800/70 bg-ink-950/50">
-        <details className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-3 group">
+        <details className="w-full max-w-none mx-auto px-3.5 sm:px-5 lg:px-6 xl:px-8 py-3 group">
           <summary className="cursor-pointer list-none flex items-center justify-between font-mono text-[10px] tracking-[0.18em] text-ink-500 hover:text-ink-300 uppercase">
-            <span>📍 Delhi NCR Express Cake, Cookie & Gift Hamper Delivery Directory (100+ Sectors)</span>
+            <span>📍 Delhi NCR Express Cake, Custom Theme Cake & Gift Hamper SEO Directory (300+ Pages)</span>
             <span className="text-blaze-400 group-open:rotate-180 transition-transform">▼</span>
           </summary>
-          <div className="pt-4 pb-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 text-[11px] text-ink-400 border-t border-ink-800/60 mt-3">
+          <div className="pt-4 pb-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 text-[11px] text-ink-400 border-t border-ink-800/60 mt-3">
             <div>
               <p className="font-mono text-[9px] text-gold-400 uppercase mb-1.5">Faridabad Hub</p>
               <div className="flex flex-col gap-1">
                 <Link to="/cakes-in/faridabad" className="hover:text-blaze-400">Cakes in Faridabad</Link>
-                <Link to="/cookies-faridabad" className="hover:text-blaze-400">Cookies in Faridabad</Link>
+                <Link to="/custom-cake/birthday-cake-in-faridabad" className="hover:text-blaze-400">Birthday Cake Faridabad</Link>
+                <Link to="/custom-cake/butterfly-cake-in-faridabad" className="hover:text-blaze-400">Butterfly Cake Faridabad</Link>
                 <Link to="/cake-delivery-in/sector-15-faridabad" className="hover:text-blaze-400">Sector 15 Faridabad</Link>
-                <Link to="/cake-delivery-in/sector-16-faridabad" className="hover:text-blaze-400">Sector 16 Faridabad</Link>
                 <Link to="/midnight-cake-delivery-in/sector-15-faridabad" className="hover:text-blaze-400">Midnight Delivery Faridabad</Link>
               </div>
             </div>
@@ -1253,9 +1253,9 @@ export function Footer() {
               <p className="font-mono text-[9px] text-gold-400 uppercase mb-1.5">Gurgaon Hub</p>
               <div className="flex flex-col gap-1">
                 <Link to="/cakes-in/gurgaon" className="hover:text-blaze-400">Cakes in Gurgaon</Link>
-                <Link to="/cookies-gurgaon" className="hover:text-blaze-400">Cookies in Gurgaon</Link>
+                <Link to="/custom-cake/birthday-cake-in-gurgaon" className="hover:text-blaze-400">Birthday Cake Gurgaon</Link>
+                <Link to="/custom-cake/2-tier-wedding-cake-in-gurgaon" className="hover:text-blaze-400">2-Tier Cake Gurgaon</Link>
                 <Link to="/cake-delivery-in/dlf-phase-5-gurgaon" className="hover:text-blaze-400">DLF Phase 5 Gurgaon</Link>
-                <Link to="/cake-delivery-in/cyber-city-gurgaon" className="hover:text-blaze-400">Cyber City Gurgaon</Link>
                 <Link to="/midnight-cake-delivery-in/dlf-phase-5-gurgaon" className="hover:text-blaze-400">Midnight Delivery Gurgaon</Link>
               </div>
             </div>
@@ -1263,9 +1263,9 @@ export function Footer() {
               <p className="font-mono text-[9px] text-gold-400 uppercase mb-1.5">Noida Hub</p>
               <div className="flex flex-col gap-1">
                 <Link to="/cakes-in/noida" className="hover:text-blaze-400">Cakes in Noida</Link>
-                <Link to="/cookies-noida" className="hover:text-blaze-400">Cookies in Noida</Link>
+                <Link to="/custom-cake/anniversary-cake-in-noida" className="hover:text-blaze-400">Anniversary Cake Noida</Link>
+                <Link to="/custom-cake/doraemon-cake-in-noida" className="hover:text-blaze-400">Doraemon Cake Noida</Link>
                 <Link to="/cake-delivery-in/sector-18-noida" className="hover:text-blaze-400">Sector 18 Noida</Link>
-                <Link to="/cake-delivery-in/sector-62-noida" className="hover:text-blaze-400">Sector 62 Noida</Link>
                 <Link to="/eggless-cake-delivery-in/sector-18-noida" className="hover:text-blaze-400">Eggless Cakes Noida</Link>
               </div>
             </div>
@@ -1273,19 +1273,29 @@ export function Footer() {
               <p className="font-mono text-[9px] text-gold-400 uppercase mb-1.5">Delhi Hub</p>
               <div className="flex flex-col gap-1">
                 <Link to="/cakes-in/delhi" className="hover:text-blaze-400">Cakes in South Delhi</Link>
-                <Link to="/cookies-delhi" className="hover:text-blaze-400">Cookies in Delhi</Link>
+                <Link to="/custom-cake/vintage-heart-cake-in-delhi" className="hover:text-blaze-400">Vintage Heart Cake Delhi</Link>
+                <Link to="/custom-cake/barbie-doll-cake-in-delhi" className="hover:text-blaze-400">Barbie Cake Delhi</Link>
                 <Link to="/cake-delivery-in/greater-kailash-delhi" className="hover:text-blaze-400">Greater Kailash (GK)</Link>
-                <Link to="/cake-delivery-in/saket-delhi" className="hover:text-blaze-400">Saket & Hauz Khas</Link>
                 <Link to="/birthday-cake-delivery-in/greater-kailash-delhi" className="hover:text-blaze-400">Birthday Cakes Delhi</Link>
+              </div>
+            </div>
+            <div>
+              <p className="font-mono text-[9px] text-gold-400 uppercase mb-1.5">Trending Themes</p>
+              <div className="flex flex-col gap-1">
+                <Link to="/custom-cake/butterfly-cake" className="hover:text-blaze-400">Butterfly Theme Cake</Link>
+                <Link to="/custom-cake/doraemon-cake" className="hover:text-blaze-400">Doraemon Cartoon Cake</Link>
+                <Link to="/custom-cake/spiderman-cake" className="hover:text-blaze-400">Spiderman Theme Cake</Link>
+                <Link to="/custom-cake/doctor-theme-cake" className="hover:text-blaze-400">Doctor & MBBS Cake</Link>
+                <Link to="/custom-cake/mahakal-shiva-cake" className="hover:text-blaze-400">Mahakal & Shiva Cake</Link>
               </div>
             </div>
             <div>
               <p className="font-mono text-[9px] text-gold-400 uppercase mb-1.5">Ghaziabad & More</p>
               <div className="flex flex-col gap-1">
                 <Link to="/cakes-in/ghaziabad" className="hover:text-blaze-400">Cakes in Ghaziabad</Link>
-                <Link to="/cookies-ghaziabad" className="hover:text-blaze-400">Cookies in Ghaziabad</Link>
+                <Link to="/custom-cake/birthday-cake-in-ghaziabad" className="hover:text-blaze-400">Custom Cake Ghaziabad</Link>
                 <Link to="/cake-delivery-in/indirapuram-ghaziabad" className="hover:text-blaze-400">Indirapuram Hub</Link>
-                <Link to="/about" className="hover:text-blaze-400">About CakeUrban</Link>
+                <Link to="/builder" className="hover:text-blaze-400">Search 1000+ Cake Designs</Link>
                 <Link to="/contact" className="hover:text-blaze-400">24×7 Support (+91 7318531953)</Link>
               </div>
             </div>
@@ -1294,7 +1304,7 @@ export function Footer() {
       </div>
       {/* Bottom Bar */}
       <div className="border-t border-ink-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="w-full max-w-none mx-auto px-3.5 sm:px-5 lg:px-6 xl:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="font-mono text-[10px] tracking-[0.12em] text-ink-500 uppercase">© {year} CakeUrban — {t("footerRights")}</p>
           <div className="flex items-center gap-1.5 flex-wrap justify-center">
             {["UPI", "Cards", "COD", "Razorpay"].map((pm) => (

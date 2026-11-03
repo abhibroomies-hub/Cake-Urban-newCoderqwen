@@ -1,42 +1,65 @@
-# CakeUrban — Visual-First Declutter & End-to-End Mobile UI Plan
+# Full-Width Desktop Layout & Expanded Grid Plan
 
-## 1. Goal & Context
-Make **CakeUrban** fast to scan, visual-first, and effortless on both mobile and desktop by removing walls of text, keeping only high-converting sections on the Home page, simplifying Product Cards across all grids, and tucking secondary copy behind clean collapsible accordions.
-
----
-
-## 2. Planned Changes
-
-### A. Home Page Streamlining (`src/pages/home.tsx`)
-- **Keep Only Core Sections**:
-  1. **Hero Section**: Punchy 1-line subtitle (under 15 words), clean CTA buttons (`Shop Now`, `Customizer`, `Track Order`), compact trust stats, and desktop-only `HeroRing` carousel.
-  2. **Visual Categories ("Pick Your Craving")**: Clean image tiles showing category title only (remove long subcategory lists on cards).
-  3. **Product Showcases**: Signature Selection (`Fresh From The Oven`), Cookies & Namkeens, and Celebration Gift Hampers with 2-column mobile grid and horizontal swipe reel toggle.
-  4. **Customer Photo Reviews (`CustomerReviewsShowcase`)**: Unboxing photo strip + concise review cards (clamped to 2 lines with full view in photo modal).
-- **Remove Wordy Clutter**: Remove the verbose "Explore More CakeUrban Experiences" text blocks, inline "NCR Express Hubs" text cards (already accessible via the top Hub Selector modal & Footer), "Bakehouse Standard" essay section, Home FAQ wall, and Blog Journal teaser from the Home page.
-
-### B. Minimalist Product Cards (`src/components/product.tsx`)
-- **Show Only**:
-  - Product Photo + concise top badge (`BESTSELLER` / `NEW`) + Wishlist heart icon
-  - Product Name (clean 1–2 line title)
-  - Star Rating (`★ 4.9`)
-  - Price (`₹...`) + **Add (`+ Add`)** button
-- **Remove from Cards**: Brand subtitle, category label, multi-line description, color swatch dots, and low-stock warning text so mobile 2-column grids look crisp, balanced, and spacious.
-
-### C. Collapsible Product Page & Clean Checkout (`src/pages/product.tsx`, `src/pages/checkout.tsx`, `src/components/DeliverySlotPicker.tsx`)
-- **Product Detail Page**:
-  - Above the fold: Photo gallery, title, rating, price, size/variant selector, `Add to Cart` / `Buy Now` buttons, and compact Delivery Slot Picker.
-  - Move the **Product Description**, **Ingredients & Specifications**, **100% Eggless Promise**, and **Express Delivery Info** inside clean collapsible accordion tabs (closed by default so there is zero text clutter above the fold).
-- **Delivery Slot Picker & Checkout**:
-  - Make the Delivery Slot Picker compact on mobile (2x2 slot pills, collapsible optional cake plaque message toggle instead of an always-open text box).
-  - Remove unnecessary explanatory paragraphs on the Checkout, Shop, Builder, Track Order, and Footer views.
-
-### D. End-to-End Mobile UI Polish (`src/components/chrome.tsx`, `src/pages/shop.tsx`, `src/pages/builder.tsx`, `src/pages/other.tsx`)
-- Trim the Footer bio and remove duplicate SEO link walls at the bottom of the footer.
-- Ensure all horizontal tab bars, modals, cart drawer, and bottom mobile navigation bar have zero text overflow or overlapping elements on 360px–430px mobile screens.
+A comprehensive responsive layout upgrade for **CakeUrban** that removes wide horizontal margins on desktop screens, fits all pages edge-to-edge with slim breathing padding, and scales product and custom cake grids up to 5–6 columns on large desktop displays.
 
 ---
 
-## 3. Verification Plan
-1. Run `lint_applet` and `compile_applet` to ensure zero TypeScript or build errors.
-2. Verify all routes (`/`, `/shop`, `/product/:id`, `/builder`, `/checkout`, `/track`, `/account`, `/delivery-locations`) render cleanly on mobile and desktop viewports.
+## User Review & Critical Decisions
+
+> [!IMPORTANT]
+> **Confirmed User Decisions**
+> - **Full-Width Scope**: Expand the desktop layout to full screen width across **all pages** (Top Delivery Bar, Header, Hero, Home sections, Custom Cakes Builder, Shop Catalog, Product Detail, NCR Local Hubs, Checkout, and Footer) with slim edge padding rather than restricting containers to `1280px` (`max-w-7xl`).
+> - **Desktop Grid Density**: Scale product and custom cake grids up to **5–6 columns** on large and ultra-wide desktop monitors (`xl:grid-cols-5 2xl:grid-cols-6`) so cards remain well-proportioned across the full viewport width.
+
+---
+
+## 1. Overview & Core Concept
+
+Currently, the application wraps major sections in fixed `max-w-7xl mx-auto` (`1280px`) containers, leaving wide empty dark margins on the left and right edges on `1440px`, `1600px`, and `1920px+` desktop displays. This update transitions CakeUrban to a **fluid full-viewport desktop layout** where navigation, hero showcases, category grids, custom cake inspiration galleries, and shop catalogs span edge-to-edge with consistent, slim horizontal padding (`16px` on mobile/tablet up to `24px–32px` on wide desktop screens).
+
+---
+
+## 2. User Experience & Visual Design
+
+- **Edge-to-Edge Desktop Canvas**:
+  - The top utility bar, sticky main header, hero split showcase, and footer stretch cleanly across the full desktop width with slim left/right padding (`px-3.5 sm:px-5 lg:px-6 xl:px-8`), eliminating wasted side gutters.
+  - In the Hero section, the left typographic column and right 3D rotating showcase distribute smoothly across the full viewport width while keeping headline proportions balanced.
+- **High-Density 5–6 Column Grids on Large Screens**:
+  - **Categories ("Pick Your Craving")**: Scales smoothly across the full width so category cards fill the row without dead space.
+  - **Custom Cake Theme Cards & Inspiration Gallery**: Scales from 2 columns on mobile to 4 columns on standard laptops, 5 columns on `xl` (`1280px+`), and 6 columns on `2xl` (`1536px+`) screens.
+  - **Bestsellers, Hampers & Full Shop Catalog**: Product grids expand to 5–6 columns on wide desktop viewports while preserving uniform card aspect ratios, clean typography, and quick-add interactions.
+
+---
+
+## 3. Key Product Decisions & Trade-Offs
+
+- **Fluid Containers vs. Readability Constraints**:
+  - **Decision**: All multi-column layouts, navigation bars, hero banners, and card galleries expand to `100%` viewport width (`w-full max-w-full`), while narrow form modals or focused text blocks retain comfortable internal spacing so lines of text remain easy to read.
+  - **Rationale**: E-commerce storefronts and visual cake galleries benefit from maximum horizontal screen real estate, whereas form inputs remain ergonomic when grouped cleanly within the full-width layout.
+- **Responsive Column Progression (`2 -> 3 -> 4 -> 5 -> 6`)**:
+  - **Decision**: Use progressive breakpoints (`grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6`) rather than stretching 4 cards across a `1920px` screen.
+  - **Rationale**: Prevents product and custom cake cards from becoming overly tall or oversized on wide monitors, allowing customers to browse more designs at a glance without excessive vertical scrolling.
+
+---
+
+## 4. Technical Architecture & Data Strategy
+
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│                   Full-Viewport Desktop Container Layer                  │
+│          (w-full max-w-full + px-3.5 sm:px-5 lg:px-6 xl:px-8)            │
+└───────────────────┬──────────────────────────────────┬───────────────────┘
+                    │                                  │
+                    ▼                                  ▼
+┌───────────────────────────────────────┐  ┌───────────────────────────────┐
+│        Global Chrome & Hero           │  │   Dynamic Responsive Grids    │
+│  • Top Dispatch Bar & Sticky Header   │  │  • Mobile: 2 cols             │
+│  • Full-Bleed Split Hero & 3D Deck    │  │  • Tablet/Laptop: 3–4 cols    │
+│  • Edge-to-Edge Footer & SEO Directory│  │  • Desktop (xl/2xl): 5–6 cols │
+└───────────────────────────────────────┘  └───────────────────────────────┘
+```
+
+- **Global & Component Container Normalization**:
+  - Override restrictive desktop container caps in the global stylesheet and update layout wrappers across Header, Home, Custom Cake Builder, Shop, Product Detail, NCR Local SEO pages, and Footer to use full viewport width (`w-full max-w-none`) with slim edge padding.
+- **Grid Breakpoint Expansion**:
+  - Upgrade product, category, and custom cake pin grids across the Home page, Shop page, and Custom Cake Builder to include `xl:grid-cols-5` and `2xl:grid-cols-6` column rules with balanced grid gaps (`gap-3.5 sm:gap-5 lg:gap-6`).

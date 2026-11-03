@@ -81,11 +81,20 @@ html.light {
 
 @layer base {
   html, body, #root {
+    width: 100%;
     max-width: 100%;
     overflow-x: clip;
   }
   .grid > * {
     min-width: 0;
+  }
+}
+
+/* Full-width desktop layout without wide horizontal side margins */
+@media (min-width: 1024px) {
+  .max-w-7xl,
+  .max-w-6xl {
+    max-width: 100% !important;
   }
 }
 

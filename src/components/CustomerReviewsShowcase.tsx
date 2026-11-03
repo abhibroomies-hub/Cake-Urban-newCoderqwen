@@ -96,7 +96,7 @@ export function CustomerReviewsShowcase({
   };
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-10 sm:py-16">
+    <section className="w-full max-w-none mx-auto px-3.5 sm:px-5 lg:px-6 xl:px-8 py-10 sm:py-14">
       {/* Header Row */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 sm:gap-6 mb-6 sm:mb-8">
         <div>
@@ -187,7 +187,7 @@ export function CustomerReviewsShowcase({
       </div>
 
       {/* Reviews Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
         {scopedReviews.map((r) => {
           const prod = getProductForReview(r);
           const hasPhoto = r.hasImage || !!r.photoUrl;

@@ -125,7 +125,7 @@ export default function Shop() {
   );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-6 sm:py-10">
+    <div className="w-full max-w-none mx-auto px-3.5 sm:px-5 lg:px-6 xl:px-8 py-6 sm:py-10">
       {/* Compact Page Head */}
       <div className="flex flex-wrap items-end justify-between gap-3 pb-4 mb-6 border-b border-ink-800">
         <div>
@@ -135,9 +135,9 @@ export default function Shop() {
         <p className="font-mono text-xs text-ink-400">{list.length} {t("results")} · {f.cats[0] ?? "All categories"}</p>
       </div>
 
-      <div className="flex gap-8 lg:gap-10">
+      <div className="flex gap-6 lg:gap-8">
         {/* rail */}
-        <aside className="hidden lg:block w-64 shrink-0">
+        <aside className="hidden lg:block w-60 xl:w-64 shrink-0">
           <div className="sticky top-28">{FilterPanel}</div>
         </aside>
 
@@ -251,8 +251,8 @@ export default function Shop() {
               ))}
             </div>
           ) : (
-            /* 2-Column Responsive Grid on Mobile & Tablets/Desktops */
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-5">
+            /* Responsive Grid: 2-Col on Mobile, 3-Col on Tablet/Laptop, 4-5 Col on Large Desktop beside Filter Rail */
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2.5 sm:gap-4 lg:gap-5">
               {list.map((p, i) => (
                 <motion.div key={p.id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: (i % 6) * 0.04 }}>
                   <ProductCard p={p} index={i} />
@@ -287,7 +287,7 @@ export function WishlistPage() {
   const { products, wishlist, t, toggleWish, cartAdd, saved, moveSavedToCart, removeSaved } = useStore();
   const items = products.filter((p) => wishlist.includes(p.id));
   return (
-    <div className="max-w-7xl mx-auto px-6 lg:px-10 py-12">
+    <div className="w-full max-w-none mx-auto px-3.5 sm:px-5 lg:px-6 xl:px-8 py-12">
       <p className="font-mono text-[11px] tracking-[0.3em] text-blaze-500">SAVED GEAR</p>
       <h1 className="font-display text-4xl md:text-5xl font-black uppercase mt-2 mb-10">{t("wishlist")} <span className="font-mono text-base text-ink-500">({items.length})</span></h1>
       {items.length === 0 ? (
@@ -297,7 +297,7 @@ export function WishlistPage() {
           <p className="text-sm text-ink-400 mt-2">Tap the ♥ on any product to keep it here.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2.5 sm:gap-5">
           {items.map((p, i) => <Reveal key={p.id} delay={i * 70}><ProductCard p={p} index={i} /></Reveal>)}
         </div>
       )}

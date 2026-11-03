@@ -35,7 +35,7 @@ function HeroRing() {
 
 function HeroVisualizer() {
   return (
-    <div className="relative w-full max-w-lg mx-auto hidden md:block">
+    <div className="relative w-full max-w-xl mx-auto hidden md:block">
       <HeroRing />
     </div>
   );
@@ -62,7 +62,7 @@ export default function Home() {
     ? settings.featuredProductIds
         .map((id) => products.find((p) => p.id === id))
         .filter(Boolean) as typeof products
-    : products.filter((p) => p.featured || p.tag).slice(0, 8);
+    : products.filter((p) => p.featured || p.tag).slice(0, 12);
 
   const filteredFeatured = activeQuickFilter === "ALL"
     ? featured
@@ -99,7 +99,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-[radial-gradient(50%_40%_at_20%_80%,rgba(214,151,64,0.13),transparent_60%)]" />
         <Particles />
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-7 sm:py-10 lg:py-12 grid grid-cols-1 lg:grid-cols-[1.08fr_0.92fr] gap-6 lg:gap-8 items-center w-full">
+        <div className="relative w-full max-w-none mx-auto px-3.5 sm:px-5 lg:px-6 xl:px-8 py-7 sm:py-10 lg:py-12 grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-6 lg:gap-10 items-center">
           <div className="min-w-0">
             <div className="inline-flex items-center gap-1.5 font-mono text-[10px] sm:text-[11px] tracking-[0.15em] text-blaze-400 border border-blaze-500/40 bg-blaze-500/10 px-2.5 py-1 rounded font-bold">
               <span>🌱 100% EGGLESS</span>
@@ -107,12 +107,12 @@ export default function Home() {
               <span className="text-volt-400">⚡ 30-45M NCR DELIVERY</span>
             </div>
 
-            <h1 className="font-display font-black uppercase leading-[0.96] mt-3.5 sm:mt-4 text-4xl sm:text-5xl lg:text-6xl">
+            <h1 className="font-display font-black uppercase leading-[0.96] mt-3.5 sm:mt-4 text-4xl sm:text-5xl lg:text-6xl xl:text-7xl">
               <span className="block">{titleA}</span>
               <span className="block text-outline-blaze italic mt-0.5">{titleB}</span>
             </h1>
 
-            <p className="text-ink-300 text-xs sm:text-sm max-w-md mt-3 leading-relaxed">
+            <p className="text-ink-300 text-xs sm:text-sm max-w-xl mt-3 leading-relaxed">
               Fresh Belgian chocolate cakes, gourmet cookies & luxury hampers delivered chilled in 30–45 mins.
             </p>
 
@@ -130,7 +130,7 @@ export default function Home() {
             </div>
 
             {/* Compact Stats & Coupon */}
-            <div className="mt-5 pt-4 border-t border-ink-800/80 flex flex-wrap items-center justify-between gap-3 max-w-lg">
+            <div className="mt-5 pt-4 border-t border-ink-800/80 flex flex-wrap items-center justify-between gap-3 max-w-2xl">
               <div className="flex items-center gap-5 sm:gap-6">
                 {stats.map(([n, l]) => (
                   <div key={l}>
@@ -162,7 +162,7 @@ export default function Home() {
       </section>
 
       {/* ============ 2. VISUAL CATEGORIES (PICK YOUR CRAVING) ============ */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-8 sm:py-10">
+      <section className="w-full max-w-none mx-auto px-3.5 sm:px-5 lg:px-6 xl:px-8 py-8 sm:py-10">
         <SectionHead
           kicker="01 — Categories"
           title="Pick your craving"
@@ -172,12 +172,12 @@ export default function Home() {
             </Link>
           }
         />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+        <div className={`grid grid-cols-2 ${homeCategories.length >= 6 ? "md:grid-cols-3 lg:grid-cols-6" : "md:grid-cols-4"} gap-3 sm:gap-4 lg:gap-5`}>
           {homeCategories.map((c, i) => {
             const cropVal = c.crop ?? (c.id === "cat-cookies" || c.name === "Cookies" ? "0% 0%" : undefined);
             return (
               <Reveal key={c.name} delay={i * 50}>
-                <Link to={`/shop?cat=${encodeURIComponent(c.name)}`} className="group relative block h-[135px] sm:h-[175px] md:h-[200px] clip-tile overflow-hidden border border-ink-700/60 bg-ink-850 shadow-md hover:border-blaze-500 transition-colors">
+                <Link to={`/shop?cat=${encodeURIComponent(c.name)}`} className="group relative block h-[135px] sm:h-[175px] md:h-[210px] xl:h-[235px] clip-tile overflow-hidden border border-ink-700/60 bg-ink-850 shadow-md hover:border-blaze-500 transition-colors">
                   <PImg src={c.img} crop={cropVal} alt={c.name} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-108" />
                   <div className="absolute inset-0 bg-gradient-to-t from-ink-950/95 via-ink-950/25 to-transparent" />
                   <div className="absolute inset-0 p-3.5 sm:p-4 flex items-end justify-between gap-2">
@@ -194,7 +194,7 @@ export default function Home() {
       </section>
 
       {/* ============ 3. SIGNATURE BAKES (PRODUCTS) ============ */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 pb-10 sm:pb-14">
+      <section className="w-full max-w-none mx-auto px-3.5 sm:px-5 lg:px-6 xl:px-8 pb-10 sm:pb-14">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 pb-4 border-b border-ink-800">
           <div>
             <p className="font-mono text-[10px] tracking-[0.25em] text-blaze-500 uppercase font-bold">
@@ -282,7 +282,7 @@ export default function Home() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4 mt-5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2.5 sm:gap-4 lg:gap-5 mt-5">
             {filteredFeatured.map((p, i) => (
               <div key={p.id} className="h-full">
                 <ProductCard p={p} index={i} />
@@ -296,7 +296,7 @@ export default function Home() {
       <HomeThemeCakeShowcase />
 
       {/* ============ 4. COOKIES & GIFT HAMPERS ============ */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 pb-10 sm:pb-14">
+      <section className="w-full max-w-none mx-auto px-3.5 sm:px-5 lg:px-6 xl:px-8 pb-10 sm:pb-14">
         <div className="flex items-end justify-between pb-3 border-b border-ink-800">
           <div>
             <p className="font-mono text-[10px] tracking-[0.25em] text-volt-400 uppercase font-bold">03 — Gifting & Munchies</p>
@@ -306,10 +306,10 @@ export default function Home() {
             View All →
           </Link>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4 mt-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2.5 sm:gap-4 lg:gap-5 mt-5">
           {products
             .filter((p) => p.category === "Gift Hampers" || p.category === "Cookies")
-            .slice(0, 4)
+            .slice(0, 6)
             .map((p, i) => (
               <div key={p.id} className="h-full">
                 <ProductCard p={p} index={i} />
