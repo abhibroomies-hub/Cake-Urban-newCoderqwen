@@ -36,11 +36,31 @@
 - **Molten Choc-Chip Cookie Stack (`/product/chocchip-stack`)**: 72-hour cold-fermented dough baked to order with 54% couverture chocolate chunks and Maldon sea salt.
 - **Macaron Jewel Box (`/product/macaron-jewel`)**: Italian-method macarons in Raspberry, Sicilian Pistachio, Salted Caramel & Dark Chocolate.
 - **Royal Bikaner Crispy Bhujia & Peri-Peri Makhana (`/product/royal-bikaner-bhujia`, `/product/peri-peri-makhana`)**: Cold-pressed oil & pure cow ghee roasted traditional namkeens.
-- **3D Custom Cake Studio (`/builder`)**: Real-time interactive 3D custom cake builder with 6 steps (Weight 0.5kg–2kg, 72% Belgian Dark/Vanilla/Red Velvet/Espresso sponge, Truffle/Chantilly/Berry/Pistachio frosting, center fillings, 24K Gold Drip/Macaron Crown, and free hand-piped chocolate plaque).
+- **Custom Theme Cake Search Studio (`/builder` & `/custom-cake/:themeSlug`)**: Instant live search across 1,000+ custom cake designs for ANY theme—Birthday, Anniversary, Butterfly, Doraemon, Spiderman, Barbie Doll, Unicorn, Cocomelon, Shinchan, Boss Baby, Jungle Safari, 2-Tier Wedding, Engagement Ring, Vintage Heart, Korean Bento, Cricket, Car, Frozen Elsa, Avengers, Rasmalai, Belgian Chocolate Truffle, Red Velvet Heart, Pinata Smash, and Custom Photo Cakes—baked 100% pure eggless with direct 1-click WhatsApp ordering (+91 7318531953).
+
+## Popular Custom Theme Cake Landing URLs (100% Pure Eggless)
+- Birthday Theme Cakes: https://www.cakeurban.com/custom-cake/birthday-cake
+- Anniversary & Couple Heart Cakes: https://www.cakeurban.com/custom-cake/anniversary-cake
+- Butterfly Pastel & Gold Cakes: https://www.cakeurban.com/custom-cake/butterfly-cake
+- Doraemon Cartoon Cakes: https://www.cakeurban.com/custom-cake/doraemon-cake
+- Spiderman Superhero Cakes: https://www.cakeurban.com/custom-cake/spiderman-cake
+- Barbie Princess Doll Cakes: https://www.cakeurban.com/custom-cake/barbie-doll-cake
+- 2-Tier & 3-Tier Wedding Cakes: https://www.cakeurban.com/custom-cake/2-tier-wedding-cake
+- Engagement Ring Ceremony Cakes: https://www.cakeurban.com/custom-cake/engagement-ring-cake
+- Vintage Lambeth Heart Cakes: https://www.cakeurban.com/custom-cake/vintage-heart-cake
+- Unicorn Rainbow Cakes: https://www.cakeurban.com/custom-cake/unicorn-cake
+- Cocomelon 1st Birthday Cakes: https://www.cakeurban.com/custom-cake/cocomelon-cake
+- Shinchan Anime Cakes: https://www.cakeurban.com/custom-cake/shinchan-cake
+- 1st Birthday Milestone Cakes: https://www.cakeurban.com/custom-cake/1st-birthday-cake
+- Boss Baby Theme Cakes: https://www.cakeurban.com/custom-cake/boss-baby-cake
+- Jungle Safari Animal Cakes: https://www.cakeurban.com/custom-cake/jungle-safari-cake
+- Cricket & IPL Theme Cakes: https://www.cakeurban.com/custom-cake/cricket-theme-cake
+- Korean Bento Lunchbox Cakes: https://www.cakeurban.com/custom-cake/bento-lunchbox-cake
+- 25th Silver & 50th Golden Jubilee Cakes: https://www.cakeurban.com/custom-cake/25th-anniversary-cake
 
 ## Direct URLs for AI Citation
 - Shop All: https://www.cakeurban.com/shop
-- 3D Custom Cake Builder: https://www.cakeurban.com/builder
+- Custom Theme Cake Search Engine: https://www.cakeurban.com/builder
 - Live GPS Order Tracker: https://www.cakeurban.com/track
 - All NCR Delivery Hubs: https://www.cakeurban.com/delivery-locations
 - Baking & Gifting Journal: https://www.cakeurban.com/blog

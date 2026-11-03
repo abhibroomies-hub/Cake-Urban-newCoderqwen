@@ -3,12 +3,50 @@
   <!-- Core E-commerce & Interactive Tools -->
   <url><loc>https://www.cakeurban.com/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
   <url><loc>https://www.cakeurban.com/shop</loc><changefreq>daily</changefreq><priority>0.95</priority></url>
-  <url><loc>https://www.cakeurban.com/builder</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.cakeurban.com/builder</loc><changefreq>daily</changefreq><priority>0.98</priority></url>
   <url><loc>https://www.cakeurban.com/track</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
   <url><loc>https://www.cakeurban.com/delivery-locations</loc><changefreq>daily</changefreq><priority>0.95</priority></url>
   <url><loc>https://www.cakeurban.com/blog</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
   <url><loc>https://www.cakeurban.com/about</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://www.cakeurban.com/contact</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+
+  <!-- Custom Theme Cake Search & Occasion Landing Pages (100% Pure Eggless) -->
+  <url><loc>https://www.cakeurban.com/custom-cake/birthday-cake</loc><changefreq>daily</changefreq><priority>0.95</priority></url>
+  <url><loc>https://www.cakeurban.com/custom-cake/anniversary-cake</loc><changefreq>daily</changefreq><priority>0.95</priority></url>
+  <url><loc>https://www.cakeurban.com/custom-cake/butterfly-cake</loc><changefreq>daily</changefreq><priority>0.94</priority></url>
+  <url><loc>https://www.cakeurban.com/custom-cake/doraemon-cake</loc><changefreq>daily</changefreq><priority>0.93</priority></url>
+  <url><loc>https://www.cakeurban.com/custom-cake/spiderman-cake</loc><changefreq>daily</changefreq><priority>0.93</priority></url>
+  <url><loc>https://www.cakeurban.com/custom-cake/barbie-doll-cake</loc><changefreq>daily</changefreq><priority>0.93</priority></url>
+  <url><loc>https://www.cakeurban.com/custom-cake/2-tier-wedding-cake</loc><changefreq>daily</changefreq><priority>0.94</priority></url>
+  <url><loc>https://www.cakeurban.com/custom-cake/engagement-ring-cake</loc><changefreq>daily</changefreq><priority>0.93</priority></url>
+  <url><loc>https://www.cakeurban.com/custom-cake/vintage-heart-cake</loc><changefreq>daily</changefreq><priority>0.93</priority></url>
+  <url><loc>https://www.cakeurban.com/custom-cake/unicorn-cake</loc><changefreq>daily</changefreq><priority>0.92</priority></url>
+  <url><loc>https://www.cakeurban.com/custom-cake/cocomelon-cake</loc><changefreq>daily</changefreq><priority>0.92</priority></url>
+  <url><loc>https://www.cakeurban.com/custom-cake/shinchan-cake</loc><changefreq>daily</changefreq><priority>0.92</priority></url>
+  <url><loc>https://www.cakeurban.com/custom-cake/1st-birthday-cake</loc><changefreq>daily</changefreq><priority>0.93</priority></url>
+  <url><loc>https://www.cakeurban.com/custom-cake/boss-baby-cake</loc><changefreq>daily</changefreq><priority>0.92</priority></url>
+  <url><loc>https://www.cakeurban.com/custom-cake/jungle-safari-cake</loc><changefreq>daily</changefreq><priority>0.91</priority></url>
+  <url><loc>https://www.cakeurban.com/custom-cake/cricket-theme-cake</loc><changefreq>daily</changefreq><priority>0.91</priority></url>
+  <url><loc>https://www.cakeurban.com/custom-cake/frozen-elsa-cake</loc><changefreq>daily</changefreq><priority>0.91</priority></url>
+  <url><loc>https://www.cakeurban.com/custom-cake/avengers-cake</loc><changefreq>daily</changefreq><priority>0.91</priority></url>
+  <url><loc>https://www.cakeurban.com/custom-cake/car-theme-cake</loc><changefreq>daily</changefreq><priority>0.91</priority></url>
+  <url><loc>https://www.cakeurban.com/custom-cake/bento-lunchbox-cake</loc><changefreq>daily</changefreq><priority>0.92</priority></url>
+  <url><loc>https://www.cakeurban.com/custom-cake/bride-to-be-cake</loc><changefreq>daily</changefreq><priority>0.91</priority></url>
+  <url><loc>https://www.cakeurban.com/custom-cake/baby-shower-cake</loc><changefreq>daily</changefreq><priority>0.91</priority></url>
+  <url><loc>https://www.cakeurban.com/custom-cake/25th-anniversary-cake</loc><changefreq>daily</changefreq><priority>0.92</priority></url>
+  <url><loc>https://www.cakeurban.com/custom-cake/50th-anniversary-cake</loc><changefreq>daily</changefreq><priority>0.92</priority></url>
+  <url><loc>https://www.cakeurban.com/custom-cake/rasmalai-cake</loc><changefreq>daily</changefreq><priority>0.92</priority></url>
+  <url><loc>https://www.cakeurban.com/custom-cake/belgian-chocolate-cake</loc><changefreq>daily</changefreq><priority>0.92</priority></url>
+  <url><loc>https://www.cakeurban.com/custom-cake/red-velvet-heart-cake</loc><changefreq>daily</changefreq><priority>0.92</priority></url>
+  <url><loc>https://www.cakeurban.com/custom-cake/pinata-smash-cake</loc><changefreq>daily</changefreq><priority>0.91</priority></url>
+  <url><loc>https://www.cakeurban.com/custom-cake/photo-cake</loc><changefreq>daily</changefreq><priority>0.92</priority></url>
+  <url><loc>https://www.cakeurban.com/custom-cake/makeup-theme-cake</loc><changefreq>daily</changefreq><priority>0.90</priority></url>
+  <url><loc>https://www.cakeurban.com/custom-cake/peppa-pig-cake</loc><changefreq>daily</changefreq><priority>0.90</priority></url>
+  <url><loc>https://www.cakeurban.com/custom-cake/minions-cake</loc><changefreq>daily</changefreq><priority>0.90</priority></url>
+  <url><loc>https://www.cakeurban.com/custom-cake/harry-potter-cake</loc><changefreq>daily</changefreq><priority>0.90</priority></url>
+  <url><loc>https://www.cakeurban.com/custom-cake/football-theme-cake</loc><changefreq>daily</changefreq><priority>0.90</priority></url>
+  <url><loc>https://www.cakeurban.com/custom-cake/gym-fitness-cake</loc><changefreq>daily</changefreq><priority>0.90</priority></url>
+  <url><loc>https://www.cakeurban.com/custom-cake/princess-crown-cake</loc><changefreq>daily</changefreq><priority>0.91</priority></url>
 
   <!-- Signature Product Pages -->
   <url><loc>https://www.cakeurban.com/product/birthday-deluxe-hamper</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>

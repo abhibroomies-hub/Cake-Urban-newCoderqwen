@@ -79,6 +79,7 @@ function Shell() {
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/builder" element={<CustomBuilder />} />
+            <Route path="/custom-cake/:themeSlug" element={<CustomBuilder />} />
             <Route path="/policy/:type" element={<PolicyPage />} />
             <Route path="/delivery-locations" element={<DeliveryLocationsIndex />} />
             <Route path="/cookies-delhi" element={<CookiesLocationPage />} />

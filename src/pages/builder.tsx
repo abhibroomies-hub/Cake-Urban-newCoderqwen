@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
+import { Link, useSearchParams, useParams } from "react-router-dom";
 import { Ic } from "../components/ui";
 
 const WHATSAPP_NUMBER = "917318531953";
@@ -30,10 +31,16 @@ const CATEGORIES = [
 ];
 
 const POPULAR_SEARCHES = [
+  "Birthday Cake",
+  "Anniversary Cake",
+  "Theme Cake",
   "Butterfly Cake",
   "Vintage Heart",
+  "1st Birthday Boy",
+  "Birthday For Girl",
   "Spiderman",
   "Doraemon",
+  "Shinchan",
   "Barbie Doll",
   "Korean Bento",
   "2 Tier Wedding",
@@ -46,6 +53,47 @@ const POPULAR_SEARCHES = [
   "50th Birthday Gold",
   "Cricket Theme",
   "Photo Cake",
+  "Boss Baby",
+  "Frozen Elsa",
+  "Avengers",
+  "Jungle Theme",
+  "Car Theme",
+  "Red Velvet Heart",
+];
+
+const SMART_SUGGESTIONS_POOL = [
+  "Birthday Cake For Boy",
+  "Birthday Cake For Girl",
+  "1st Birthday Theme Cake",
+  "Husband Birthday Cake",
+  "Wife Birthday Cake",
+  "Butterfly Birthday Cake",
+  "Chocolate Truffle Birthday Cake",
+  "2 Tier Birthday Cake",
+  "1st Anniversary Heart Cake",
+  "25th Silver Jubilee Anniversary Cake",
+  "Romantic Red Heart Anniversary Cake",
+  "Couple Photo Anniversary Cake",
+  "Vintage Lambeth Heart Cake",
+  "Spiderman Superhero Theme Cake",
+  "Doraemon Cartoon Theme Cake",
+  "Shinchan Naughty Theme Cake",
+  "Barbie Princess Doll Cake",
+  "Cocomelon 1st Birthday Cake",
+  "Unicorn Rainbow Theme Cake",
+  "Boss Baby Blue Theme Cake",
+  "Frozen Elsa Ice Castle Cake",
+  "Cricket Stadium Theme Cake",
+  "Luxury Make Up Theme Cake",
+  "Car & Racing Theme Cake",
+  "Jungle Safari Animal Theme Cake",
+  "2 Tier Royal Wedding Cake",
+  "Engagement Ring Platter Cake",
+  "Bride To Be Bachelorette Cake",
+  "Korean Bento Minimalist Cake",
+  "Royal Rasmalai Pistachio Cake",
+  "Lotus Biscoff Drip Cake",
+  "Ferrero Rocher Gold Hazelnut Cake",
 ];
 
 // 100% Authentic Pinterest Cake Pins (i.pinimg.com/736x)
@@ -556,16 +604,89 @@ function scorePinAgainstQuery(pin: CakePin, rawQuery: string): number {
   return score;
 }
 
+export interface SeoCakeThemeItem {
+  slug: string;
+  label: string;
+  query: string;
+  desc: string;
+}
+
+export const SEO_CUSTOM_CAKE_THEMES: SeoCakeThemeItem[] = [
+  { slug: "birthday-cake", label: "Birthday Cake", query: "Birthday Cake", desc: "Custom 100% eggless birthday cakes for boys, girls, kids & adults" },
+  { slug: "anniversary-cake", label: "Anniversary Cake", query: "Anniversary Cake", desc: "Romantic couple, heart, 1st, 25th silver & 50th golden anniversary cakes" },
+  { slug: "butterfly-cake", label: "Butterfly Cake", query: "Butterfly Cake", desc: "Trending pastel, purple, pink & gold edible butterfly cakes" },
+  { slug: "doraemon-cake", label: "Doraemon Cake", query: "Doraemon Cake", desc: "3D Doraemon cartoon birthday cakes for kids in 100% pure eggless" },
+  { slug: "spiderman-cake", label: "Spiderman Cake", query: "Spiderman Cake", desc: "Marvel Spiderman web superhero theme birthday cakes for boys" },
+  { slug: "barbie-doll-cake", label: "Barbie Doll Cake", query: "Barbie Doll Cake", desc: "Pink princess dress Barbie doll cakes for girls birthday" },
+  { slug: "2-tier-wedding-cake", label: "2-Tier Wedding Cake", query: "2 Tier Wedding Cake", desc: "Grand 2-tier & 3-tier royal wedding and reception designer cakes" },
+  { slug: "engagement-ring-cake", label: "Engagement Ring Cake", query: "Engagement Ring Cake", desc: "Ring ceremony & roka celebration designer floral tier cakes" },
+  { slug: "vintage-heart-cake", label: "Vintage Heart Cake", query: "Vintage Heart Cake", desc: "Lambeth piping coquette ribbon vintage heart aesthetic cakes" },
+  { slug: "unicorn-cake", label: "Unicorn Cake", query: "Unicorn Cake", desc: "Magical pastel rainbow unicorn horn birthday cakes for kids" },
+  { slug: "cocomelon-cake", label: "Cocomelon Cake", query: "Cocomelon Cake", desc: "JJ & Cocomelon nursery rhyme 1st & 2nd birthday theme cakes" },
+  { slug: "shinchan-cake", label: "Shinchan Cake", query: "Shinchan Cake", desc: "Funny naughty Shinchan anime cartoon custom cakes" },
+  { slug: "1st-birthday-cake", label: "1st Birthday Cake", query: "1st Birthday Cake", desc: "Milestone number 1 crown, teddy bear & jungle safari cakes" },
+  { slug: "boss-baby-cake", label: "Boss Baby Cake", query: "Boss Baby Cake", desc: "Blue suit Boss Baby 1st birthday custom fondant & cream cakes" },
+  { slug: "jungle-safari-cake", label: "Jungle Safari Cake", query: "Jungle Safari Cake", desc: "Lion, elephant, giraffe & monkey animal theme jungle cakes" },
+  { slug: "cricket-theme-cake", label: "Cricket Theme Cake", query: "Cricket Theme Cake", desc: "Cricket pitch, bat, ball & IPL jersey birthday cakes" },
+  { slug: "frozen-elsa-cake", label: "Frozen Elsa Cake", query: "Frozen Elsa Cake", desc: "Disney Frozen ice castle & Princess Elsa snowflake cakes" },
+  { slug: "avengers-cake", label: "Avengers Superhero Cake", query: "Avengers Cake", desc: "Iron Man, Captain America, Thor & Hulk superhero cakes" },
+  { slug: "car-theme-cake", label: "Car & Racing Cake", query: "Car Theme Cake", desc: "BMW, Mercedes, Ferrari & Hot Wheels racing car birthday cakes" },
+  { slug: "bento-lunchbox-cake", label: "Korean Bento Cake", query: "Korean Bento Cake", desc: "Cute mini aesthetic Korean lunchbox cakes for couples & friends" },
+  { slug: "bride-to-be-cake", label: "Bride To Be Cake", query: "Bride To Be Cake", desc: "Bachelorette party & bridal shower crown and gown cakes" },
+  { slug: "baby-shower-cake", label: "Baby Shower Cake", query: "Baby Shower Cake", desc: "Mom-to-be, boy or girl gender reveal & welcome baby cakes" },
+  { slug: "25th-anniversary-cake", label: "25th Silver Jubilee Cake", query: "25th Anniversary Cake", desc: "Silver jubilee 25th marriage anniversary 2-tier cakes" },
+  { slug: "50th-anniversary-cake", label: "50th Golden Jubilee Cake", query: "50th Anniversary Cake", desc: "Golden jubilee 50th wedding anniversary royal gold cakes" },
+  { slug: "rasmalai-cake", label: "Royal Rasmalai Cake", query: "Rasmalai Cake", desc: "Indian fusion pistachio, saffron & rabri rasmalai cakes" },
+  { slug: "belgian-chocolate-cake", label: "Belgian Chocolate Truffle", query: "Chocolate Truffle Cake", desc: "Rich dark Belgian chocolate ganache drip & Ferrero Rocher cakes" },
+  { slug: "red-velvet-heart-cake", label: "Red Velvet Heart Cake", query: "Red Velvet Heart Cake", desc: "Romantic red velvet cream cheese heart cakes for anniversary" },
+  { slug: "pinata-smash-cake", label: "Pinata Hammer Cake", query: "Pinata Cake", desc: "3D chocolate shell smash pinata cakes with hammer surprise" },
+  { slug: "photo-cake", label: "Custom Photo Cake", query: "Photo Cake", desc: "High-resolution edible photo print birthday & anniversary cakes" },
+  { slug: "makeup-theme-cake", label: "Makeup & Fashion Cake", query: "Makeup Theme Cake", desc: "MAC lipstick, Chanel bag & vanity mirror designer cakes" },
+  { slug: "peppa-pig-cake", label: "Peppa Pig Cake", query: "Peppa Pig Cake", desc: "Cute pink Peppa Pig family cartoon cakes for toddlers" },
+  { slug: "minions-cake", label: "Minions Theme Cake", query: "Minions Cake", desc: "Despicable Me yellow Minion 3D birthday cakes" },
+  { slug: "harry-potter-cake", label: "Harry Potter Cake", query: "Harry Potter Cake", desc: "Hogwarts, Golden Snitch & Happee Birthdae Harry cakes" },
+  { slug: "football-theme-cake", label: "Football & Messi/Ronaldo Cake", query: "Football Theme Cake", desc: "Soccer ball, Real Madrid, Barcelona, Messi & CR7 cakes" },
+  { slug: "gym-fitness-cake", label: "Gym & Fitness Cake", query: "Gym Theme Cake", desc: "Dumbbell, protein whey & bodybuilder theme birthday cakes" },
+  { slug: "princess-crown-cake", label: "Princess Crown Cake", query: "Princess Crown Cake", desc: "Golden tiara crown pink & white royal princess cakes" },
+];
+
+export function slugToThemeQuery(slug: string): string {
+  const found = SEO_CUSTOM_CAKE_THEMES.find((t) => t.slug.toLowerCase() === slug.toLowerCase());
+  if (found) return found.query;
+  return slug
+    .replace(/-/g, " ")
+    .replace(/\b\w/g, (l) => l.toUpperCase())
+    .trim();
+}
+
 export default function CustomCakePinterestFinder() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [activeCategory, setActiveCategory] = useState("all");
-  const [selectedFlavor, setSelectedFlavor] = useState("Belgian Chocolate Truffle");
+  const [searchParams] = useSearchParams();
+  const { themeSlug } = useParams<{ themeSlug?: string }>();
+  const [searchQuery, setSearchQuery] = useState(() => {
+    const qParam = searchParams.get("q");
+    if (qParam) return qParam;
+    if (themeSlug) return slugToThemeQuery(themeSlug);
+    return "";
+  });
+  const [activeCategory, setActiveCategory] = useState(() => searchParams.get("cat") || "all");
   const [livePins, setLivePins] = useState<CakePin[]>([]);
   const [isSearchingWeb, setIsSearchingWeb] = useState(false);
   const [previewPin, setPreviewPin] = useState<CakePin | null>(null);
   const [isImageZoomed, setIsImageZoomed] = useState(false);
   const [customNote, setCustomNote] = useState("");
   const [customPasteUrl, setCustomPasteUrl] = useState("");
+
+  useEffect(() => {
+    const qParam = searchParams.get("q");
+    const catParam = searchParams.get("cat");
+    if (qParam !== null) {
+      setSearchQuery(qParam);
+    } else if (themeSlug) {
+      setSearchQuery(slugToThemeQuery(themeSlug));
+      setActiveCategory("all");
+    }
+    if (catParam !== null) setActiveCategory(catParam);
+  }, [searchParams, themeSlug]);
 
   const openCakePreview = (pin: CakePin) => {
     setIsImageZoomed(false);
@@ -634,7 +755,7 @@ export default function CustomCakePinterestFinder() {
     };
   }, [searchQuery]);
 
-  // Combine Curated Pinterest Pins + Live Fetched Pinterest Pins
+  // Combine Curated Pins + Live Fetched Pins & Guarantee 16 to 40+ Results on Every Search
   const displayedPins = useMemo(() => {
     const q = searchQuery.trim();
 
@@ -653,7 +774,7 @@ export default function CustomCakePinterestFinder() {
       .sort((a, b) => b.score - a.score)
       .map((item) => item.pin);
 
-    // Deduplicate by image URL between local curated pins and live Pinterest pins
+    // Deduplicate by image URL between local curated pins and live pins
     const seenImgs = new Set<string>();
     const combined: CakePin[] = [];
 
@@ -663,8 +784,37 @@ export default function CustomCakePinterestFinder() {
       combined.push(p);
     }
 
+    // Always guarantee 16+ cake suggestions even while live pins are loading or for niche searches
+    if (combined.length < 16) {
+      for (const fallbackPin of CURATED_PINS) {
+        if (!seenImgs.has(fallbackPin.img)) {
+          seenImgs.add(fallbackPin.img);
+          combined.push(fallbackPin);
+        }
+        if (combined.length >= 18) break;
+      }
+    }
+
     return combined;
   }, [searchQuery, activeCategory, livePins]);
+
+  // Dynamic Smart Search Suggestions (12+ suggestions) based on user's search input
+  const relatedSuggestions = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return POPULAR_SEARCHES.slice(0, 14);
+
+    const matched = SMART_SUGGESTIONS_POOL.filter(
+      (item) =>
+        item.toLowerCase().includes(q) &&
+        item.toLowerCase() !== q
+    );
+    const extras = POPULAR_SEARCHES.filter(
+      (item) =>
+        item.toLowerCase() !== q &&
+        !matched.includes(item)
+    );
+    return [...matched, ...extras].slice(0, 14);
+  }, [searchQuery]);
 
   // Build Direct WhatsApp Chat Link With Cake Image URL & Customer Preferences
   const buildWhatsAppLink = (pin: CakePin, extraNote?: string) => {
@@ -672,7 +822,7 @@ export default function CustomCakePinterestFinder() {
       `Hi CakeUrban! 🎂 Mujhe ye custom cake banwana hai:`,
       ``,
       `🎂 *Cake Design:* ${pin.title}`,
-      `🍫 *Preferred Flavor:* ${selectedFlavor} (100% Eggless)`,
+      `✨ *Type:* 100% Pure Eggless Custom Cake`,
       ...(extraNote?.trim() ? [`✍️ *Custom Note:* ${extraNote.trim()}`] : []),
       ``,
       `🖼️ *Selected Cake Photo:*`,
@@ -690,7 +840,7 @@ export default function CustomCakePinterestFinder() {
       `Hi CakeUrban! 🎂 Mujhe ye custom cake design banwana hai:`,
       ``,
       `🔗 *Cake Link / Idea:* ${customPasteUrl.trim()}`,
-      `🍫 *Flavor:* ${selectedFlavor} (100% Eggless)`,
+      `✨ *Type:* 100% Pure Eggless Custom Cake`,
       ``,
       `Please check this design and share price & availability!`,
     ].join("\n");
@@ -758,10 +908,12 @@ export default function CustomCakePinterestFinder() {
             </div>
           </form>
 
-          {/* Popular Search Chips (Scrollable on Mobile) */}
-          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-1 pb-0.5 justify-start sm:justify-center">
-            <span className="font-mono text-[9px] uppercase tracking-wider text-ink-400 shrink-0">Trending:</span>
-            {POPULAR_SEARCHES.map((term) => (
+          {/* Smart Search Suggestions Strip (14+ Suggestions Always Ready) */}
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-1.5 pb-0.5 justify-start">
+            <span className="font-mono text-[9px] uppercase tracking-wider text-gold-400 font-bold shrink-0">
+              {searchQuery.trim() ? "✨ Related Ideas:" : "🔥 Popular Ideas:"}
+            </span>
+            {relatedSuggestions.map((term) => (
               <button
                 key={term}
                 type="button"
@@ -769,35 +921,16 @@ export default function CustomCakePinterestFinder() {
                   setSearchQuery(term);
                   setActiveCategory("all");
                 }}
-                className={`px-2.5 py-1 rounded-full font-mono text-[10px] border transition-colors shrink-0 ${
+                className={`px-2.5 py-1 rounded-full font-mono text-[10px] border transition-all shrink-0 ${
                   searchQuery.toLowerCase() === term.toLowerCase()
-                    ? "bg-blaze-500 text-white border-blaze-500 font-bold"
-                    : "bg-ink-900/90 text-ink-300 border-ink-700 hover:border-blaze-400 hover:text-ink-100"
+                    ? "bg-blaze-500 text-white border-blaze-500 font-bold shadow-sm"
+                    : "bg-ink-900/90 text-ink-200 border-ink-700 hover:border-blaze-400 hover:text-white"
                 }`}
               >
-                {term}
+                🔍 {term}
               </button>
             ))}
           </div>
-        </div>
-
-        {/* Flavor Selector Strip (Included in WhatsApp Message Automatically!) */}
-        <div className="mt-4 pt-3.5 border-t border-ink-800/80 flex items-center justify-center gap-2 max-w-xl mx-auto">
-          <span className="font-mono text-[10px] uppercase text-gold-400 shrink-0">Preferred Flavor:</span>
-          <select
-            value={selectedFlavor}
-            onChange={(e) => setSelectedFlavor(e.target.value)}
-            aria-label="Select cake flavor"
-            className="bg-ink-950 border border-ink-700 focus:border-blaze-500 rounded px-3 py-1.5 text-xs font-mono text-ink-100 outline-none flex-1 sm:flex-initial min-w-0 truncate"
-          >
-            <option value="Belgian Chocolate Truffle">Belgian Chocolate Truffle</option>
-            <option value="Red Velvet Cream Cheese">Red Velvet Cream Cheese</option>
-            <option value="Fresh Pineapple Cloud">Fresh Pineapple Cloud</option>
-            <option value="Butterscotch Caramel Crunch">Butterscotch Caramel Crunch</option>
-            <option value="Royal Rasmalai Pistachio">Royal Rasmalai Pistachio</option>
-            <option value="Lotus Biscoff Speculoos">Lotus Biscoff Speculoos</option>
-            <option value="Fresh Strawberry Vanilla">Fresh Strawberry Vanilla</option>
-          </select>
         </div>
       </div>
 
@@ -922,9 +1055,6 @@ export default function CustomCakePinterestFinder() {
                   >
                     {pin.title}
                   </h3>
-                  <p className="font-mono text-[9px] sm:text-[10px] text-ink-400 mt-1 truncate">
-                    {selectedFlavor}
-                  </p>
                 </div>
               </div>
 
@@ -956,7 +1086,7 @@ export default function CustomCakePinterestFinder() {
           </p>
           <a
             href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
-              `Hi CakeUrban! 🎂 Mujhe "${searchQuery}" theme me custom cake chahiye (${selectedFlavor}). Please share sample photos & price!`
+              `Hi CakeUrban! 🎂 Mujhe "${searchQuery}" theme me custom cake chahiye. Please share sample photos & price!`
             )}`}
             target="_blank"
             rel="noopener noreferrer"
@@ -999,6 +1129,48 @@ export default function CustomCakePinterestFinder() {
           </form>
         </div>
       </div>
+
+      {/* SEO Theme Cake Directory — Crawlable Internal Links for Google Search Indexing */}
+      <section
+        aria-label="Popular Custom Cake Themes & Google Search Directory"
+        className="mt-8 sm:mt-12 border border-ink-800/90 bg-ink-900/70 rounded-xl p-4 sm:p-6"
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3.5">
+          <div>
+            <span className="font-mono text-[9px] sm:text-[10px] tracking-[0.18em] text-gold-400 uppercase font-bold block">
+              🎂 100% Eggless Custom Cake Directory · Delhi NCR
+            </span>
+            <h2 className="font-display text-sm sm:text-lg font-black uppercase text-ink-100 mt-0.5">
+              Popular Custom Theme Cakes You Can Order Online
+            </h2>
+          </div>
+          <span className="font-mono text-[10px] text-ink-400">
+            Same-Day & Midnight Delivery in Faridabad, Gurgaon, Noida, Delhi & Ghaziabad
+          </span>
+        </div>
+
+        <div className="flex flex-wrap gap-1.5 sm:gap-2">
+          {SEO_CUSTOM_CAKE_THEMES.map((theme) => (
+            <Link
+              key={theme.slug}
+              to={`/custom-cake/${theme.slug}`}
+              onClick={() => {
+                setSearchQuery(theme.query);
+                setActiveCategory("all");
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              title={`${theme.label} — ${theme.desc}`}
+              className={`px-2.5 py-1 rounded-md font-mono text-[10px] border transition-colors ${
+                searchQuery.toLowerCase() === theme.query.toLowerCase()
+                  ? "bg-blaze-500 text-white border-blaze-500 font-bold"
+                  : "bg-ink-950/80 text-ink-300 border-ink-800 hover:border-blaze-500/60 hover:text-ink-50"
+              }`}
+            >
+              {theme.label}
+            </Link>
+          ))}
+        </div>
+      </section>
 
       {/* Full-Size Cake Lightbox & Zoom Modal Mounted Directly on document.body */}
       {previewPin &&
@@ -1094,5 +1266,526 @@ export default function CustomCakePinterestFinder() {
           document.body
         )}
     </div>
+  );
+}
+
+// ============================================================================
+// HOME PAGE SECTION: 1-LINE THEME CARDS + LEFT-TO-RIGHT SCROLLING CUSTOM CAKES
+// ============================================================================
+const HOME_THEME_CARDS = [
+  {
+    id: "birthday",
+    title: "Birthday Cakes",
+    subtitle: "Boys, Girls & Milestone",
+    query: "Birthday Butterfly Chocolate Barbie Spiderman",
+    searchLinkQuery: "Birthday Cake",
+    coverImg: "https://i.pinimg.com/736x/11/63/1e/11631ec40ef315f65ce7876b5bdbc4c4.jpg",
+    badge: "🎂 #1 Popular",
+  },
+  {
+    id: "anniversary",
+    title: "Anniversary Cakes",
+    subtitle: "Couple, Heart & 25th",
+    query: "Anniversary Heart Couple Red Rose Vintage",
+    searchLinkQuery: "Anniversary Cake",
+    coverImg: "https://i.pinimg.com/736x/20/9d/01/209d014bf357489993571a7957326293.jpg",
+    badge: "❤️ Romantic",
+  },
+  {
+    id: "theme-cake",
+    title: "Theme Cakes",
+    subtitle: "Cartoon, Car & Custom",
+    query: "Spiderman Doraemon Cocomelon Unicorn Barbie Cricket",
+    searchLinkQuery: "Theme Cake",
+    coverImg: "https://i.pinimg.com/736x/95/55/4f/95554f34bd3d49fa42ba5df3477c6472.jpg",
+    badge: "🎨 Custom Theme",
+  },
+  {
+    id: "butterfly",
+    title: "Butterfly Cakes",
+    subtitle: "Pastel & Lavender",
+    query: "Butterfly Pastel Lavender Korean Aesthetic",
+    searchLinkQuery: "Butterfly Cake",
+    coverImg: "https://i.pinimg.com/736x/66/43/4f/66434f01e84504790655519b5e6dcd35.jpg",
+    badge: "🦋 Trending",
+  },
+  {
+    id: "wedding-tier",
+    title: "Wedding & 2-Tier",
+    subtitle: "Ring & Engagement",
+    query: "Wedding Tier Engagement Ring Royal",
+    searchLinkQuery: "2 Tier Wedding",
+    coverImg: "https://i.pinimg.com/736x/f6/e5/2c/f6e52c7f334a083d3dc691bd72c5e2ef.jpg",
+    badge: "💍 Grand Tier",
+  },
+  {
+    id: "vintage-heart",
+    title: "Vintage Heart",
+    subtitle: "Lambeth & Coquette",
+    query: "Vintage Heart Lambeth Pink Ribbon",
+    searchLinkQuery: "Vintage Heart",
+    coverImg: "https://i.pinimg.com/736x/ed/63/f8/ed63f8e078267950345acfc4b0c970ec.jpg",
+    badge: "💖 Most Saved",
+  },
+  {
+    id: "barbie-doll",
+    title: "Kids & Doll Cakes",
+    subtitle: "Barbie, Unicorn & Elsa",
+    query: "Barbie Princess Doll Unicorn Kids",
+    searchLinkQuery: "Barbie Doll",
+    coverImg: "https://i.pinimg.com/736x/70/4d/fb/704dfb7e71235f428024a03df9d1de97.jpg",
+    badge: "👑 Kids Fav",
+  },
+  {
+    id: "rasmalai-truffle",
+    title: "Rasmalai & Truffle",
+    subtitle: "Pistachio & Belgian",
+    query: "Rasmalai Chocolate Truffle Biscoff Ferrero",
+    searchLinkQuery: "Rasmalai Cake",
+    coverImg: "https://i.pinimg.com/736x/01/72/3c/01723ce38ee879cf798718d9c82cebc4.jpg",
+    badge: "🍫 Signature",
+  },
+];
+
+export function HomeThemeCakeShowcase() {
+  const [selectedTheme, setSelectedTheme] = useState(HOME_THEME_CARDS[0]);
+  const [liveThemePins, setLiveThemePins] = useState<CakePin[]>([]);
+  const [isLoadingLive, setIsLoadingLive] = useState(false);
+  const [previewPin, setPreviewPin] = useState<CakePin | null>(null);
+  const [isImageZoomed, setIsImageZoomed] = useState(false);
+  const [customNote, setCustomNote] = useState("");
+  const themeStripRef = useRef<HTMLDivElement>(null);
+  const pinsReelRef = useRef<HTMLDivElement>(null);
+
+  const openCakePreview = (pin: CakePin) => {
+    setIsImageZoomed(false);
+    setPreviewPin(pin);
+  };
+
+  const closeCakePreview = () => {
+    setIsImageZoomed(false);
+    setPreviewPin(null);
+  };
+
+  const scrollPinsReel = (dir: "left" | "right") => {
+    if (!pinsReelRef.current) return;
+    const shift = dir === "left" ? -320 : 320;
+    pinsReelRef.current.scrollBy({ left: shift, behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    if (!previewPin) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [previewPin]);
+
+  // Fetch live custom cake results for the selected theme to enrich pre-loaded results (16+ designs)
+  useEffect(() => {
+    const controller = new AbortController();
+    const q = selectedTheme.searchLinkQuery || selectedTheme.query;
+    setIsLoadingLive(true);
+
+    // Reset horizontal scroll position to start when switching theme
+    if (pinsReelRef.current) {
+      pinsReelRef.current.scrollTo({ left: 0, behavior: "smooth" });
+    }
+
+    fetch(`/api/pinterest-search?q=${encodeURIComponent(q)}`, {
+      signal: controller.signal,
+    })
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((data) => {
+        const fetched: CakePin[] = (data?.pins || []).map((p: any, idx: number) => ({
+          id: p.id || `home-live-${selectedTheme.id}-${idx}`,
+          title: p.title || `${selectedTheme.title} Design`,
+          category: "custom",
+          img: p.img,
+          startingWeight: "1.0 Kg",
+          priceInr: 999,
+          tags: [selectedTheme.id, "custom"],
+          badge: selectedTheme.badge,
+        }));
+        setLiveThemePins(fetched);
+      })
+      .catch(() => {
+        setLiveThemePins([]);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setIsLoadingLive(false);
+      });
+
+    return () => controller.abort();
+  }, [selectedTheme]);
+
+  // Pre-loaded curated results + live search results (16+ cards in horizontal reel)
+  const themePins = useMemo(() => {
+    const scoredLocal = CURATED_PINS.map((pin) => ({
+      pin,
+      score: scorePinAgainstQuery(pin, selectedTheme.query),
+    }))
+      .filter((item) => item.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .map((item) => item.pin);
+
+    const seen = new Set<string>();
+    const combined: CakePin[] = [];
+    for (const p of [...scoredLocal, ...liveThemePins]) {
+      if (!p.img || seen.has(p.img)) continue;
+      seen.add(p.img);
+      combined.push(p);
+    }
+
+    // Guarantee at least 14+ cards in the horizontal reel even before live fetch completes
+    if (combined.length < 14) {
+      for (const fallback of CURATED_PINS) {
+        if (!seen.has(fallback.img)) {
+          seen.add(fallback.img);
+          combined.push(fallback);
+        }
+        if (combined.length >= 16) break;
+      }
+    }
+
+    return combined.slice(0, 20);
+  }, [selectedTheme, liveThemePins]);
+
+  const buildWhatsAppLink = (pin: CakePin, extraNote?: string) => {
+    const lines = [
+      `Hi CakeUrban! 🎂 Mujhe ye custom theme cake banwana hai:`,
+      ``,
+      `🎂 *Cake Design:* ${pin.title}`,
+      `✨ *Theme:* ${selectedTheme.title} (100% Eggless)`,
+      ...(extraNote?.trim() ? [`✍️ *Custom Note:* ${extraNote.trim()}`] : []),
+      ``,
+      `🖼️ *Selected Cake Photo:*`,
+      pin.img,
+      ``,
+      `Please share price & delivery slot!`,
+    ];
+    return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(lines.join("\n"))}`;
+  };
+
+  const searchLink = `/builder?q=${encodeURIComponent(
+    selectedTheme.searchLinkQuery || selectedTheme.query
+  )}`;
+
+  return (
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 pb-10 sm:pb-14">
+      {/* Section Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 pb-4 border-b border-ink-800">
+        <div>
+          <p className="font-mono text-[10px] tracking-[0.25em] text-blaze-400 uppercase font-bold">
+            🎂 Custom Cake Studio — Birthday · Anniversary · Theme Cakes
+          </p>
+          <h2 className="font-display font-black text-2xl sm:text-3xl uppercase mt-0.5 text-ink-50">
+            Explore Custom Theme Cakes
+          </h2>
+          <p className="text-xs sm:text-sm text-ink-300 mt-1">
+            Apna celebration theme chunein aur left-to-right swipe karke custom cake designs dekhein!
+          </p>
+        </div>
+
+        <Link
+          to="/builder"
+          className="clip-btn bg-blaze-500 hover:bg-blaze-400 text-ink-50 font-mono text-[11px] tracking-[0.14em] uppercase px-4 sm:px-5 py-2.5 font-bold inline-flex items-center gap-2 self-start md:self-auto shrink-0 transition-colors"
+        >
+          <span>🔍 Search 1000+ Custom Cakes</span>
+          <Ic.arrow className="w-3.5 h-3.5" />
+        </Link>
+      </div>
+
+      {/* 1. Theme Cake Cards — Strictly 1 Single Horizontal Line on Phone & Desktop */}
+      <div
+        ref={themeStripRef}
+        className="flex items-stretch gap-2.5 sm:gap-3.5 overflow-x-auto no-scrollbar snap-x snap-mandatory pt-4 pb-2 scroll-smooth"
+      >
+        {HOME_THEME_CARDS.map((theme) => {
+          const isActive = selectedTheme.id === theme.id;
+          return (
+            <button
+              key={theme.id}
+              type="button"
+              onClick={() => setSelectedTheme(theme)}
+              className={`group relative w-[132px] sm:w-[156px] md:w-[168px] shrink-0 snap-start rounded-xl overflow-hidden border text-left transition-all duration-300 flex flex-col ${
+                isActive
+                  ? "border-blaze-500 ring-2 ring-blaze-500/40 bg-ink-850 shadow-lg shadow-blaze-500/20 -translate-y-0.5"
+                  : "border-ink-800 hover:border-ink-600 bg-ink-900/90 hover:-translate-y-0.5"
+              }`}
+            >
+              <div className="relative h-[84px] sm:h-[96px] w-full bg-ink-950 overflow-hidden">
+                <img
+                  src={theme.coverImg}
+                  alt={theme.title}
+                  loading="lazy"
+                  referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    if (target.src !== FALLBACK_CAKE_IMG) target.src = FALLBACK_CAKE_IMG;
+                  }}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/30 to-transparent" />
+                <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-ink-950/85 border border-ink-700 font-mono text-[8px] text-gold-400 font-bold truncate max-w-[90%]">
+                  {theme.badge}
+                </span>
+              </div>
+
+              <div className="p-2 sm:p-2.5 flex-1 flex flex-col justify-between">
+                <p
+                  className={`font-display font-bold text-xs leading-tight truncate ${
+                    isActive ? "text-blaze-400" : "text-ink-50 group-hover:text-blaze-400"
+                  }`}
+                >
+                  {theme.title}
+                </p>
+                <p className="font-mono text-[9px] text-ink-400 truncate mt-0.5">
+                  {theme.subtitle}
+                </p>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Active Theme Header Bar + Left/Right Carousel Controls */}
+      <div className="mt-3 mb-3 flex items-center justify-between gap-2 bg-ink-900/90 border border-ink-800 rounded-xl px-3 sm:px-4 py-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+          <p className="font-mono text-[11px] sm:text-xs text-ink-200 truncate">
+            <strong className="text-blaze-400 uppercase">{selectedTheme.title}</strong>{" "}
+            <span className="text-ink-400">({themePins.length}+ Designs · Swipe ⇆)</span>
+          </p>
+          {isLoadingLive && (
+            <span className="font-mono text-[10px] text-gold-400 animate-pulse hidden sm:inline shrink-0">
+              Loading more...
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            type="button"
+            onClick={() => scrollPinsReel("left")}
+            aria-label="Scroll cake designs left"
+            className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg border border-ink-700 bg-ink-950 hover:border-blaze-500 text-ink-100 grid place-items-center text-xs transition-colors"
+          >
+            ←
+          </button>
+          <button
+            type="button"
+            onClick={() => scrollPinsReel("right")}
+            aria-label="Scroll cake designs right"
+            className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg border border-ink-700 bg-ink-950 hover:border-blaze-500 text-ink-100 grid place-items-center text-xs transition-colors"
+          >
+            →
+          </button>
+          <Link
+            to={searchLink}
+            className="ml-1 font-mono text-[10px] sm:text-[11px] text-blaze-400 hover:underline uppercase font-bold shrink-0"
+          >
+            View All →
+          </Link>
+        </div>
+      </div>
+
+      {/* 2. Left-to-Right Horizontal Scrolling Custom Cake Results Reel with Smooth Animation */}
+      <div
+        key={selectedTheme.id}
+        ref={pinsReelRef}
+        className="flex items-stretch gap-3 sm:gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth pb-3 pt-1 anim-fade-in"
+      >
+        {themePins.map((pin, idx) => {
+          const waHref = buildWhatsAppLink(pin);
+          return (
+            <div
+              key={pin.id}
+              style={{ animationDelay: `${Math.min(idx * 45, 360)}ms` }}
+              className="anim-zoom group w-[178px] sm:w-[225px] md:w-[248px] shrink-0 snap-start bg-ink-900 border border-ink-800 hover:border-blaze-500/70 rounded-xl overflow-hidden flex flex-col justify-between transition-all duration-300 shadow-lg hover:shadow-blaze-500/15 hover:-translate-y-1 min-w-0"
+            >
+              <div>
+                <div
+                  onClick={() => openCakePreview(pin)}
+                  className="relative aspect-[4/5] bg-ink-950 overflow-hidden cursor-zoom-in"
+                >
+                  <img
+                    src={pin.img}
+                    alt={pin.title}
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      if (target.src !== FALLBACK_CAKE_IMG) {
+                        target.src = FALLBACK_CAKE_IMG;
+                      }
+                    }}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-108"
+                  />
+
+                  <div className="absolute top-2 left-2 right-2 flex items-center justify-between pointer-events-none gap-1">
+                    <span className="px-2 py-0.5 rounded-full bg-ink-950/85 backdrop-blur-sm border border-ink-700 font-mono text-[7.5px] sm:text-[9px] tracking-wider uppercase text-gold-400 font-bold truncate max-w-[70%]">
+                      {pin.badge || selectedTheme.title}
+                    </span>
+                    <span className="px-1.5 py-0.5 rounded-full bg-ink-950/85 backdrop-blur-sm border border-ink-700 font-mono text-[8px] text-ink-200 shrink-0">
+                      🔍 Zoom
+                    </span>
+                  </div>
+
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink-950 via-ink-950/50 to-transparent p-2.5 sm:p-3 pt-8 flex items-end justify-between">
+                    <span className="font-mono text-[9px] text-emerald-400 uppercase block font-bold">
+                      100% Pure Eggless
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-2.5 sm:p-3 pb-1.5">
+                  <h3
+                    onClick={() => openCakePreview(pin)}
+                    className="font-display font-bold text-xs sm:text-sm text-ink-50 group-hover:text-blaze-400 transition-colors line-clamp-2 cursor-pointer leading-snug"
+                  >
+                    {pin.title}
+                  </h3>
+                  <p className="font-mono text-[9px] sm:text-[10px] text-ink-400 mt-1 truncate">
+                    {selectedTheme.title} · Custom Made
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-2 sm:p-3 pt-1">
+                <a
+                  href={waHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-2 sm:py-2.5 px-2 sm:px-3 rounded-lg bg-[#25D366] hover:bg-[#1fb855] text-ink-950 font-mono text-[9.5px] sm:text-xs font-extrabold uppercase tracking-tight sm:tracking-wider flex items-center justify-center gap-1 sm:gap-1.5 shadow-md transition-all active:scale-95 min-w-0"
+                >
+                  <Ic.whatsapp className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current shrink-0" />
+                  <span className="truncate">Chat About This Cake</span>
+                </a>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Bottom CTA to Open Full Custom Cake Search Page */}
+      <div className="mt-4 text-center">
+        <Link
+          to={searchLink}
+          className="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl bg-ink-900 hover:bg-ink-850 border border-blaze-500/60 hover:border-blaze-400 text-ink-50 font-mono text-[11px] sm:text-xs font-bold uppercase tracking-wider transition-all shadow-md"
+        >
+          <span>🎂 Explore All {selectedTheme.title} & Search Any Theme</span>
+          <Ic.arrow className="w-3.5 h-3.5 text-blaze-400" />
+        </Link>
+      </div>
+
+      {/* Crawlable Quick Theme Links for Google SEO Indexing */}
+      <div className="mt-5 pt-4 border-t border-ink-800/70 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+        <span className="font-mono text-[9px] uppercase tracking-wider text-ink-400 shrink-0">
+          Popular Cake Themes:
+        </span>
+        {SEO_CUSTOM_CAKE_THEMES.slice(0, 18).map((theme) => (
+          <Link
+            key={theme.slug}
+            to={`/custom-cake/${theme.slug}`}
+            className="px-2.5 py-1 rounded-full bg-ink-900/80 border border-ink-800 hover:border-blaze-500/60 font-mono text-[9.5px] text-ink-300 hover:text-white shrink-0 transition-colors"
+          >
+            {theme.label}
+          </Link>
+        ))}
+      </div>
+
+      {/* Full-Size Cake Lightbox Modal Mounted Directly on document.body */}
+      {previewPin &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            onClick={closeCakePreview}
+            className="fixed inset-0 z-[9999] bg-ink-950/95 backdrop-blur-md p-2 sm:p-5 flex items-center justify-center overflow-hidden"
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="bg-ink-900 border border-ink-700 rounded-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden shadow-2xl"
+            >
+              <div className="flex items-center justify-between gap-2 px-3.5 sm:px-5 py-2.5 sm:py-3 border-b border-ink-800 bg-ink-950/90 shrink-0">
+                <div className="min-w-0">
+                  <span className="font-mono text-[9px] sm:text-[10px] text-gold-400 uppercase tracking-wider block">
+                    🎂 Full Cake Preview · 100% Pure Eggless
+                  </span>
+                  <h3 className="font-display text-sm sm:text-lg font-black uppercase text-ink-50 truncate">
+                    {previewPin.title}
+                  </h3>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setIsImageZoomed((z) => !z)}
+                    className="px-2.5 sm:px-3 py-1.5 rounded-lg bg-ink-800 hover:bg-ink-700 border border-ink-600 text-ink-100 font-mono text-[10px] sm:text-xs font-bold transition-colors"
+                  >
+                    {isImageZoomed ? "🔍 Fit Screen" : "🔍 Zoom In +"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={closeCakePreview}
+                    aria-label="Close full image preview"
+                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-ink-800 hover:bg-blaze-500 text-white grid place-items-center text-sm font-bold transition-colors"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+
+              <div
+                onClick={() => setIsImageZoomed((z) => !z)}
+                className={`relative bg-ink-950 flex-1 overflow-auto flex items-center justify-center p-2 sm:p-4 select-none ${
+                  isImageZoomed ? "cursor-zoom-out items-start" : "cursor-zoom-in"
+                }`}
+              >
+                <img
+                  src={previewPin.img.replace(/\/(236x|474x)\//, "/736x/")}
+                  alt={previewPin.title}
+                  referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    if (target.src !== previewPin.img) {
+                      target.src = previewPin.img;
+                    } else if (target.src !== FALLBACK_CAKE_IMG) {
+                      target.src = FALLBACK_CAKE_IMG;
+                    }
+                  }}
+                  className={`transition-all duration-300 rounded-lg shadow-2xl ${
+                    isImageZoomed
+                      ? "w-full sm:w-[85%] max-w-none h-auto object-contain mx-auto"
+                      : "max-h-[58vh] sm:max-h-[66vh] w-auto max-w-full object-contain mx-auto"
+                  }`}
+                />
+              </div>
+
+              <div className="p-3 sm:p-4 border-t border-ink-800 bg-ink-900 shrink-0 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3">
+                <input
+                  type="text"
+                  value={customNote}
+                  onChange={(e) => setCustomNote(e.target.value)}
+                  placeholder="Cake message or custom note (e.g. Happy Birthday Aarav!)..."
+                  className="flex-1 min-w-0 bg-ink-950 border border-ink-700 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-ink-100 outline-none focus:border-blaze-500"
+                />
+
+                <a
+                  href={buildWhatsAppLink(previewPin, customNote)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="py-2.5 sm:py-3 px-4 sm:px-6 rounded-xl bg-[#25D366] hover:bg-[#1fb855] text-ink-950 font-mono text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shrink-0"
+                >
+                  <Ic.whatsapp className="w-4 h-4 fill-current shrink-0" />
+                  <span>Chat About This Cake on WhatsApp</span>
+                </a>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
+    </section>
   );
 }

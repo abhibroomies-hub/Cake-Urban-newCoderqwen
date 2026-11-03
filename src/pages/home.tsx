@@ -4,6 +4,7 @@ import { useStore } from "../lib/store";
 import { Ic, PImg, Particles, Reveal, SectionHead, useScramble } from "../components/ui";
 import { ProductCard } from "../components/product";
 import { CustomerReviewsShowcase } from "../components/CustomerReviewsShowcase";
+import { HomeThemeCakeShowcase } from "./builder";
 
 function HeroRing() {
   const { products, fmt } = useStore();
@@ -290,6 +291,9 @@ export default function Home() {
           </div>
         )}
       </section>
+
+      {/* ============ 3B. CUSTOM THEME CAKES (PRE-LOADED THEME SEARCH RESULTS) ============ */}
+      <HomeThemeCakeShowcase />
 
       {/* ============ 4. COOKIES & GIFT HAMPERS ============ */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 pb-10 sm:pb-14">

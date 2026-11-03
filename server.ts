@@ -78,17 +78,19 @@ async function searchPinterestCakes(rawQuery: string): Promise<LivePinItem[]> {
     return cached.pins;
   }
 
-  const queryWithCake = /\bcake(s)?\b/i.test(normalized)
-    ? `${rawQuery.trim()} aesthetic design`
-    : `${rawQuery.trim()} cake design`;
+  const baseClean = rawQuery.trim().replace(/\bcake(s)?(\s+design(s)?)?\b/gi, "").trim() || rawQuery.trim();
+  const searchQueries = [
+    `${baseClean} cake design`,
+    `${baseClean} custom birthday cake aesthetic ideas`,
+  ];
 
   let session = await ensurePinterestSession(false);
 
-  const fetchFromPinterest = async (cookieStr: string, csrf: string) => {
-    const sourceUrl = `/search/pins/?q=${encodeURIComponent(queryWithCake)}&rs=typed`;
+  const fetchFromPinterest = async (qStr: string, cookieStr: string, csrf: string) => {
+    const sourceUrl = `/search/pins/?q=${encodeURIComponent(qStr)}&rs=typed`;
     const dataObj = {
       options: {
-        query: queryWithCake,
+        query: qStr,
         scope: "pins",
         applied_unified_filters: null,
         auto_correction_disabled: false,
@@ -117,22 +119,38 @@ async function searchPinterestCakes(rawQuery: string): Promise<LivePinItem[]> {
     });
   };
 
-  let res = await fetchFromPinterest(session.cookieStr, session.csrf);
-  if (!res.ok) {
+  let responses = await Promise.allSettled(
+    searchQueries.map((qStr) => fetchFromPinterest(qStr, session.cookieStr, session.csrf))
+  );
+
+  const firstFulfilled = responses.find((r) => r.status === "fulfilled" && r.value.ok);
+  if (!firstFulfilled) {
     session = await ensurePinterestSession(true);
-    res = await fetchFromPinterest(session.cookieStr, session.csrf);
+    responses = await Promise.allSettled(
+      searchQueries.map((qStr) => fetchFromPinterest(qStr, session.cookieStr, session.csrf))
+    );
   }
 
-  const json: any = await res.json();
-  const results: any[] = json?.resource_response?.data?.results || [];
+  const allResults: any[] = [];
+  for (const r of responses) {
+    if (r.status === "fulfilled" && r.value.ok) {
+      try {
+        const json: any = await r.value.json();
+        const items: any[] = json?.resource_response?.data?.results || [];
+        allResults.push(...items);
+      } catch {
+        // Ignore individual parse errors
+      }
+    }
+  }
 
   const seenUrls = new Set<string>();
   const pins: LivePinItem[] = [];
 
-  const isTieredQuery = /2\s*tier|3\s*tier|wedding|engagement|anniversary|ring/i.test(queryWithCake);
+  const isTieredQuery = /2\s*tier|3\s*tier|wedding|engagement|anniversary|ring/i.test(baseClean);
 
-  for (let i = 0; i < results.length; i++) {
-    const item = results[i];
+  for (let i = 0; i < allResults.length; i++) {
+    const item = allResults[i];
     const imgUrl: string | undefined =
       item?.images?.["736x"]?.url ||
       item?.images?.["564x"]?.url ||
@@ -149,7 +167,7 @@ async function searchPinterestCakes(rawQuery: string): Promise<LivePinItem[]> {
       item?.description ||
       "";
 
-    const title = cleanPinTitle(String(rawTitle), rawQuery.trim());
+    const title = cleanPinTitle(String(rawTitle), baseClean);
     const basePrice = isTieredQuery ? 1599 + (i % 5) * 200 : 799 + (i % 6) * 100;
     const startingWeight = isTieredQuery ? "1.5 Kg" : i % 3 === 0 ? "0.5 Kg" : "1.0 Kg";
 
@@ -159,11 +177,11 @@ async function searchPinterestCakes(rawQuery: string): Promise<LivePinItem[]> {
       img: imgUrl,
       priceInr: basePrice,
       startingWeight,
-      badge: "Pinterest Live",
+      badge: "Custom Design",
       pinUrl: item?.id ? `https://www.pinterest.com/pin/${item.id}/` : undefined,
     });
 
-    if (pins.length >= 24) break;
+    if (pins.length >= 40) break;
   }
 
   if (pins.length > 0) {

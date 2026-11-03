@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { useStore } from "../lib/store";
 import { DELHI_NCR_CITIES, getSeoAreaBySlug, SEO_INTENTS } from "../data/seoLocations";
 import { BLOG_POSTS } from "../data/catalog";
+import { SEO_CUSTOM_CAKE_THEMES, slugToThemeQuery } from "../pages/builder";
 
 const CITY_GEO_COORDS: Record<string, { region: string; placename: string; lat: number; lng: number; postal: string }> = {
   faridabad: { region: "IN-HR", placename: "Faridabad, Haryana, Delhi NCR", lat: 28.4089, lng: 77.3178, postal: "121007" },
@@ -13,19 +14,21 @@ const CITY_GEO_COORDS: Record<string, { region: string; placename: string; lat: 
 };
 
 export function SEOManager() {
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   const { products } = useStore();
 
   useEffect(() => {
     const origin = typeof window !== "undefined" ? window.location.origin : "https://www.cakeurban.com";
+    const params = new URLSearchParams(search);
+    const queryParam = params.get("q")?.trim() || "";
     const canonicalUrl = `${origin}${pathname === "/" ? "" : pathname}`;
 
     let title =
-      "CakeUrban — #1 Eggless Cakes, Gourmet Cookies & Luxury Gift Hampers in Delhi NCR | 30-Min Express & Midnight Delivery";
+      "CakeUrban — #1 Custom Theme Cakes (Birthday, Anniversary, Cartoon, Wedding), 100% Eggless Bakery, Cookies & Gift Hampers";
     let description =
-      "Order 100% pure eggless Belgian chocolate cakes, 72-hour cold-fermented cookies, crispy namkeens & luxury gift hampers across Faridabad, Gurgaon, Noida, South Delhi & Ghaziabad. 30-45 mins express & 12 AM midnight delivery. WhatsApp: +91 7318531953.";
+      "Search & order any Custom Theme Cake (Birthday, Anniversary, Butterfly, Doraemon, Spiderman, Barbie, 2-Tier Wedding), 100% pure eggless cakes, gourmet cookies & luxury gift hampers across Faridabad, Gurgaon, Noida, Delhi & Ghaziabad. WhatsApp: +91 7318531953.";
     let keywords =
-      "cake delivery faridabad, cake delivery gurgaon, cake delivery noida, midnight cake delivery delhi ncr, 100% eggless cake near me, gourmet cookies delhi ncr, luxury gift hampers faridabad, birthday gift hampers, anniversary cake delivery, corporate gift hampers gurgaon, cakeurban";
+      "custom theme cake online, birthday cake delivery faridabad gurgaon noida delhi, anniversary cake design, butterfly cake, doraemon cake, spiderman cake, barbie doll cake, unicorn cake, cocomelon cake, shinchan cake, 2 tier wedding cake, engagement ring cake, vintage heart cake, 100% eggless cake near me, gourmet cookies delhi ncr, luxury gift hampers, cakeurban";
     let ogImage = "https://image.qwenlm.ai/generated-images/19868aa6-1a8b-4213-bf76-a00a5c538bec/_result.png";
     let ogType = "website";
     let activeCityKey = "faridabad";
@@ -136,16 +139,72 @@ export function SEOManager() {
       description = `Order 72-hour cold-fermented choc-chip cookies, French macarons, roasted makhana & luxury corporate/birthday gift hampers in ${cityName} with 35-min express & midnight delivery.`;
       keywords = `gourmet cookies ${cityKey}, gift hampers ${cityKey}, corporate gifting ${cityKey}, choc chip cookies delivery ${cityKey}, namkeen gift box ${cityKey}`;
     }
-    // 5. Other Core Routes
+    // 5. Custom Theme Cake Search & Dedicated Theme Routes (/builder, /builder?q=..., /custom-cake/:themeSlug)
+    else if (pathname === "/builder" || pathname.startsWith("/custom-cake/")) {
+      const slugPart = pathname.startsWith("/custom-cake/")
+        ? pathname.replace("/custom-cake/", "").trim()
+        : "";
+      const matchedTheme = slugPart
+        ? SEO_CUSTOM_CAKE_THEMES.find((t) => t.slug.toLowerCase() === slugPart.toLowerCase())
+        : undefined;
+      const activeThemeName = queryParam
+        ? queryParam.replace(/\b\w/g, (l) => l.toUpperCase())
+        : matchedTheme
+        ? matchedTheme.label
+        : slugPart
+        ? slugToThemeQuery(slugPart)
+        : "";
+
+      if (activeThemeName) {
+        const cleanTheme = /cake/i.test(activeThemeName) ? activeThemeName : `${activeThemeName} Cake`;
+        title = `Best Custom ${cleanTheme} Designs Online (100% Eggless) — Same Day Delivery in Delhi NCR | CakeUrban`;
+        description =
+          matchedTheme?.desc
+            ? `${matchedTheme.desc}. Browse 40+ latest ${cleanTheme} designs & order 100% pure eggless on WhatsApp (+91 7318531953) with express & 12 AM midnight delivery in Faridabad, Gurgaon, Noida, Delhi & Ghaziabad.`
+            : `Explore 40+ trending custom ${cleanTheme} designs at CakeUrban! 100% pure eggless, freshly baked to order with same-day & midnight delivery across Faridabad, Gurgaon, Noida, Delhi & Ghaziabad. Chat on WhatsApp: +91 7318531953.`;
+        keywords = `${cleanTheme.toLowerCase()}, custom ${cleanTheme.toLowerCase()} online, ${cleanTheme.toLowerCase()} design photo, eggless ${cleanTheme.toLowerCase()} near me, ${cleanTheme.toLowerCase()} delivery faridabad gurgaon noida delhi, order ${cleanTheme.toLowerCase()} on whatsapp, cakeurban`;
+        ogType = "product";
+
+        pageSchema = {
+          "@type": "Product",
+          "@id": `${canonicalUrl}#custom-theme-cake`,
+          name: `Custom ${cleanTheme} (100% Pure Eggless)`,
+          image: [ogImage],
+          description,
+          brand: { "@type": "Brand", name: "CakeUrban" },
+          category: "Custom Theme Cakes",
+          offers: {
+            "@type": "AggregateOffer",
+            url: canonicalUrl,
+            priceCurrency: "INR",
+            lowPrice: "599",
+            highPrice: "4999",
+            offerCount: "40",
+            availability: "https://schema.org/InStock",
+            seller: { "@type": "Organization", name: "CakeUrban Custom Cake Studio" },
+          },
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: "4.9",
+            reviewCount: "2480",
+            bestRating: "5",
+            worstRating: "1",
+          },
+        };
+      } else {
+        title =
+          "Custom Theme Cake Search Studio — Birthday, Anniversary, Cartoon, Butterfly & Wedding Cakes | CakeUrban";
+        description =
+          "Search 1000+ custom cake designs for any theme (Birthday, Anniversary, Butterfly, Doraemon, Spiderman, Barbie Doll, Unicorn, Cocomelon, 2-Tier Wedding, Vintage Heart) & order 100% pure eggless on WhatsApp (+91 7318531953).";
+        keywords =
+          "custom cake design search, theme cake online delhi ncr, birthday cake designs, anniversary cake designs, butterfly cake, doraemon cake, spiderman cake, barbie doll cake, 2 tier wedding cake, vintage heart cake, eggless custom cake faridabad gurgaon noida delhi";
+      }
+    }
+    // 6. Other Core Routes
     else if (pathname === "/shop") {
       title = "Shop Gourmet Cookies, Eggless Cakes, Namkeens & Luxury Gift Hampers | CakeUrban Delhi NCR";
       description =
         "Browse CakeUrban's complete menu of 100% eggless Belgian chocolate cakes, molten choc-chip cookies, royal Bikaneri namkeens, and luxury gift hampers. 30-45 mins express delivery.";
-    } else if (pathname === "/builder") {
-      title = "3D Custom Cake Studio — Design Your Own Eggless Cake Online | CakeUrban Delhi NCR";
-      description =
-        "Customize your cake in real-time 3D! Choose weight (0.5kg to 2kg), 72% Belgian dark sponge, truffle or pistachio frosting, center fillings & free chocolate plaque message.";
-      keywords = "custom 3d cake builder online, design your own cake delhi ncr, custom birthday cake faridabad gurgaon noida, photo cake customizer";
     } else if (pathname === "/track") {
       title = "Live Order & GPS Rider Tracker — Cold-Chain Telemetry | CakeUrban";
       description =
@@ -335,16 +394,34 @@ export function SEOManager() {
         url: origin,
         name: "CakeUrban",
         publisher: { "@id": `${origin}/#bakery` },
-        potentialAction: {
-          "@type": "SearchAction",
-          target: `${origin}/shop?q={search_term_string}`,
-          "query-input": "required name=search_term_string",
-        },
+        potentialAction: [
+          {
+            "@type": "SearchAction",
+            target: `${origin}/builder?q={search_term_string}`,
+            "query-input": "required name=search_term_string",
+          },
+          {
+            "@type": "SearchAction",
+            target: `${origin}/shop?q={search_term_string}`,
+            "query-input": "required name=search_term_string",
+          },
+        ],
       },
       {
         "@type": "BreadcrumbList",
         "@id": `${canonicalUrl}#breadcrumb`,
         itemListElement: breadcrumbItems,
+      },
+      {
+        "@type": "ItemList",
+        "@id": `${origin}/#custom-cake-themes`,
+        name: "CakeUrban Popular Custom Theme Cakes (100% Eggless)",
+        itemListElement: SEO_CUSTOM_CAKE_THEMES.slice(0, 20).map((t, idx) => ({
+          "@type": "ListItem",
+          position: idx + 1,
+          url: `${origin}/custom-cake/${t.slug}`,
+          name: `Custom ${t.label} (100% Eggless)`,
+        })),
       },
       {
         "@type": "ItemList",
@@ -374,7 +451,7 @@ export function SEOManager() {
       "@context": "https://schema.org",
       "@graph": graphNodes,
     });
-  }, [pathname, products]);
+  }, [pathname, search, products]);
 
   return null;
 }
