@@ -194,6 +194,10 @@ export function buildMerchantFeedXml(baseUrl = CANONICAL_SITE_URL) {
   const xmlItems = items
     .map(
       (item) => `    <item>
+      <title>${escapeXml(item.title)}</title>
+      <link>${escapeXml(`${baseUrl}${item.link}`)}</link>
+      <description>${escapeXml(item.desc)}</description>
+      <guid isPermaLink="true">${escapeXml(`${baseUrl}${item.link}`)}</guid>
       <g:id>${escapeXml(item.id)}</g:id>
       <g:title>${escapeXml(item.title)}</g:title>
       <g:description>${escapeXml(item.desc)}</g:description>
