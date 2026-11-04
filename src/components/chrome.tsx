@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useRef, useState } from "r
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { useStore } from "../lib/store";
-import { CATEGORIES, CURRENCIES, SEED_NCR_HUBS, type Product } from "../data/catalog";
+import { CATEGORIES, CURRENCIES, SEED_NCR_HUBS, PARTY_ADDON_IDS, type Product } from "../data/catalog";
 import type { Lang } from "../lib/i18n";
 import { Ic, ImgX, Modal, PImg, Qty } from "./ui";
 import { useQuickView } from "./product";
@@ -363,7 +363,8 @@ export function NcrExpressHubBanner() {
 
 /* ================= header + mega menu ================= */
 export function Header({ onCart, onCompare }: { onCart: () => void; onCompare: () => void }) {
-  const { t, user, cartCount, wishlist, compare, settings, categories, logout } = useStore();
+  const { t, user, partners, cartCount, wishlist, compare, settings, categories, logout } = useStore();
+  const isPartnerUser = Boolean(user?.email && partners.some((p) => p.email.toLowerCase() === user.email.toLowerCase()));
   const { openAuth } = useAuth();
   const [mega, setMega] = useState(false);
   const [cakesMega, setCakesMega] = useState(false);
@@ -432,6 +433,11 @@ export function Header({ onCart, onCompare }: { onCart: () => void; onCompare: (
             <Link to="/delivery-locations" className="link-sweep text-ink-200 hover:text-ink-50 transition-colors whitespace-nowrap shrink-0">
               NCR Hubs
             </Link>
+            {isPartnerUser && (
+              <Link to="/partner" className="link-sweep text-emerald-400 hover:text-emerald-300 font-bold whitespace-nowrap shrink-0">
+                Partner Portal
+              </Link>
+            )}
             {user?.role === "admin" && (
               <Link to="/admin" className="link-sweep text-gold-400 hover:text-gold-300 font-bold whitespace-nowrap shrink-0">
                 Admin
@@ -477,8 +483,16 @@ export function Header({ onCart, onCompare }: { onCart: () => void; onCompare: (
                     <span className="block font-mono text-[10px] text-ink-400 uppercase">{t("signedIn")}</span>
                     <span className="text-sm font-semibold truncate block">{user.name}</span>
                   </p>
-                  <Link to={user.role === "admin" ? "/admin" : "/account"} className="block px-4 py-2 text-xs font-mono uppercase hover:bg-ink-800 transition-colors">
+                  <Link to={user.role === "admin" ? "/admin" : isPartnerUser ? "/partner" : "/account"} className="block px-4 py-2 text-xs font-mono uppercase hover:bg-ink-800 transition-colors">
                     Dashboard
+                  </Link>
+                  {isPartnerUser && (
+                    <Link to="/partner" className="block px-4 py-2 text-xs font-mono uppercase text-emerald-400 hover:bg-ink-800 transition-colors">
+                      Partner Store Portal
+                    </Link>
+                  )}
+                  <Link to="/account?tab=reminders" className="block px-4 py-2 text-xs font-mono uppercase text-gold-400 hover:bg-ink-800 transition-colors">
+                    Birthday Club (+100 Pts)
                   </Link>
                   <Link to="/track" className="block px-4 py-2 text-xs font-mono uppercase hover:bg-ink-800 transition-colors">
                     Live Order Tracker
@@ -640,6 +654,7 @@ export function Header({ onCart, onCompare }: { onCart: () => void; onCompare: (
                     ["/shop", "Full Bakery Catalog"],
                     ["/shop?cat=Gift%20Hampers", "Luxury Gift Hampers"],
                     ["/builder", "🎂 Custom Cake Studio"],
+                    ...(isPartnerUser ? [["/partner", "🏪 Partner Bakery Portal"]] : []),
                     ["/track", "Live Order Tracker"],
                     ["/delivery-locations", "Delhi NCR Hubs"],
                     ["/wishlist", `Saved Wishlist (${wishlist.length})`],
@@ -699,17 +714,41 @@ function MegaFeatured() {
 
 /* ================= cart drawer ================= */
 export function CartDrawer({ open, onClose, onCheckout }: { open: boolean; onClose: () => void; onCheckout: () => void }) {
-  const { cart, products, fmt, t, cartQty, cartRemove, saveForLater, cartSubtotal, couponFor, toast, saved, moveSavedToCart, removeSaved } = useStore();
+  const { cart, products, fmt, t, cartAdd, cartQty, cartRemove, saveForLater, cartSubtotal, couponFor, toast, saved, moveSavedToCart, removeSaved, settings, checkedPincode } = useStore();
   const [code, setCode] = useState("");
   const [applied, setApplied] = useState("");
   const [err, setErr] = useState("");
   const freeOver = 49;
   const progress = Math.min(100, (cartSubtotal / freeOver) * 100);
+  const partyAddons = products.filter((p) => PARTY_ADDON_IDS.includes(p.id));
+  const waExtraPct = settings.seo?.whatsappExtraDiscountPct || 5;
 
-  const apply = () => {
-    const r = couponFor(code);
-    if (r.ok) { setApplied(code.toUpperCase()); setErr(""); toast("success", r.msg); }
-    else { setApplied(""); setErr(r.msg); }
+  const apply = (customCode?: string) => {
+    const target = (customCode ?? code).trim();
+    const r = couponFor(target);
+    if (r.ok) {
+      setCode(target.toUpperCase());
+      setApplied(target.toUpperCase());
+      setErr("");
+      toast("success", r.msg);
+    } else {
+      setApplied("");
+      setErr(r.msg);
+    }
+  };
+
+  const handleWhatsAppCartRecovery = () => {
+    const itemLines = cart
+      .map((it, idx) => {
+        const p = products.find((x) => x.id === it.productId);
+        if (!p) return "";
+        return `${idx + 1}. *${p.name}* (${it.size}) × ${it.qty} — ${fmt(p.price * it.qty)}`;
+      })
+      .filter(Boolean)
+      .join("\n");
+    const discountedTotal = cartSubtotal * (1 - waExtraPct / 100);
+    const msg = `Hi CakeUrban! 🎂 I want to complete my bag order with *${waExtraPct}% WhatsApp Quick-Buy Discount (Code: WHATSAPP5)*:\n\n${itemLines}\n\n💰 Bag Subtotal: ${fmt(cartSubtotal)}\n🎁 After ${waExtraPct}% WhatsApp Bonus: *${fmt(discountedTotal)}*\n📍 Delivery Pincode: ${checkedPincode || "Delhi NCR"}\n\nPlease share instant UPI link / confirm express dispatch!`;
+    window.open(`https://wa.me/917318531953?text=${encodeURIComponent(msg)}`, "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -724,7 +763,7 @@ export function CartDrawer({ open, onClose, onCheckout }: { open: boolean; onClo
               <button onClick={onClose} aria-label="Close cart" className="p-2 text-ink-400 hover:text-blaze-500 transition-colors"><Ic.x className="w-5 h-5" /></button>
             </div>
             {/* free shipping meter */}
-            <div className="px-6 py-4 border-b border-ink-800 shrink-0">
+            <div className="px-6 py-3.5 border-b border-ink-800 shrink-0">
               <p className="font-mono text-[10px] tracking-[0.18em] uppercase mb-2">
                 {cartSubtotal >= freeOver ? <span className="text-volt-400">✓ {t("freeShipDone")}</span> : <span className="text-ink-300">{fmt(freeOver - cartSubtotal)} {t("freeShipNote")}</span>}
               </p>
@@ -734,7 +773,7 @@ export function CartDrawer({ open, onClose, onCheckout }: { open: boolean; onClo
             </div>
             <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
               {cart.length === 0 && (
-                <div className="text-center py-16">
+                <div className="text-center py-12">
                   <Ic.bag className="w-12 h-12 mx-auto text-ink-600 mb-4" />
                   <p className="font-display font-semibold uppercase">{t("emptyCart")}</p>
                   <button onClick={onClose} className="clip-tag mt-5 border border-ink-600 hover:border-blaze-500 hover:text-blaze-400 px-5 py-2.5 font-mono text-xs tracking-[0.15em] uppercase transition-colors">{t("continueShopping")}</button>
@@ -766,6 +805,64 @@ export function CartDrawer({ open, onClose, onCheckout }: { open: boolean; onClo
                   </motion.div>
                 );
               })}
+
+              {/* 1-Tap Party Add-Ons (Candles, Toppers, Balloons, Roses, Chocolates) */}
+              {partyAddons.length > 0 && (
+                <div className="pt-3 border-t border-ink-800">
+                  <div className="flex items-center justify-between mb-2.5">
+                    <p className="font-mono text-[10px] tracking-[0.18em] text-gold-400 uppercase font-bold">
+                      🎉 1-Tap Party Add-Ons (Candles, Toppers & Flowers)
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => apply("COMBO15")}
+                      className="font-mono text-[9px] text-volt-400 hover:underline uppercase"
+                    >
+                      Apply COMBO15 →
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    {partyAddons.map((addon) => {
+                      const inBagIdx = cart.findIndex((c) => c.productId === addon.id);
+                      const inBag = inBagIdx !== -1;
+                      return (
+                        <div
+                          key={addon.id}
+                          className="flex items-center justify-between gap-3 p-2.5 rounded bg-ink-950/90 border border-ink-800 hover:border-ink-700 transition-colors"
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="w-10 h-10 rounded overflow-hidden bg-ink-850 shrink-0">
+                              <PImg src={addon.img} crop={addon.crop} alt={addon.name} className="w-full h-full object-cover" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-xs font-medium text-ink-100 truncate">{addon.name}</p>
+                              <p className="font-mono tabnum text-[11px] text-gold-400 font-bold">{fmt(addon.price)}</p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (inBag) {
+                                cartRemove(inBagIdx);
+                              } else {
+                                cartAdd(addon.id, addon.colors[0].name, addon.sizes[0], 1);
+                              }
+                            }}
+                            className={`px-3 py-1.5 rounded font-mono text-[10px] font-bold uppercase tracking-wider shrink-0 transition-colors ${
+                              inBag
+                                ? "bg-emerald-500/20 border border-emerald-500/50 text-emerald-300"
+                                : "bg-blaze-500 hover:bg-blaze-400 text-ink-50"
+                            }`}
+                          >
+                            {inBag ? "✓ Added" : "+ Add"}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {saved.length > 0 && (
                 <div className="pt-4 border-t border-dashed border-ink-700">
                   <p className="font-mono text-[10px] tracking-[0.22em] text-ink-400 uppercase mb-3">Saved for later ({saved.length})</p>
@@ -786,17 +883,23 @@ export function CartDrawer({ open, onClose, onCheckout }: { open: boolean; onClo
               )}
             </div>
             {cart.length > 0 && (
-              <div className="border-t border-ink-800 p-6 shrink-0 space-y-3">
+              <div className="border-t border-ink-800 p-5 shrink-0 space-y-2.5 bg-ink-950/60">
                 <div className="flex gap-2">
-                  <input value={code} onChange={(e) => setCode(e.target.value)} placeholder={t("couponPh")} className="flex-1 bg-ink-950 border border-ink-600 focus:border-blaze-500 outline-none px-3 py-2.5 font-mono text-xs uppercase placeholder:normal-case placeholder:font-body placeholder:text-ink-500 transition-colors" />
-                  <button onClick={apply} className="clip-tag bg-ink-100 text-ink-950 hover:bg-blaze-500 hover:text-ink-50 font-mono text-xs tracking-[0.15em] uppercase px-4 transition-colors">{t("apply")}</button>
+                  <input value={code} onChange={(e) => setCode(e.target.value)} placeholder={t("couponPh")} className="flex-1 bg-ink-950 border border-ink-600 focus:border-blaze-500 outline-none px-3 py-2 font-mono text-xs uppercase placeholder:normal-case placeholder:font-body placeholder:text-ink-500 transition-colors" />
+                  <button onClick={() => apply()} className="clip-tag bg-ink-100 text-ink-950 hover:bg-blaze-500 hover:text-ink-50 font-mono text-xs tracking-[0.15em] uppercase px-4 transition-colors">{t("apply")}</button>
                 </div>
                 {err && <p className="font-mono text-[10px] text-danger-400">{err}</p>}
                 {applied && !err && <p className="font-mono text-[10px] text-volt-400">✓ {applied} applied</p>}
-                <div className="flex justify-between font-mono text-sm"><span className="text-ink-400">{t("subtotal")}</span><span className="tabnum">{fmt(cartSubtotal)}</span></div>
-                <p className="font-mono text-[10px] text-ink-500">{t("shipping")} + taxes calculated at checkout</p>
-                <button onClick={onCheckout} className="clip-btn w-full bg-blaze-500 hover:bg-blaze-400 text-ink-50 font-mono text-sm tracking-[0.2em] uppercase py-4 transition-colors flex items-center justify-center gap-2">
+                <div className="flex justify-between font-mono text-sm"><span className="text-ink-400">{t("subtotal")}</span><span className="tabnum font-bold">{fmt(cartSubtotal)}</span></div>
+                <button onClick={onCheckout} className="clip-btn w-full bg-blaze-500 hover:bg-blaze-400 text-ink-50 font-mono text-xs sm:text-sm tracking-[0.18em] uppercase py-3.5 transition-colors flex items-center justify-center gap-2 font-bold">
                   {t("checkout")} <Ic.arrow className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleWhatsAppCartRecovery}
+                  className="w-full py-2.5 px-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded font-mono text-[11px] uppercase tracking-wider font-bold flex items-center justify-center gap-2 transition-colors"
+                >
+                  <Ic.whatsapp className="w-4 h-4 fill-current" /> 1-Click WhatsApp Quick Buy (Extra {waExtraPct}% Off)
                 </button>
               </div>
             )}

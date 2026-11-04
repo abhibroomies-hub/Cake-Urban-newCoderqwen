@@ -82,12 +82,19 @@ function Invoice({ order, onClose }: { order: Order; onClose: () => void }) {
 
 export default function Account() {
   const store = useStore();
-  const { user, updateProfile, orders, fmt, t, cancelOrder, logout, addresses, saveAddress, deleteAddress, payMethods, addPayMethod, deletePayMethod, wishlist, products, toast } = store;
+  const { user, updateProfile, orders, fmt, t, cancelOrder, logout, addresses, saveAddress, deleteAddress, payMethods, addPayMethod, deletePayMethod, wishlist, products, toast, reminders, loyaltyPoints, addReminder, deleteReminder } = store;
   const { openAuth } = useAuth();
   const [params, setParams] = useSearchParams();
   const tab = params.get("tab") ?? "overview";
   const [expanded, setExpanded] = useState<string | null>(null);
   const [invoice, setInvoice] = useState<Order | null>(null);
+
+  // Celebration Reminder Club Form State
+  const [remPerson, setRemPerson] = useState("");
+  const [remRelation, setRemRelation] = useState("Sister");
+  const [remOccasion, setRemOccasion] = useState<"Birthday" | "Anniversary" | "Special Celebration">("Birthday");
+  const [remDate, setRemDate] = useState("");
+  const [remWa, setRemWa] = useState(user?.phone ? user.phone.replace(/\D/g, "").slice(-10) : "9876543210");
 
   // Profile Edit State
   const [profName, setProfName] = useState(user?.name ?? "");
@@ -205,6 +212,7 @@ export default function Account() {
   const shown = myOrders.length ? myOrders : orders.slice(0, 4);
   const tabs = [
     ["overview", "Overview", Ic.chart],
+    ["reminders", "Birthday Club & Points", Ic.sparkle],
     ["profile", "My Profile", Ic.user],
     ["orders", "Orders", Ic.box],
     ["wishlist", t("wishlist"), Ic.heart],
@@ -366,19 +374,43 @@ export default function Account() {
 
           {tab === "overview" && (
             <div className="space-y-6 anim-fade-up">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                 {[
-                  [String(shown.length), "Orders", Ic.box], [fmt(spend), "Lifetime spend", Ic.chart], [String(wishlist.length), "Saved items", Ic.heart],
+                  [String(shown.length), "Orders", Ic.box],
+                  [fmt(spend), "Lifetime spend", Ic.chart],
+                  [`${loyaltyPoints} PTS`, "UrbanPoints Wallet", Ic.sparkle],
+                  [String(wishlist.length), "Saved items", Ic.heart],
                 ].map(([n, l, Icon]: unknown[]) => {
                   const IconC = Icon as (p: { className?: string }) => React.ReactElement;
                   return (
-                    <div key={l as string} className="border border-ink-700/60 bg-ink-850 clip-tile p-6 hover:border-blaze-500/50 transition-colors">
+                    <div key={l as string} className="border border-ink-700/60 bg-ink-850 clip-tile p-5 hover:border-blaze-500/50 transition-colors">
                       <IconC className="w-5 h-5 text-blaze-500" />
-                      <p className="font-display text-3xl font-black mt-3 tabnum">{n as string}</p>
+                      <p className="font-display text-2xl sm:text-3xl font-black mt-3 tabnum">{n as string}</p>
                       <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-ink-400 mt-1">{l as string}</p>
                     </div>
                   );
                 })}
+              </div>
+
+              {/* Birthday & Anniversary Reminder Club Promo Banner */}
+              <div className="border border-gold-400/40 bg-ink-900 clip-tile p-5 sm:p-6 flex items-center justify-between flex-wrap gap-4">
+                <div className="space-y-1">
+                  <span className="font-mono text-[10px] uppercase tracking-widest text-gold-400 font-bold">
+                    🎂 BIRTHDAY & ANNIVERSARY REMINDER CLUB · {loyaltyPoints} URBANPOINTS ACTIVE
+                  </span>
+                  <h4 className="font-display text-lg font-bold uppercase text-ink-50">
+                    Save Family Celebration Dates & Get +100 Points + 20% Off Coupon (BDAY20)
+                  </h4>
+                  <p className="text-xs text-ink-300">
+                    You have {reminders.length} saved celebration reminders. Never miss a midnight cake surprise!
+                  </p>
+                </div>
+                <button
+                  onClick={() => setParams({ tab: "reminders" })}
+                  className="clip-btn bg-gold-400 hover:bg-gold-300 text-ink-950 font-mono text-xs uppercase px-5 py-3 font-bold transition-colors whitespace-nowrap"
+                >
+                  Open Birthday Club →
+                </button>
               </div>
 
               {/* Quick Profile preview tile */}
@@ -408,6 +440,168 @@ export default function Account() {
                     <span className="font-mono text-[11px] text-ink-400">{new Date(o.date).toLocaleDateString()}</span>
                     <StatusPill s={o.status} />
                     <span className="font-mono tabnum text-sm font-bold">{fmt(o.total)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {tab === "reminders" && (
+            <div className="space-y-6 anim-fade-up">
+              {/* Loyalty Wallet Header */}
+              <div className="border border-gold-400/40 bg-ink-850 clip-tile p-6 grid md:grid-cols-[1.3fr_1fr] gap-6 items-center">
+                <div className="space-y-2">
+                  <span className="font-mono text-[10px] uppercase tracking-widest text-gold-400 font-bold">
+                    🎁 CAKEURBAN LOYALTY WALLET & CELEBRATION CLUB
+                  </span>
+                  <h2 className="font-display text-2xl sm:text-3xl font-black uppercase text-ink-50">
+                    Never Miss a Birthday or Anniversary
+                  </h2>
+                  <p className="text-xs sm:text-sm text-ink-300 leading-relaxed">
+                    Add your loved ones&apos; birthdays and anniversaries below. For every date you save, you earn{" "}
+                    <strong className="text-gold-400">+100 UrbanPoints</strong> and unlock an automatic{" "}
+                    <strong className="text-volt-400">20% OFF VIP Coupon (BDAY20)</strong> sent on WhatsApp 48 hours before their celebration!
+                  </p>
+                </div>
+
+                <div className="p-5 bg-ink-950 border border-gold-400/30 rounded-lg flex flex-col justify-between space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-[10px] uppercase text-ink-400">Available UrbanPoints</span>
+                    <span className="font-mono text-[10px] text-emerald-400 uppercase font-bold">Active VIP Member</span>
+                  </div>
+                  <p className="font-display text-3xl sm:text-4xl font-black text-gold-400 tabnum">
+                    {loyaltyPoints} <span className="text-sm font-mono uppercase text-ink-300">PTS</span>
+                  </p>
+                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-ink-800">
+                    <span className="font-mono text-xs text-ink-200">
+                      VIP Code: <strong className="text-volt-400">BDAY20</strong> (20% Off)
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard?.writeText("BDAY20");
+                        toast("success", "Copied coupon code BDAY20 (20% OFF) to clipboard!");
+                      }}
+                      className="px-3 py-1.5 bg-gold-400 hover:bg-gold-300 text-ink-950 font-mono text-[10px] font-bold uppercase rounded transition-colors"
+                    >
+                      Copy BDAY20
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Add Celebration Reminder Form */}
+              <div className="border border-ink-700/60 bg-ink-850 clip-tile p-6">
+                <h3 className="font-display text-lg font-bold uppercase mb-4">
+                  + Add New Birthday / Anniversary Reminder (+100 Points)
+                </h3>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (!remPerson.trim() || !remDate) {
+                      toast("error", "Please enter the person's name and celebration date.");
+                      return;
+                    }
+                    addReminder({
+                      personName: remPerson.trim(),
+                      relation: remRelation,
+                      occasion: remOccasion,
+                      dateMonthDay: remDate,
+                      whatsapp: `+91 ${remWa.replace(/\D/g, "").slice(-10) || "9876543210"}`,
+                    });
+                    setRemPerson("");
+                    setRemDate("");
+                  }}
+                  className="grid sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end"
+                >
+                  <div>
+                    <label className="block font-mono text-[10px] uppercase text-ink-400 mb-1">Person&apos;s Name *</label>
+                    <input
+                      type="text"
+                      required
+                      value={remPerson}
+                      onChange={(e) => setRemPerson(e.target.value)}
+                      placeholder="e.g. Riya / Mom & Dad"
+                      className="w-full bg-ink-950 border border-ink-600 focus:border-blaze-500 px-3 py-2.5 text-xs text-ink-100 outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-mono text-[10px] uppercase text-ink-400 mb-1">Relationship</label>
+                    <select
+                      value={remRelation}
+                      onChange={(e) => setRemRelation(e.target.value)}
+                      className="w-full bg-ink-950 border border-ink-600 focus:border-blaze-500 px-3 py-2.5 text-xs text-ink-100 outline-none"
+                    >
+                      {["Spouse / Partner", "Mom / Dad", "Sister / Brother", "Child", "Best Friend", "Colleague / Boss"].map((r) => (
+                        <option key={r} value={r}>{r}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block font-mono text-[10px] uppercase text-ink-400 mb-1">Occasion</label>
+                    <select
+                      value={remOccasion}
+                      onChange={(e) => setRemOccasion(e.target.value as "Birthday" | "Anniversary" | "Special Celebration")}
+                      className="w-full bg-ink-950 border border-ink-600 focus:border-blaze-500 px-3 py-2.5 text-xs text-ink-100 outline-none"
+                    >
+                      <option value="Birthday">🎂 Birthday</option>
+                      <option value="Anniversary">💍 Anniversary</option>
+                      <option value="Special Celebration">✨ Special Celebration</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block font-mono text-[10px] uppercase text-ink-400 mb-1">Celebration Date *</label>
+                    <input
+                      type="date"
+                      required
+                      value={remDate}
+                      onChange={(e) => setRemDate(e.target.value)}
+                      className="w-full bg-ink-950 border border-ink-600 focus:border-blaze-500 px-3 py-2.5 font-mono text-xs text-ink-100 outline-none"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="clip-btn w-full bg-blaze-500 hover:bg-blaze-400 text-ink-50 font-mono text-xs uppercase py-2.5 font-bold transition-colors"
+                  >
+                    Save & Earn +100 Pts
+                  </button>
+                </form>
+              </div>
+
+              {/* Saved Celebration Reminders List */}
+              <div className="grid sm:grid-cols-2 gap-4">
+                {reminders.map((rem) => (
+                  <div
+                    key={rem.id}
+                    className="border border-ink-700/70 bg-ink-850 p-5 rounded-lg flex items-center justify-between gap-4"
+                  >
+                    <div className="space-y-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-mono text-[10px] uppercase text-gold-400 font-bold">
+                          {rem.occasion} · {rem.relation}
+                        </span>
+                        <span className="font-mono text-[10px] text-emerald-400">+{rem.pointsEarned} PTS</span>
+                      </div>
+                      <h4 className="font-display text-lg font-bold text-ink-50 truncate">{rem.personName}</h4>
+                      <p className="font-mono text-xs text-ink-300">
+                        Date: <strong className="text-ink-100">{rem.dateMonthDay}</strong> · WhatsApp Alert: {rem.whatsapp}
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-end gap-2 shrink-0">
+                      <Link
+                        to="/shop"
+                        className="px-3 py-1.5 bg-blaze-500 hover:bg-blaze-400 text-ink-50 font-mono text-[10px] font-bold uppercase rounded transition-colors"
+                      >
+                        Pre-Book Cake →
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => deleteReminder(rem.id)}
+                        className="font-mono text-[10px] text-ink-500 hover:text-danger-400 uppercase"
+                      >
+                        Remove
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>

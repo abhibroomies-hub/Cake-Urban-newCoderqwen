@@ -1,65 +1,78 @@
 import { useState } from "react";
 import { useStore } from "../../lib/store";
+import { NCR_PINCODE_DIRECTORY } from "../../data/catalog";
 import { Ic } from "../ui";
 import { AiBlogGenerator } from "./AiBlogGenerator";
 
 export function SeoAiManager() {
   const store = useStore();
-  const { settings, updateSettings, toast } = store;
+  const { settings, updateSettings, toast, reminders } = store;
 
-  const [seoState, setSeoState] = useState(settings.seo || {
-    title: "CakeUrban — 100% Pure Veg Artisan Cake Delivery across Delhi NCR (Faridabad, Noida, Gurgaon)",
-    description: "Order fresh small-batch eggless cakes, Belgian chocolate bakes, and gourmet pastries with express 30-45 minute chilled delivery across Faridabad, Noida, Gurgaon & Delhi NCR.",
-    keywords: "cake delivery faridabad, eggless cakes noida, gourmet bakery gurgaon, online cake order delhi ncr, midnight cake delivery, belgian chocolate cake",
-    localKeywordsNCR: "Faridabad Sector 15, Sector 16, NIT, Noida Sector 18, Sector 62, Greater Noida, Gurgaon Cyber Hub, Golf Course Road, South Delhi, Ghaziabad Indirapuram",
-  });
+  const [seoState, setSeoState] = useState(
+    settings.seo || {
+      title:
+        "CakeUrban — 100% Pure Veg Artisan Cake Delivery across Delhi NCR (Faridabad, Noida, Gurgaon)",
+      description:
+        "Order fresh small-batch eggless cakes, Belgian chocolate bakes, and gourmet pastries with express 30-45 minute chilled delivery across Faridabad, Noida, Gurgaon & Delhi NCR.",
+      keywords:
+        "cake delivery faridabad, eggless cakes noida, gourmet bakery gurgaon, online cake order delhi ncr, midnight cake delivery, belgian chocolate cake",
+      localKeywordsNCR:
+        "Faridabad Sector 15, Sector 16, NIT, Noida Sector 18, Sector 62, Greater Noida, Gurgaon Cyber Hub, Golf Course Road, South Delhi, Ghaziabad Indirapuram",
+      focusKeywords: [
+        "30 Min Cake Delivery Faridabad",
+        "100% Pure Eggless Cake Near Me",
+        "Midnight Birthday Cake Gurgaon",
+        "Custom Photo Cake Noida Sector 18",
+        "Belgian Chocolate Truffle South Delhi",
+        "Luxury Gift Hampers Delhi NCR",
+      ],
+      comboDiscountPct: 15,
+      expressCountdownMins: 28,
+      whatsappExtraDiscountPct: 5,
+      autoPincodeSchema: true,
+    }
+  );
 
+  const [newKeyword, setNewKeyword] = useState("");
   const [devicePreview, setDevicePreview] = useState<"mobile" | "desktop">("mobile");
-  const [copiedSchema, setCopiedSchema] = useState(false);
+
+  const focusList = seoState.focusKeywords || [
+    "30 Min Cake Delivery Faridabad",
+    "100% Pure Eggless Cake Near Me",
+    "Midnight Birthday Cake Gurgaon",
+    "Custom Photo Cake Noida Sector 18",
+  ];
+
+  const handleAddFocusKeyword = (e: React.FormEvent) => {
+    e.preventDefault();
+    const clean = newKeyword.trim();
+    if (!clean) return;
+    if (focusList.includes(clean)) {
+      toast("info", "Keyword is already in your active booster list.");
+      return;
+    }
+    const nextList = [clean, ...focusList];
+    setSeoState({
+      ...seoState,
+      focusKeywords: nextList,
+      keywords: `${clean.toLowerCase()}, ${seoState.keywords}`,
+    });
+    setNewKeyword("");
+    toast("success", `Added focus keyword "${clean}" to live SEO engine!`);
+  };
+
+  const handleRemoveFocusKeyword = (kw: string) => {
+    setSeoState({
+      ...seoState,
+      focusKeywords: focusList.filter((x) => x !== kw),
+    });
+  };
 
   const handleSave = () => {
     updateSettings({
       seo: seoState,
     });
-    toast("success", "SEO & AI Search Engine metadata saved live!");
-  };
-
-  const schemaJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Bakery",
-    "name": settings.header?.brandName || "CakeUrban",
-    "image": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=1200",
-    "@id": "https://cakeurban.com/#bakery",
-    "url": "https://cakeurban.com",
-    "telephone": settings.header?.hotline || "+91 7318531953",
-    "priceRange": "$$",
-    "servesCuisine": ["Bakery", "Desserts", "100% Pure Vegetarian", "Eggless Cakes"],
-    "address": {
-      "@type": "PostalAddress",
-      "streetAddress": "Artisan Oven, Sector 15",
-      "addressLocality": "Faridabad",
-      "addressRegion": "Haryana / Delhi NCR",
-      "postalCode": "121007",
-      "addressCountry": "IN",
-    },
-    "geo": {
-      "@type": "GeoCoordinates",
-      "latitude": 28.4089,
-      "longitude": 77.3178,
-    },
-    "areaServed": [
-      { "@type": "City", "name": "Faridabad" },
-      { "@type": "City", "name": "Noida" },
-      { "@type": "City", "name": "Greater Noida" },
-      { "@type": "City", "name": "Gurgaon" },
-      { "@type": "City", "name": "New Delhi" },
-      { "@type": "City", "name": "Ghaziabad" },
-    ],
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": "4.9",
-      "reviewCount": "2480",
-    },
+    toast("success", "SEO Keyword & Conversion Offer Booster settings saved live!");
   };
 
   return (
@@ -67,17 +80,14 @@ export function SeoAiManager() {
       {/* Top Banner */}
       <div className="p-5 bg-ink-850 border border-ink-700/60 clip-tile flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-gold-400 animate-pulse" />
-            <p className="font-mono text-[10px] tracking-[0.25em] text-gold-400 uppercase font-bold">
-              Regional Search & AI Visibility Matrix
-            </p>
-          </div>
+          <p className="font-mono text-[10px] tracking-[0.25em] text-gold-400 uppercase font-bold">
+            ADMIN SEO KEYWORD & OFFER BOOSTER CONTROL PANEL
+          </p>
           <h2 className="font-display text-xl font-bold uppercase mt-1">
-            Delhi NCR SEO & AI (Gemini, ChatGPT, Perplexity) Domination
+            Delhi NCR SEO, Pincode Schema & Sales Conversion Engine
           </h2>
-          <p className="text-xs text-ink-400 mt-1 max-w-xl">
-            Optimized for top Google ranking across Faridabad, Noida, Gurgaon, and Delhi NCR with automated structured Schema.org JSON-LD and AI search engine discovery.
+          <p className="text-xs text-ink-400 mt-1 max-w-2xl">
+            Control high-converting Google search keywords, live storefront combo bundle discounts, express dispatch urgency timers, and customer celebration reminder outreach from one place.
           </p>
         </div>
 
@@ -85,8 +95,205 @@ export function SeoAiManager() {
           onClick={handleSave}
           className="clip-btn bg-blaze-500 hover:bg-blaze-400 text-ink-50 font-mono text-xs uppercase px-6 py-3 font-bold transition-colors shadow-lg shadow-blaze-500/20 flex items-center gap-2"
         >
-          <Ic.check className="w-4 h-4" /> Save SEO Settings
+          <Ic.check className="w-4 h-4" /> Save SEO & Offer Boosters
         </button>
+      </div>
+
+      {/* Storefront Conversion & Offer Booster Controls */}
+      <div className="border border-gold-400/40 bg-ink-850 p-6 clip-tile space-y-4">
+        <div className="flex items-center justify-between flex-wrap gap-2 border-b border-ink-800 pb-4">
+          <div>
+            <span className="font-mono text-[10px] uppercase tracking-widest text-gold-400 font-bold">
+              ⚡ STOREFRONT SALES & URGENCY BOOSTER CONTROLS
+            </span>
+            <h3 className="font-display font-bold text-base uppercase text-ink-50 mt-0.5">
+              Live Combo Discounts, Dispatch Timer & WhatsApp Cart Recovery
+            </h3>
+          </div>
+          <span className="font-mono text-[10px] text-emerald-400 uppercase font-bold">
+            Synced with Product Page & Bag Drawer
+          </span>
+        </div>
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="p-4 bg-ink-900 border border-ink-800 space-y-1.5">
+            <label className="block font-mono text-[10px] uppercase text-ink-400">
+              Combo Bundle Discount % (COMBO15)
+            </label>
+            <input
+              type="number"
+              min={5}
+              max={50}
+              value={seoState.comboDiscountPct ?? 15}
+              onChange={(e) =>
+                setSeoState({ ...seoState, comboDiscountPct: Number(e.target.value) || 15 })
+              }
+              className="w-full bg-ink-950 border border-ink-700 focus:border-gold-400 px-3 py-2 font-mono text-sm font-bold text-gold-400 outline-none"
+            />
+            <p className="font-mono text-[10px] text-ink-500">
+              Applied to Cake + Roses + Truffles bundle on PDP
+            </p>
+          </div>
+
+          <div className="p-4 bg-ink-900 border border-ink-800 space-y-1.5">
+            <label className="block font-mono text-[10px] uppercase text-ink-400">
+              Express Dispatch Countdown (Mins)
+            </label>
+            <input
+              type="number"
+              min={10}
+              max={59}
+              value={seoState.expressCountdownMins ?? 28}
+              onChange={(e) =>
+                setSeoState({ ...seoState, expressCountdownMins: Number(e.target.value) || 28 })
+              }
+              className="w-full bg-ink-950 border border-ink-700 focus:border-blaze-500 px-3 py-2 font-mono text-sm font-bold text-blaze-400 outline-none"
+            />
+            <p className="font-mono text-[10px] text-ink-500">
+              Urgency timer on Product Detail Pages
+            </p>
+          </div>
+
+          <div className="p-4 bg-ink-900 border border-ink-800 space-y-1.5">
+            <label className="block font-mono text-[10px] uppercase text-ink-400">
+              WhatsApp Quick-Buy Extra Off %
+            </label>
+            <input
+              type="number"
+              min={1}
+              max={25}
+              value={seoState.whatsappExtraDiscountPct ?? 5}
+              onChange={(e) =>
+                setSeoState({
+                  ...seoState,
+                  whatsappExtraDiscountPct: Number(e.target.value) || 5,
+                })
+              }
+              className="w-full bg-ink-950 border border-ink-700 focus:border-emerald-400 px-3 py-2 font-mono text-sm font-bold text-emerald-400 outline-none"
+            />
+            <p className="font-mono text-[10px] text-ink-500">
+              Shown on 1-Click WhatsApp button in Bag Drawer
+            </p>
+          </div>
+
+          <div className="p-4 bg-ink-900 border border-ink-800 flex flex-col justify-between">
+            <div>
+              <span className="block font-mono text-[10px] uppercase text-ink-400">
+                NCR Pincode JSON-LD Schema
+              </span>
+              <p className="font-display text-sm font-bold text-ink-100 mt-1">
+                {NCR_PINCODE_DIRECTORY.length} Priority Pincodes + Prefix Resolver
+              </p>
+            </div>
+            <label className="flex items-center gap-2 pt-2 cursor-pointer font-mono text-xs text-emerald-400">
+              <input
+                type="checkbox"
+                checked={seoState.autoPincodeSchema !== false}
+                onChange={(e) =>
+                  setSeoState({ ...seoState, autoPincodeSchema: e.target.checked })
+                }
+                className="accent-emerald-500"
+              />
+              <span>Auto-Inject Local Delivery Schema</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      {/* Focus SEO Keyword Tag Booster */}
+      <div className="border border-ink-700/60 bg-ink-850 p-6 clip-tile space-y-4">
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <h3 className="font-display font-bold text-base uppercase text-ink-100">
+              🎯 High-Intent Google Search Keyword Booster
+            </h3>
+            <p className="text-xs text-ink-400">
+              Add target keywords below — they are automatically injected into your page meta tags, structured data, and local search directory.
+            </p>
+          </div>
+          <span className="font-mono text-xs text-gold-400 font-bold tabular-nums">
+            {focusList.length} Active Focus Keywords
+          </span>
+        </div>
+
+        <form onSubmit={handleAddFocusKeyword} className="flex gap-2">
+          <input
+            type="text"
+            value={newKeyword}
+            onChange={(e) => setNewKeyword(e.target.value)}
+            placeholder="e.g. midnight pineapple cake delivery faridabad sector 15"
+            className="flex-1 bg-ink-950 border border-ink-600 focus:border-blaze-500 px-3.5 py-2.5 text-xs font-mono text-ink-100 outline-none"
+          />
+          <button
+            type="submit"
+            className="clip-btn px-5 py-2.5 bg-gold-400 hover:bg-gold-300 text-ink-950 font-mono text-xs uppercase font-bold transition-colors shrink-0"
+          >
+            + Add Focus Keyword
+          </button>
+        </form>
+
+        <div className="flex flex-wrap gap-2 pt-1">
+          {focusList.map((kw) => (
+            <div
+              key={kw}
+              className="flex items-center gap-2 px-3 py-1.5 bg-ink-950 border border-ink-700 text-xs font-mono text-ink-200"
+            >
+              <span>{kw}</span>
+              <button
+                type="button"
+                onClick={() => handleRemoveFocusKeyword(kw)}
+                className="text-ink-500 hover:text-danger-400 font-bold"
+                aria-label={`Remove ${kw}`}
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Customer Celebration Reminders & Repeat Sales Outreach */}
+      <div className="border border-ink-700/60 bg-ink-850 p-6 clip-tile space-y-4">
+        <div className="flex items-center justify-between flex-wrap gap-3 border-b border-ink-800 pb-3">
+          <div>
+            <span className="font-mono text-[10px] uppercase tracking-widest text-emerald-400 font-bold">
+              💬 REPEAT SALES ENGINE · BIRTHDAY & ANNIVERSARY CLUB
+            </span>
+            <h3 className="font-display font-bold text-base uppercase text-ink-100 mt-0.5">
+              Saved Customer Celebration Reminders ({reminders.length})
+            </h3>
+          </div>
+          <span className="font-mono text-xs text-ink-400">
+            Send 1-click WhatsApp 20% VIP Coupon (BDAY20) to convert upcoming celebrations
+          </span>
+        </div>
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {reminders.map((rem) => {
+            const waText = `Hi! 🎂 CakeUrban Reminder: ${rem.personName}'s ${rem.occasion} (${rem.dateMonthDay}) is coming up! Use your VIP code *${rem.couponCode}* for flat 20% OFF + Free Cake Plaque & 35-Min Chilled Delivery: https://www.cakeurban.com/shop`;
+            const cleanPhone = rem.whatsapp.replace(/\D/g, "");
+            return (
+              <div key={rem.id} className="p-4 bg-ink-900 border border-ink-800 flex flex-col justify-between gap-3">
+                <div>
+                  <div className="flex items-center justify-between text-[10px] font-mono text-gold-400 uppercase">
+                    <span>{rem.occasion} · {rem.relation}</span>
+                    <span>{rem.dateMonthDay}</span>
+                  </div>
+                  <p className="font-display font-bold text-sm text-ink-50 mt-1">{rem.personName}</p>
+                  <p className="font-mono text-[11px] text-ink-400 mt-0.5">WhatsApp: {rem.whatsapp}</p>
+                </div>
+                <a
+                  href={`https://wa.me/${cleanPhone || "917318531953"}?text=${encodeURIComponent(waText)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-full py-2 px-3 bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-[10px] uppercase font-bold tracking-wider flex items-center justify-center gap-1.5 transition-colors"
+                >
+                  <Ic.whatsapp className="w-3.5 h-3.5 fill-current" /> Send 20% Birthday Offer
+                </a>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* GSC API Real-Time Dashboard Integration */}
@@ -107,9 +314,6 @@ export function SeoAiManager() {
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-mono text-[10px] uppercase font-bold">
-              ● API Synced & Active
-            </span>
             <button
               onClick={() => toast("success", "GSC API data refreshed successfully!")}
               className="px-3 py-1.5 bg-ink-900 hover:bg-ink-800 text-ink-300 border border-ink-700 font-mono text-[10px] uppercase font-bold"
@@ -231,6 +435,10 @@ export function SeoAiManager() {
             <h4 className="text-blue-800 font-medium text-base hover:underline cursor-pointer leading-tight">
               {seoState.title}
             </h4>
+            <div className="flex items-center gap-1.5 text-xs text-amber-600 font-semibold">
+              <span>★★★★★</span>
+              <span className="text-slate-600 font-normal">Rating: 4.9 · 2,480 reviews · ₹399 – ₹2,499 · In stock</span>
+            </div>
             <p className="text-xs text-slate-600 leading-normal line-clamp-2">
               {seoState.description}
             </p>

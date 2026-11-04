@@ -1,9 +1,15 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useStore } from "../lib/store";
 import { DELHI_NCR_CITIES, getSeoAreaBySlug, SEO_INTENTS } from "../data/seoLocations";
-import { BLOG_POSTS } from "../data/catalog";
+import { BLOG_POSTS, resolveNcrPincode } from "../data/catalog";
 import { SEO_CUSTOM_CAKE_THEMES, parseThemeAndCityFromSlug } from "../pages/builder";
+import {
+  getAutoSeoThemes,
+  initAutoSeoRealtimeSync,
+  recordAutoSeoSearch,
+  subscribeAutoSeoUpdates,
+} from "../lib/autoSeoEngine";
 
 const CITY_GEO_COORDS: Record<string, { region: string; placename: string; lat: number; lng: number; postal: string }> = {
   faridabad: { region: "IN-HR", placename: "Faridabad, Haryana, Delhi NCR", lat: 28.4089, lng: 77.3178, postal: "121007" },
@@ -15,12 +21,23 @@ const CITY_GEO_COORDS: Record<string, { region: string; placename: string; lat: 
 
 export function SEOManager() {
   const { pathname, search } = useLocation();
-  const { products } = useStore();
+  const { products, settings, checkedPincode } = useStore();
+  const [autoThemes, setAutoThemes] = useState(() => getAutoSeoThemes());
+
+  useEffect(() => {
+    initAutoSeoRealtimeSync();
+    return subscribeAutoSeoUpdates(() => {
+      setAutoThemes(getAutoSeoThemes());
+    });
+  }, []);
 
   useEffect(() => {
     const origin = typeof window !== "undefined" ? window.location.origin : "https://www.cakeurban.com";
     const params = new URLSearchParams(search);
     const queryParam = params.get("q")?.trim() || "";
+    if (queryParam.length >= 3) {
+      recordAutoSeoSearch(queryParam);
+    }
     const canonicalUrl = `${origin}${pathname === "/" ? "" : pathname}`;
 
     let title =
@@ -267,8 +284,28 @@ export function SEOManager() {
 
     const geoInfo = CITY_GEO_COORDS[activeCityKey] || CITY_GEO_COORDS.faridabad;
 
+    const autoKeywordSnippet = autoThemes
+      .slice(0, 18)
+      .map((t) => `${t.label.toLowerCase()}, eggless ${t.label.toLowerCase()} delhi ncr`)
+      .join(", ");
+    const adminFocusSnippet = (settings.seo?.focusKeywords || []).map((k) => k.toLowerCase()).join(", ");
+    const resolvedPin = resolveNcrPincode(checkedPincode || "121007");
+    const pinSnippet = resolvedPin
+      ? `cake delivery ${resolvedPin.pincode}, ${resolvedPin.areaName.toLowerCase()} cake shop, ${resolvedPin.city.toLowerCase()} 30 min bakery`
+      : "";
+    const combinedKeywords = [keywords, adminFocusSnippet, pinSnippet, autoKeywordSnippet]
+      .filter(Boolean)
+      .join(", ");
+
+    const mergedThemeList = [
+      ...autoThemes.map((t) => ({ slug: t.slug, label: t.label, desc: t.desc })),
+      ...SEO_CUSTOM_CAKE_THEMES.filter(
+        (staticT) => !autoThemes.some((autoT) => autoT.slug === staticT.slug)
+      ),
+    ];
+
     setMetaTag("name", "description", description);
-    setMetaTag("name", "keywords", keywords);
+    setMetaTag("name", "keywords", combinedKeywords);
     setMetaTag("name", "robots", "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1");
     setMetaTag("name", "geo.region", geoInfo.region);
     setMetaTag("name", "geo.placename", geoInfo.placename);
@@ -332,6 +369,7 @@ export function SEOManager() {
           "72-Hour Cold-Fermented Gourmet Cookies",
           "Luxury Birthday, Anniversary & Corporate Gift Hampers",
           "Traditional Royal Bikaneri Namkeens & Roasted Makhana",
+          ...autoThemes.slice(0, 12).map((t) => `100% Eggless Custom ${t.label}`),
         ],
         address: {
           "@type": "PostalAddress",
@@ -435,14 +473,14 @@ export function SEOManager() {
         "@id": `${origin}/#howto-custom-cake`,
         name: "How to Order Any Custom Theme Cake Online at CakeUrban",
         description:
-          "Order any custom birthday, anniversary, cartoon, butterfly, or 2-tier wedding cake in 100% pure eggless with express delivery across Delhi NCR.",
+          "Order any custom birthday, anniversary, cartoon, butterfly, pineapple, or 2-tier wedding cake in 100% pure eggless with express delivery across Delhi NCR.",
         totalTime: "PT2M",
         step: [
           {
             "@type": "HowToStep",
             position: 1,
             name: "Search Any Cake Theme",
-            text: "Visit CakeUrban.com/builder and search your desired cake theme (such as Butterfly, Doraemon, Spiderman, Barbie, 2-Tier Wedding, Doctor, or Vintage Heart).",
+            text: "Visit CakeUrban.com/builder and search your desired cake theme (such as Butterfly, Doraemon, Spiderman, Barbie, Pineapple, 2-Tier Wedding, Doctor, or Vintage Heart).",
             url: `${origin}/builder`,
           },
           {
@@ -462,10 +500,32 @@ export function SEOManager() {
         ],
       },
       {
+        "@type": "FAQPage",
+        "@id": `${canonicalUrl}#geo-faq`,
+        mainEntity: [
+          {
+            "@type": "Question",
+            name: "Where can I order 100% eggless custom theme cakes in Faridabad, Gurgaon, Noida, and Delhi NCR?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: "CakeUrban (+91 7318531953) bakes 100% pure eggless custom theme cakes—including Birthday, Anniversary, Butterfly, Pineapple, Doraemon, Spiderman, Barbie Doll, and 2-Tier Wedding cakes—with 30–45 minute express and 12 AM midnight delivery across Faridabad, Gurgaon, Noida, Delhi, and Ghaziabad.",
+            },
+          },
+          ...mergedThemeList.slice(0, 6).map((t) => ({
+            "@type": "Question",
+            name: `Can I customize and order an eggless ${t.label} on WhatsApp with same-day delivery?`,
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: `Yes! Browse 40+ live ${t.label} designs on CakeUrban (${origin}/custom-cake/${t.slug}) and tap 'Chat About This Cake' to customize your design on WhatsApp (+91 7318531953) with same-day & midnight delivery.`,
+            },
+          })),
+        ],
+      },
+      {
         "@type": "ItemList",
         "@id": `${origin}/#custom-cake-themes`,
-        name: "CakeUrban Popular Custom Theme Cakes (100% Eggless)",
-        itemListElement: SEO_CUSTOM_CAKE_THEMES.slice(0, 30).map((t, idx) => ({
+        name: "CakeUrban Popular & Trending Custom Theme Cakes (100% Eggless)",
+        itemListElement: mergedThemeList.slice(0, 48).map((t, idx) => ({
           "@type": "ListItem",
           position: idx + 1,
           url: `${origin}/custom-cake/${t.slug}`,
@@ -500,7 +560,7 @@ export function SEOManager() {
       "@context": "https://schema.org",
       "@graph": graphNodes,
     });
-  }, [pathname, search, products]);
+  }, [pathname, search, products, autoThemes, settings.seo, checkedPincode]);
 
   return null;
 }

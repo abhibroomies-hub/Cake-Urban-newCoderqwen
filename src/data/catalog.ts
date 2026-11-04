@@ -23,6 +23,10 @@ export type Product = {
   seoTitle?: string;
   seoDesc?: string;
   seoKeywords?: string;
+  partnerId?: string;
+  partnerShopName?: string;
+  approvalStatus?: "approved" | "pending" | "rejected";
+  submittedAt?: string;
 };
 
 const IMG = {
@@ -233,6 +237,64 @@ export const PRODUCTS: Product[] = [
     specs: [["Dietary", "100% Pure Eggless"], ["Customization", "Live 3D Studio Spec"], ["Plaque", "Hand-piped Chocolate"], ["Delivery", "Chilled 4°C Express Box"]],
     featured: false,
   },
+  {
+    id: "addon-sparkle-candle", name: "Golden Sparkle Fountain Candle (Pack of 2)", brand: "CakeUrban Party", category: "Seasonal & Festive",
+    price: 1.2, compareAt: 1.8, img: IMG.cakes, crop: CROP.TR, tag: "PARTY ADD-ON",
+    rating: 4.9, ratingCount: 1640, stock: 120, sku: "CU-AD-0001",
+    colors: [{ name: "Metallic Gold", hex: "#d69740" }],
+    sizes: ["PACK OF 2"],
+    desc: "Smokeless indoor golden fountain sparkle candles + spiral birthday candle set for magical cake cutting photos.",
+    specs: [["Burn Time", "45 Seconds Sparkle"], ["Safety", "Food-safe & indoor friendly"]],
+    featured: false,
+  },
+  {
+    id: "addon-gold-bday-topper", name: "Acrylic Gold 'Happy Birthday' Cake Topper", brand: "CakeUrban Party", category: "Seasonal & Festive",
+    price: 1.5, compareAt: 2.2, img: IMG.hero, tag: "PARTY ADD-ON",
+    rating: 4.9, ratingCount: 1290, stock: 95, sku: "CU-AD-0002",
+    colors: [{ name: "Mirror Gold", hex: "#f5c542" }],
+    sizes: ["STANDARD TOPPER"],
+    desc: "Laser-cut mirror-gold acrylic Happy Birthday cake topper that elevates any celebration cake into a centerpiece.",
+    specs: [["Material", "Food-grade Mirror Acrylic"], ["Reusable", "Yes, washable keepsake"]],
+    featured: false,
+  },
+  {
+    id: "addon-party-balloons", name: "Metallic Gold & Black Party Balloons (25 Pcs)", brand: "CakeUrban Party", category: "Seasonal & Festive",
+    price: 1.8, compareAt: 2.5, img: IMG.cookies, crop: CROP.BR, tag: "PARTY ADD-ON",
+    rating: 4.8, ratingCount: 870, stock: 80, sku: "CU-AD-0003",
+    colors: [{ name: "Gold & Onyx", hex: "#1c1917" }],
+    sizes: ["25 PCS PACK"],
+    desc: "Curated metallic chrome gold, confetti, and matte black celebration balloon kit delivered along with your cake.",
+    specs: [["Count", "25 Metallic + Confetti Balloons"], ["Ribbon", "Gold curling ribbon included"]],
+    featured: false,
+  },
+  {
+    id: "addon-rose-petals", name: "Fresh Crimson Rose Bouquet & Petals Box", brand: "Pâtisserie", category: "Seasonal & Festive",
+    price: 2.4, compareAt: 3.4, img: IMG.cakes, crop: CROP.BL, tag: "COMBO BESTSELLER",
+    rating: 5.0, ratingCount: 1510, stock: 50, sku: "CU-AD-0004",
+    colors: [{ name: "Crimson Velvet", hex: "#991b1b" }],
+    sizes: ["BOUQUET + PETALS"],
+    desc: "Hand-tied fresh Dutch red roses with fragrant rose petals misted and chilled alongside your cake for birthdays and anniversaries.",
+    specs: [["Flowers", "Fresh Dutch Crimson Roses"], ["Card", "Complimentary message card"]],
+    featured: false,
+  },
+  {
+    id: "addon-ferrero-truffle-box", name: "Artisan Belgian Hazelnut Rocher Box (8 Pcs)", brand: "Noir Collection", category: "Cookies",
+    price: 3.6, compareAt: 4.8, img: IMG.cookies, crop: CROP.TL, tag: "COMBO BESTSELLER",
+    rating: 4.9, ratingCount: 1920, stock: 65, sku: "CU-AD-0005",
+    colors: [{ name: "Gold Foil", hex: "#b48a50" }],
+    sizes: ["BOX OF 8"],
+    desc: "Crisp wafer shells enrobed in 54% Belgian dark-milk chocolate and roasted Piedmont hazelnut praline — the #1 cake companion.",
+    specs: [["Dietary", "100% Pure Eggless"], ["Count", "8 Hand-rolled Rocher Truffles"]],
+    featured: false,
+  },
+];
+
+export const PARTY_ADDON_IDS = [
+  "addon-sparkle-candle",
+  "addon-gold-bday-topper",
+  "addon-party-balloons",
+  "addon-rose-petals",
+  "addon-ferrero-truffle-box",
 ];
 
 export type Review = {
@@ -343,9 +405,13 @@ export const BLOG_POSTS: BlogPost[] = [
 export type Coupon = { code: string; type: "percent" | "fixed" | "ship"; value: number; min: number; expires: string; limit: number; used: number; active: boolean };
 
 export const SEED_COUPONS: Coupon[] = [
-  { code: "WELCOME10", type: "percent", value: 10, min: 0, expires: "2026-12-31", limit: 10000, used: 3421, active: true },
-  { code: "SWEET20", type: "percent", value: 20, min: 60, expires: "2026-06-30", limit: 2000, used: 618, active: true },
-  { code: "FREESHIP", type: "ship", value: 0, min: 0, expires: "2026-09-30", limit: 5000, used: 1204, active: true },
+  { code: "WELCOME10", type: "percent", value: 10, min: 0, expires: "2027-12-31", limit: 10000, used: 3421, active: true },
+  { code: "URBAN15", type: "percent", value: 15, min: 0, expires: "2027-12-31", limit: 10000, used: 1840, active: true },
+  { code: "COMBO15", type: "percent", value: 15, min: 0, expires: "2027-12-31", limit: 10000, used: 920, active: true },
+  { code: "BDAY20", type: "percent", value: 20, min: 0, expires: "2027-12-31", limit: 5000, used: 412, active: true },
+  { code: "WHATSAPP5", type: "percent", value: 5, min: 0, expires: "2027-12-31", limit: 20000, used: 2150, active: true },
+  { code: "SWEET20", type: "percent", value: 20, min: 60, expires: "2027-06-30", limit: 2000, used: 618, active: true },
+  { code: "FREESHIP", type: "ship", value: 0, min: 0, expires: "2027-09-30", limit: 5000, used: 1204, active: true },
 ];
 
 export const CURRENCIES = [
@@ -360,11 +426,202 @@ export type Address = { id: string; label: string; name: string; line1: string; 
 export type PaymentMethod = { id: string; brand: string; last4: string; exp: string };
 export type OrderItem = { productId: string; name: string; img: string; imgFilter?: string; crop?: string; color: string; size: string; qty: number; price: number };
 export type OrderStatus = "pending" | "processing" | "shipped" | "delivered" | "cancelled";
+export type PartnerOrderStatus = "assigned" | "accepted" | "baking" | "ready" | "dispatched" | "delivered";
 export type Order = {
   id: string; email: string; items: OrderItem[]; subtotal: number; discount: number; shipping: number; total: number;
   status: OrderStatus; date: string; address: string; method: string; payment: string; timeline: { status: OrderStatus; at: string }[];
   deliverySlot?: string; plaqueMessage?: string; customerPhone?: string; customerName?: string;
+  assignedPartnerId?: string;
+  assignedPartnerName?: string;
+  partnerStatus?: PartnerOrderStatus;
+  adminCommissionRate?: number;
+  adminCommissionAmount?: number;
+  partnerPayoutAmount?: number;
 };
+
+export type PartnerRenewalLog = {
+  renewedAt: string;
+  previousExpiry: string;
+  newExpiry: string;
+  daysAdded: number;
+  note?: string;
+};
+
+export type VendorPartner = {
+  id: string;
+  shopName: string;
+  ownerName: string;
+  email: string;
+  phone: string;
+  cityHub: string;
+  address: string;
+  commissionRate: number;
+  createdAt: string;
+  expiresAt: string;
+  status: "active" | "expired" | "suspended";
+  renewalRequested?: boolean;
+  renewalHistory: PartnerRenewalLog[];
+};
+
+export type AndroidApiKey = {
+  id: string;
+  name: string;
+  appType: "Customer Android App" | "Partner Vendor App" | "Delivery Rider App" | "Admin Command App";
+  key: string;
+  scopes: ("catalog:read" | "orders:read" | "orders:write" | "partner:read" | "partner:write" | "admin:all")[];
+  createdAt: string;
+  lastUsed: string;
+  active: boolean;
+  requestsCount: number;
+};
+
+const addDaysISO = (days: number) => {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
+};
+
+export const SEED_PARTNERS: VendorPartner[] = [
+  {
+    id: "CUP-1001",
+    shopName: "Royal Bakehouse Faridabad",
+    ownerName: "Vikram Malhotra",
+    email: "partner@cakeurban.com",
+    phone: "+91 98112 45670",
+    cityHub: "Faridabad",
+    address: "SCO 24, Main Market, Sector 15, Faridabad",
+    commissionRate: 30,
+    createdAt: "2026-01-10",
+    expiresAt: addDaysISO(45),
+    status: "active",
+    renewalRequested: false,
+    renewalHistory: [
+      {
+        renewedAt: "2026-01-10",
+        previousExpiry: "2026-01-10",
+        newExpiry: addDaysISO(45),
+        daysAdded: 60,
+        note: "Initial Partner ID Onboarding (30% Platform Commission)",
+      },
+    ],
+  },
+  {
+    id: "CUP-1002",
+    shopName: "Le Petit Patisserie Gurgaon",
+    ownerName: "Neha Kapoor",
+    email: "gurgaon.bakes@gmail.com",
+    phone: "+91 98180 77890",
+    cityHub: "Gurgaon",
+    address: "Galleria Market Lane 2, DLF Phase 4, Gurgaon",
+    commissionRate: 30,
+    createdAt: "2026-01-05",
+    expiresAt: addDaysISO(4),
+    status: "active",
+    renewalRequested: true,
+    renewalHistory: [
+      {
+        renewedAt: "2026-01-05",
+        previousExpiry: "2026-01-05",
+        newExpiry: addDaysISO(4),
+        daysAdded: 30,
+        note: "Monthly Partner Pass Activated",
+      },
+    ],
+  },
+  {
+    id: "CUP-1003",
+    shopName: "Noida Artisan Oven Sec-18",
+    ownerName: "Rohan Verma",
+    email: "noida.oven18@gmail.com",
+    phone: "+91 99104 33211",
+    cityHub: "Noida",
+    address: "G-12, Atta Market, Sector 18, Noida",
+    commissionRate: 30,
+    createdAt: "2025-12-01",
+    expiresAt: addDaysISO(-3),
+    status: "expired",
+    renewalRequested: true,
+    renewalHistory: [
+      {
+        renewedAt: "2025-12-01",
+        previousExpiry: "2025-12-01",
+        newExpiry: addDaysISO(-3),
+        daysAdded: 30,
+        note: "Initial 30-Day Partner Trial",
+      },
+    ],
+  },
+  {
+    id: "CUP-1004",
+    shopName: "South Delhi Couverture Studio",
+    ownerName: "Kabir Bedi",
+    email: "gk1.patisserie@gmail.com",
+    phone: "+91 98711 55420",
+    cityHub: "Delhi",
+    address: "M-Block Market, Greater Kailash I, New Delhi",
+    commissionRate: 30,
+    createdAt: "2026-01-15",
+    expiresAt: addDaysISO(120),
+    status: "active",
+    renewalRequested: false,
+    renewalHistory: [
+      {
+        renewedAt: "2026-01-15",
+        previousExpiry: "2026-01-15",
+        newExpiry: addDaysISO(120),
+        daysAdded: 180,
+        note: "6-Month Gold Partner Pass",
+      },
+    ],
+  },
+];
+
+export const SEED_API_KEYS: AndroidApiKey[] = [
+  {
+    id: "ak_1",
+    name: "CakeUrban Customer Android APK (Production)",
+    appType: "Customer Android App",
+    key: "cu_live_android_cust_9f8a7b6c5d4e3f2a1b0c",
+    scopes: ["catalog:read", "orders:read", "orders:write"],
+    createdAt: "2026-01-12",
+    lastUsed: "2 mins ago",
+    active: true,
+    requestsCount: 18420,
+  },
+  {
+    id: "ak_2",
+    name: "CakeUrban Partner / Vendor Store APK",
+    appType: "Partner Vendor App",
+    key: "cu_live_android_partner_7c6d5e4f3a2b1c0d9e8f",
+    scopes: ["catalog:read", "partner:read", "partner:write", "orders:read", "orders:write"],
+    createdAt: "2026-01-18",
+    lastUsed: "Just now",
+    active: true,
+    requestsCount: 6390,
+  },
+  {
+    id: "ak_3",
+    name: "CakeUrban Express Rider Dispatch APK",
+    appType: "Delivery Rider App",
+    key: "cu_live_android_rider_3b2a1c4d5e6f7a8b9c0d",
+    scopes: ["orders:read", "orders:write"],
+    createdAt: "2026-01-25",
+    lastUsed: "14 mins ago",
+    active: true,
+    requestsCount: 9150,
+  },
+  {
+    id: "ak_4",
+    name: "CakeUrban Admin Command Center APK",
+    appType: "Admin Command App",
+    key: "cu_live_android_admin_master_1a2b3c4d5e6f7a8b",
+    scopes: ["admin:all", "catalog:read", "orders:read", "orders:write", "partner:read", "partner:write"],
+    createdAt: "2026-02-01",
+    lastUsed: "5 mins ago",
+    active: true,
+    requestsCount: 4120,
+  },
+];
 
 export type Customer = { id: string; name: string; email: string; joined: string; orders: number; spend: number; blocked: boolean; phone?: string };
 export const SEED_CUSTOMERS: Customer[] = [
@@ -401,3 +658,155 @@ export const HERO_DEFAULT = {
   titleB: "NAMKEENS & HAMPERS",
   sub: "Exquisite luxury gift hampers for birthdays, anniversaries, corporate events, marriages, and return gifts — paired with gourmet cookies and crispy traditional namkeens.",
 };
+
+export type CelebrationReminder = {
+  id: string;
+  personName: string;
+  relation: string;
+  occasion: "Birthday" | "Anniversary" | "Special Celebration";
+  dateMonthDay: string; // YYYY-MM-DD or MM-DD
+  whatsapp: string;
+  pointsEarned: number;
+  couponCode: string;
+  createdAt: string;
+};
+
+export const SEED_REMINDERS: CelebrationReminder[] = [
+  {
+    id: "rem-1",
+    personName: "Aanya Sharma",
+    relation: "Sister",
+    occasion: "Birthday",
+    dateMonthDay: "2026-11-18",
+    whatsapp: "+91 98765 43210",
+    pointsEarned: 100,
+    couponCode: "BDAY20",
+    createdAt: "2026-10-12",
+  },
+  {
+    id: "rem-2",
+    personName: "Mom & Dad",
+    relation: "Parents",
+    occasion: "Anniversary",
+    dateMonthDay: "2026-12-05",
+    whatsapp: "+91 98765 43210",
+    pointsEarned: 100,
+    couponCode: "BDAY20",
+    createdAt: "2026-10-20",
+  },
+];
+
+export type NcrPincodeInfo = {
+  pincode: string;
+  areaName: string;
+  city: string;
+  hubName: string;
+  etaMins: string;
+  distanceKm: string;
+  ridersOnline: number;
+  freeDelivery: boolean;
+  midnightAvailable: boolean;
+  seoHook: string;
+};
+
+export const NCR_PINCODE_DIRECTORY: NcrPincodeInfo[] = [
+  { pincode: "121007", areaName: "Sector 15, 16 & 17", city: "Faridabad", hubName: "Faridabad Sector 15 HQ Kitchen", etaMins: "25–35 Mins", distanceKm: "1.8 km", ridersOnline: 9, freeDelivery: true, midnightAvailable: true, seoHook: "Same-day 30-min chilled eggless cake & gift hamper delivery in Sector 15/16 Faridabad (121007)" },
+  { pincode: "121001", areaName: "NIT 1–5 & Sector 21C", city: "Faridabad", hubName: "Faridabad Sector 15 HQ Kitchen", etaMins: "30–40 Mins", distanceKm: "3.2 km", ridersOnline: 7, freeDelivery: true, midnightAvailable: true, seoHook: "Express birthday & anniversary cake delivery in NIT & Sector 21C Faridabad (121001)" },
+  { pincode: "121002", areaName: "Greater Faridabad (Neharpar)", city: "Faridabad", hubName: "Faridabad Sector 15 HQ Kitchen", etaMins: "32–42 Mins", distanceKm: "4.1 km", ridersOnline: 6, freeDelivery: true, midnightAvailable: true, seoHook: "Fresh 100% pure veg cakes delivered to Greater Faridabad Sectors 75–89 (121002)" },
+  { pincode: "121009", areaName: "Surajkund & Charmwood Village", city: "Faridabad", hubName: "Faridabad Sector 15 HQ Kitchen", etaMins: "35–45 Mins", distanceKm: "5.4 km", ridersOnline: 5, freeDelivery: true, midnightAvailable: true, seoHook: "Midnight & custom designer cake delivery in Charmwood Village & Surajkund (121009)" },
+  { pincode: "122002", areaName: "DLF Cyber City & Phase 1–3", city: "Gurgaon", hubName: "Gurgaon Cyber Hub Studio", etaMins: "30–40 Mins", distanceKm: "2.4 km", ridersOnline: 11, freeDelivery: true, midnightAvailable: true, seoHook: "Corporate gift hampers & 35-min cake delivery in DLF Cyber City Gurgaon (122002)" },
+  { pincode: "122009", areaName: "DLF Phase 4, Galleria & Golf Course Rd", city: "Gurgaon", hubName: "Gurgaon Cyber Hub Studio", etaMins: "32–42 Mins", distanceKm: "3.0 km", ridersOnline: 8, freeDelivery: true, midnightAvailable: true, seoHook: "Luxury Belgian chocolate cakes & bouquets in DLF Phase 4 & Golf Course Road (122009)" },
+  { pincode: "122018", areaName: "Sohna Road & Sector 48–56", city: "Gurgaon", hubName: "Gurgaon Cyber Hub Studio", etaMins: "35–45 Mins", distanceKm: "4.6 km", ridersOnline: 7, freeDelivery: true, midnightAvailable: true, seoHook: "Same-day eggless birthday cakes on Sohna Road & Sector 56 Gurgaon (122018)" },
+  { pincode: "201301", areaName: "Sector 18, 50, 62 & 75", city: "Noida", hubName: "Noida Sector 18 Express Hub", etaMins: "30–40 Mins", distanceKm: "2.6 km", ridersOnline: 10, freeDelivery: true, midnightAvailable: true, seoHook: "30-45 min express cake & cookie box delivery in Noida Sector 18, 62 & 75 (201301)" },
+  { pincode: "201305", areaName: "Sector 137 & Expressway", city: "Noida", hubName: "Noida Sector 18 Express Hub", etaMins: "35–45 Mins", distanceKm: "4.8 km", ridersOnline: 6, freeDelivery: true, midnightAvailable: true, seoHook: "Midnight surprise cakes & gift hampers in Noida Sector 137 & Gaur City (201305)" },
+  { pincode: "110048", areaName: "Greater Kailash (GK 1 & 2) & South Delhi", city: "New Delhi", hubName: "South Delhi GK Couverture Hub", etaMins: "30–40 Mins", distanceKm: "2.1 km", ridersOnline: 12, freeDelivery: true, midnightAvailable: true, seoHook: "Artisan French patisserie cakes & macarons in Greater Kailash, Saket & Hauz Khas (110048)" },
+  { pincode: "110001", areaName: "Connaught Place & Central Delhi", city: "New Delhi", hubName: "Central Delhi Express Route", etaMins: "35–45 Mins", distanceKm: "4.2 km", ridersOnline: 8, freeDelivery: true, midnightAvailable: true, seoHook: "Same-day custom theme cakes & hampers in Connaught Place & Central Delhi (110001)" },
+  { pincode: "201014", areaName: "Indirapuram, Vaishali & Vasundhara", city: "Ghaziabad", hubName: "Indirapuram Express Kitchen", etaMins: "35–45 Mins", distanceKm: "2.9 km", ridersOnline: 7, freeDelivery: true, midnightAvailable: true, seoHook: "100% pure veg birthday cakes & namkeen hampers in Indirapuram Ghaziabad (201014)" },
+];
+
+export function resolveNcrPincode(rawInput: string): NcrPincodeInfo | null {
+  const q = rawInput.trim().toLowerCase();
+  if (!q) return null;
+  const exact = NCR_PINCODE_DIRECTORY.find(
+    (e) =>
+      e.pincode === q ||
+      e.areaName.toLowerCase().includes(q) ||
+      e.city.toLowerCase() === q
+  );
+  if (exact) return exact;
+
+  const digits = q.replace(/\D/g, "");
+  if (digits.length === 6) {
+    if (digits.startsWith("121")) {
+      return {
+        pincode: digits,
+        areaName: `Faridabad Sector / Pin ${digits}`,
+        city: "Faridabad",
+        hubName: "Faridabad Sector 15 HQ Kitchen",
+        etaMins: "30–40 Mins",
+        distanceKm: "3.4 km",
+        ridersOnline: 8,
+        freeDelivery: true,
+        midnightAvailable: true,
+        seoHook: `Express 30-40 min chilled cake delivery to Faridabad Pincode ${digits}`,
+      };
+    }
+    if (digits.startsWith("122")) {
+      return {
+        pincode: digits,
+        areaName: `Gurgaon (Gurugram) Pin ${digits}`,
+        city: "Gurgaon",
+        hubName: "Gurgaon Cyber Hub Studio",
+        etaMins: "35–45 Mins",
+        distanceKm: "3.8 km",
+        ridersOnline: 9,
+        freeDelivery: true,
+        midnightAvailable: true,
+        seoHook: `Express 35-45 min chilled cake delivery to Gurgaon Pincode ${digits}`,
+      };
+    }
+    if (digits.startsWith("2013")) {
+      return {
+        pincode: digits,
+        areaName: `Noida / Greater Noida Pin ${digits}`,
+        city: "Noida",
+        hubName: "Noida Sector 18 Express Hub",
+        etaMins: "35–45 Mins",
+        distanceKm: "3.5 km",
+        ridersOnline: 8,
+        freeDelivery: true,
+        midnightAvailable: true,
+        seoHook: `Express 35-45 min chilled cake delivery to Noida Pincode ${digits}`,
+      };
+    }
+    if (digits.startsWith("110")) {
+      return {
+        pincode: digits,
+        areaName: `New Delhi Pin ${digits}`,
+        city: "New Delhi",
+        hubName: "South & Central Delhi Express Hub",
+        etaMins: "35–45 Mins",
+        distanceKm: "3.9 km",
+        ridersOnline: 10,
+        freeDelivery: true,
+        midnightAvailable: true,
+        seoHook: `Express 35-45 min chilled cake delivery to Delhi Pincode ${digits}`,
+      };
+    }
+    if (digits.startsWith("2010")) {
+      return {
+        pincode: digits,
+        areaName: `Ghaziabad / Indirapuram Pin ${digits}`,
+        city: "Ghaziabad",
+        hubName: "Indirapuram Express Kitchen",
+        etaMins: "40–50 Mins",
+        distanceKm: "4.1 km",
+        ridersOnline: 6,
+        freeDelivery: true,
+        midnightAvailable: true,
+        seoHook: `Express 40-50 min chilled cake delivery to Ghaziabad Pincode ${digits}`,
+      };
+    }
+  }
+  return null;
+}

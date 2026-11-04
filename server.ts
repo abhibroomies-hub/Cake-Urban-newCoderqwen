@@ -394,6 +394,12 @@ const SITEMAP_THEME_SLUGS = [
   "roka-ceremony-cake",
   "karwa-chauth-cake",
   "parents-anniversary-cake",
+  "pineapple-cake",
+  "butterscotch-cake",
+  "black-forest-cake",
+  "strawberry-cake",
+  "mango-cake",
+  "fresh-fruit-cake",
 ];
 
 const SITEMAP_CITIES = ["faridabad", "gurgaon", "noida", "delhi", "ghaziabad"];
@@ -423,15 +429,425 @@ const SITEMAP_SECTORS = [
   "vaishali-ghaziabad",
 ];
 
+import {
+  PRODUCTS,
+  SEED_PARTNERS,
+  SEED_API_KEYS,
+  type Product,
+  type VendorPartner,
+  type AndroidApiKey,
+  type Order,
+} from "./src/data/catalog";
+
+let apiState: {
+  partners: VendorPartner[];
+  apiKeys: AndroidApiKey[];
+  products: Product[];
+  orders: Order[];
+} = {
+  partners: [...SEED_PARTNERS],
+  apiKeys: [...SEED_API_KEYS],
+  products: [...PRODUCTS],
+  orders: [
+    {
+      id: "CU-9100",
+      email: "user@cakeurban.com",
+      customerName: "Aarav Sharma",
+      customerPhone: "+91 98765 43210",
+      items: [
+        {
+          productId: PRODUCTS[0].id,
+          name: PRODUCTS[0].name,
+          img: PRODUCTS[0].img,
+          color: PRODUCTS[0].colors[0].name,
+          size: PRODUCTS[0].sizes[0],
+          qty: 1,
+          price: PRODUCTS[0].price,
+        },
+      ],
+      subtotal: PRODUCTS[0].price,
+      discount: 0,
+      shipping: 0,
+      total: PRODUCTS[0].price,
+      status: "processing",
+      date: new Date().toISOString(),
+      address: "House #12, Sector 15, Faridabad, HR 121007",
+      method: "⚡ Express 30-45 Min Dispatch",
+      deliverySlot: "⚡ Express 30-45 Min Dispatch",
+      plaqueMessage: "Happy Birthday! 🎉",
+      payment: "Razorpay UPI",
+      timeline: [{ status: "pending", at: new Date().toISOString() }],
+      assignedPartnerId: "CUP-1001",
+      assignedPartnerName: "Royal Bakehouse Faridabad",
+      partnerStatus: "baking",
+      adminCommissionRate: 30,
+      adminCommissionAmount: Number(((PRODUCTS[0].price * 30) / 100).toFixed(2)),
+      partnerPayoutAmount: Number(((PRODUCTS[0].price * 70) / 100).toFixed(2)),
+    },
+  ],
+};
+
+function isServerPartnerExpired(p: VendorPartner): boolean {
+  const exp = new Date(p.expiresAt);
+  const now = new Date();
+  const diffDays = Math.ceil((exp.setHours(23, 59, 59, 999) - now.getTime()) / 86400000);
+  return diffDays < 0 || p.status === "expired" || p.status === "suspended";
+}
+
 async function startServer() {
   const app = express();
   const PORT = Number(process.env.PORT) || 3000;
+
+  app.use(express.json({ limit: "5mb" }));
+
+  // CORS headers for Android Retrofit / OkHttp clients
+  app.use("/api/v1", (req, res, next) => {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-API-Key");
+    if (req.method === "OPTIONS") {
+      res.status(204).end();
+      return;
+    }
+    next();
+  });
+
+  // Web Store -> Backend API State Synchronization
+  app.post("/api/v1/sync-state", (req, res) => {
+    try {
+      const { partners, apiKeys, products, orders } = req.body || {};
+      if (Array.isArray(partners) && partners.length > 0) apiState.partners = partners;
+      if (Array.isArray(apiKeys) && apiKeys.length > 0) apiState.apiKeys = apiKeys;
+      if (Array.isArray(products) && products.length > 0) apiState.products = products;
+      if (Array.isArray(orders) && orders.length > 0) apiState.orders = orders;
+      res.json({ ok: true, syncedAt: new Date().toISOString() });
+    } catch {
+      res.status(200).json({ ok: false });
+    }
+  });
+
+  // 1. Android API Health & Gateway Status
+  app.get("/api/v1/health", (_req, res) => {
+    res.json({
+      status: "online",
+      service: "CakeUrban Android REST API Gateway",
+      version: "1.0.0",
+      timestamp: new Date().toISOString(),
+      stats: {
+        liveApprovedProducts: apiState.products.filter(
+          (p) => !p.approvalStatus || p.approvalStatus === "approved"
+        ).length,
+        pendingPartnerApprovals: apiState.products.filter((p) => p.approvalStatus === "pending")
+          .length,
+        totalPartners: apiState.partners.length,
+        activePartners: apiState.partners.filter((p) => !isServerPartnerExpired(p)).length,
+        totalOrders: apiState.orders.length,
+      },
+    });
+  });
+
+  // 2. Android Catalog Endpoint (Approved Storefront Items or Partner Filtered)
+  app.get("/api/v1/products", (req, res) => {
+    const category = String(req.query.category || "").trim().toLowerCase();
+    const partnerId = String(req.query.partnerId || "").trim().toUpperCase();
+    const includePending = req.query.includePending === "true";
+
+    let list = apiState.products;
+    if (!includePending && !partnerId) {
+      list = list.filter((p) => !p.approvalStatus || p.approvalStatus === "approved");
+    }
+    if (category) {
+      list = list.filter((p) => p.category.toLowerCase() === category);
+    }
+    if (partnerId) {
+      list = list.filter((p) => (p.partnerId || "").toUpperCase() === partnerId);
+    }
+    res.json({
+      ok: true,
+      count: list.length,
+      currencyBase: "USD",
+      inrRate: 83.4,
+      products: list,
+    });
+  });
+
+  // 3. Partners Directory & Expiry Status
+  app.get("/api/v1/partners", (_req, res) => {
+    const enriched = apiState.partners.map((p) => {
+      const expired = isServerPartnerExpired(p);
+      return {
+        ...p,
+        isLocked: expired,
+        effectiveStatus: expired ? "expired" : "active",
+      };
+    });
+    res.json({ ok: true, count: enriched.length, partners: enriched });
+  });
+
+  // 4. Partner Store Specific Dashboard (For Partner Android App)
+  app.get("/api/v1/partner/:partnerId/dashboard", (req, res) => {
+    const partnerId = String(req.params.partnerId || "").toUpperCase();
+    const partner = apiState.partners.find((p) => p.id.toUpperCase() === partnerId);
+    if (!partner) {
+      res.status(404).json({ ok: false, error: "PARTNER_NOT_FOUND" });
+      return;
+    }
+    const isLocked = isServerPartnerExpired(partner);
+    const storeProducts = apiState.products.filter(
+      (p) => (p.partnerId || "").toUpperCase() === partnerId
+    );
+    const storeOrders = apiState.orders.filter(
+      (o) => (o.assignedPartnerId || "").toUpperCase() === partnerId
+    );
+    const grossGmv = storeOrders.reduce((s, o) => s + o.total, 0);
+    const adminCommission = storeOrders.reduce(
+      (s, o) =>
+        s + (o.adminCommissionAmount ?? (o.total * (partner.commissionRate || 30)) / 100),
+      0
+    );
+    const netPartnerPayout = Math.max(0, grossGmv - adminCommission);
+
+    res.json({
+      ok: true,
+      partner: {
+        ...partner,
+        isLocked,
+        lockMessage: isLocked
+          ? "Partner ID has expired. New orders and product uploads/edits are locked until Super Admin renews your Partner ID."
+          : null,
+      },
+      financials: {
+        commissionRatePct: partner.commissionRate || 30,
+        partnerSharePct: 100 - (partner.commissionRate || 30),
+        grossGmv: Number(grossGmv.toFixed(2)),
+        adminCommission: Number(adminCommission.toFixed(2)),
+        netPartnerPayout: Number(netPartnerPayout.toFixed(2)),
+      },
+      productsCount: storeProducts.length,
+      products: storeProducts,
+      ordersCount: storeOrders.length,
+      orders: storeOrders,
+    });
+  });
+
+  // 5. Partner Upload New Product via Android App (Enforces Expiry Lock & Pending Admin Approval)
+  app.post("/api/v1/partner/:partnerId/products", (req, res) => {
+    const partnerId = String(req.params.partnerId || "").toUpperCase();
+    const partner = apiState.partners.find((p) => p.id.toUpperCase() === partnerId);
+    if (!partner) {
+      res.status(404).json({ ok: false, error: "PARTNER_NOT_FOUND" });
+      return;
+    }
+    if (isServerPartnerExpired(partner)) {
+      res.status(403).json({
+        ok: false,
+        error: "PARTNER_ID_EXPIRED",
+        message: `Partner ID ${partner.id} expired on ${partner.expiresAt}. Renew with Super Admin to upload products.`,
+      });
+      return;
+    }
+
+    const body = req.body || {};
+    const newProd: Product = {
+      id: body.id || `partner-${partner.id.toLowerCase()}-${Date.now()}`,
+      name: String(body.name || "Partner Artisan Cake"),
+      brand: partner.shopName,
+      category: String(body.category || "Cakes"),
+      price: Number(body.price) || 9.5,
+      compareAt: body.compareAt ? Number(body.compareAt) : undefined,
+      img:
+        body.img ||
+        "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&auto=format&fit=crop&q=80",
+      tag: "PARTNER FRESH",
+      rating: 4.9,
+      ratingCount: 1,
+      stock: Number(body.stock) ?? 15,
+      sku: `${partner.id}-${Date.now().toString().slice(-4)}`,
+      colors: [{ name: "Signature", hex: "#e07a5f" }],
+      sizes: Array.isArray(body.sizes) ? body.sizes : ["0.5 KG", "1 KG", "2 KG"],
+      desc: String(
+        body.desc || `100% Pure Eggless bake crafted at ${partner.shopName} (${partner.cityHub}).`
+      ),
+      specs: [
+        ["Dietary", "100% Pure Eggless Veg"],
+        ["Partner Store", `${partner.shopName} (${partner.id})`],
+      ],
+      partnerId: partner.id,
+      partnerShopName: partner.shopName,
+      approvalStatus: "pending",
+      submittedAt: new Date().toISOString(),
+    };
+
+    apiState.products.unshift(newProd);
+    res.status(201).json({
+      ok: true,
+      message: "Product uploaded and queued for Super Admin approval.",
+      product: newProd,
+    });
+  });
+
+  // 6. Partner Edit Existing Product via Android App (Enforces Expiry Lock & Re-queues Approval)
+  app.put("/api/v1/partner/:partnerId/products/:productId", (req, res) => {
+    const partnerId = String(req.params.partnerId || "").toUpperCase();
+    const productId = String(req.params.productId || "");
+    const partner = apiState.partners.find((p) => p.id.toUpperCase() === partnerId);
+    if (!partner) {
+      res.status(404).json({ ok: false, error: "PARTNER_NOT_FOUND" });
+      return;
+    }
+    if (isServerPartnerExpired(partner)) {
+      res.status(403).json({
+        ok: false,
+        error: "PARTNER_ID_EXPIRED",
+        message: `Partner ID ${partner.id} expired on ${partner.expiresAt}. Product edits are locked until renewed.`,
+      });
+      return;
+    }
+
+    const idx = apiState.products.findIndex((p) => p.id === productId);
+    if (idx < 0) {
+      res.status(404).json({ ok: false, error: "PRODUCT_NOT_FOUND" });
+      return;
+    }
+
+    const updated: Product = {
+      ...apiState.products[idx],
+      ...req.body,
+      id: productId,
+      partnerId: partner.id,
+      partnerShopName: partner.shopName,
+      approvalStatus: "pending",
+      submittedAt: new Date().toISOString(),
+    };
+    apiState.products[idx] = updated;
+    res.json({
+      ok: true,
+      message: "Product updated and queued for Super Admin approval.",
+      product: updated,
+    });
+  });
+
+  // 7. Orders Feed & Creation for Android Apps
+  app.get("/api/v1/orders", (req, res) => {
+    const partnerId = String(req.query.partnerId || "").trim().toUpperCase();
+    const email = String(req.query.email || "").trim().toLowerCase();
+    let list = apiState.orders;
+    if (partnerId) {
+      list = list.filter((o) => (o.assignedPartnerId || "").toUpperCase() === partnerId);
+    }
+    if (email) {
+      list = list.filter((o) => o.email.toLowerCase() === email);
+    }
+    res.json({ ok: true, count: list.length, orders: list });
+  });
+
+  app.patch("/api/v1/orders/:orderId/status", (req, res) => {
+    const orderId = String(req.params.orderId || "");
+    const { partnerStatus, status } = req.body || {};
+    const idx = apiState.orders.findIndex((o) => o.id === orderId);
+    if (idx < 0) {
+      res.status(404).json({ ok: false, error: "ORDER_NOT_FOUND" });
+      return;
+    }
+    const existing = apiState.orders[idx];
+    if (existing.assignedPartnerId) {
+      const p = apiState.partners.find((x) => x.id === existing.assignedPartnerId);
+      if (p && isServerPartnerExpired(p)) {
+        res.status(403).json({
+          ok: false,
+          error: "PARTNER_ID_EXPIRED",
+          message: "Partner ID is expired. Renew with Super Admin to update orders.",
+        });
+        return;
+      }
+    }
+    const updated: Order = {
+      ...existing,
+      ...(partnerStatus ? { partnerStatus } : {}),
+      ...(status ? { status } : {}),
+    };
+    apiState.orders[idx] = updated;
+    res.json({ ok: true, order: updated });
+  });
+
+  // 8. Admin 30% Commission Financial Ledger Summary
+  app.get("/api/v1/commission-summary", (_req, res) => {
+    const partnerOrders = apiState.orders.filter((o) => Boolean(o.assignedPartnerId));
+    const totalPartnerGmv = partnerOrders.reduce((s, o) => s + o.total, 0);
+    const totalAdminCommission30Pct = partnerOrders.reduce(
+      (s, o) => s + (o.adminCommissionAmount ?? (o.total * (o.adminCommissionRate || 30)) / 100),
+      0
+    );
+    const totalPartnerPayout70Pct = Math.max(0, totalPartnerGmv - totalAdminCommission30Pct);
+
+    res.json({
+      ok: true,
+      commissionModel: "30% CakeUrban Platform Commission / 70% Partner Store Payout",
+      routedOrdersCount: partnerOrders.length,
+      totalPartnerGmv: Number(totalPartnerGmv.toFixed(2)),
+      totalAdminCommissionEarned: Number(totalAdminCommission30Pct.toFixed(2)),
+      totalPartnerNetPayout: Number(totalPartnerPayout70Pct.toFixed(2)),
+      partnerBreakdown: apiState.partners.map((p) => {
+        const pOrders = partnerOrders.filter((o) => o.assignedPartnerId === p.id);
+        const gmv = pOrders.reduce((s, o) => s + o.total, 0);
+        const adminCut = pOrders.reduce(
+          (s, o) => s + (o.adminCommissionAmount ?? (o.total * (p.commissionRate || 30)) / 100),
+          0
+        );
+        return {
+          partnerId: p.id,
+          shopName: p.shopName,
+          email: p.email,
+          expiresAt: p.expiresAt,
+          isLocked: isServerPartnerExpired(p),
+          ordersCount: pOrders.length,
+          grossSales: Number(gmv.toFixed(2)),
+          admin30PctCommission: Number(adminCut.toFixed(2)),
+          partner70PctPayout: Number(Math.max(0, gmv - adminCut).toFixed(2)),
+        };
+      }),
+    });
+  });
+
+  // Autonomous SEO & GEO Auto-Indexer: receives new customer cake search themes and adds them to Sitemap & GEO Feed
+  app.post("/api/seo-auto-index", (req, res) => {
+    try {
+      const rawSlug = String(req.body?.slug || "")
+        .toLowerCase()
+        .replace(/[^a-z0-9-]+/g, "-")
+        .replace(/(^-|-$)/g, "");
+      if (rawSlug && rawSlug.length >= 4 && rawSlug.length <= 65) {
+        const finalSlug = rawSlug.endsWith("-cake") ? rawSlug : `${rawSlug}-cake`;
+        if (!SITEMAP_THEME_SLUGS.includes(finalSlug) && SITEMAP_THEME_SLUGS.length < 250) {
+          SITEMAP_THEME_SLUGS.push(finalSlug);
+        }
+      }
+      res.status(200).json({ ok: true, totalIndexedThemes: SITEMAP_THEME_SLUGS.length });
+    } catch {
+      res.status(200).json({ ok: false });
+    }
+  });
+
+  app.get("/api/seo-auto-index", (_req, res) => {
+    res.json({ totalIndexedThemes: SITEMAP_THEME_SLUGS.length, slugs: SITEMAP_THEME_SLUGS });
+  });
 
   app.get("/api/pinterest-search", async (req, res) => {
     const q = String(req.query.q || "").trim();
     if (!q) {
       res.json({ pins: [] });
       return;
+    }
+
+    // Also auto-index valid customer searches directly on the server
+    const autoSlug = normalizeTypos(q)
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
+    if (autoSlug.length >= 3 && autoSlug.length <= 50) {
+      const slugWithCake = autoSlug.endsWith("-cake") ? autoSlug : `${autoSlug}-cake`;
+      if (!SITEMAP_THEME_SLUGS.includes(slugWithCake) && SITEMAP_THEME_SLUGS.length < 250) {
+        SITEMAP_THEME_SLUGS.push(slugWithCake);
+      }
     }
 
     try {

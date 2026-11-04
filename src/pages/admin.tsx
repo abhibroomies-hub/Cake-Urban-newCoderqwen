@@ -16,9 +16,13 @@ import { WhatsAppAutomationManager } from "../components/admin/WhatsAppAutomatio
 import { InventoryTrackerManager } from "../components/admin/InventoryTrackerManager";
 import { DynamicPricingManager } from "../components/admin/DynamicPricingManager";
 import { ReviewsManager } from "../components/admin/ReviewsManager";
+import { PartnersCommissionManager } from "../components/admin/PartnersCommissionManager";
+import { AndroidApiManager } from "../components/admin/AndroidApiManager";
 
 const NAV = [
   ["dashboard", "Dashboard", Ic.chart],
+  ["partners", "Partners & 30% Fee", Ic.users],
+  ["android_api", "Android App & API", Ic.bolt],
   ["kds", "Kitchen (KDS)", Ic.cake],
   ["dispatch", "Rider Dispatch", Ic.truck],
   ["orders", "Orders", Ic.box],
@@ -254,6 +258,12 @@ export default function Admin() {
         </aside>
 
         <div className="min-w-0">
+          {/* ===== PARTNERS & 30% COMMISSION ===== */}
+          {tab === "partners" && <PartnersCommissionManager />}
+
+          {/* ===== ANDROID APP & API SYSTEM ===== */}
+          {tab === "android_api" && <AndroidApiManager />}
+
           {/* ===== DASHBOARD ===== */}
           {tab === "dashboard" && (
             <div className="space-y-6 anim-fade-up">

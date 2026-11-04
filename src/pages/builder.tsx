@@ -2,6 +2,11 @@ import React, { useState, useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Link, useSearchParams, useParams } from "react-router-dom";
 import { Ic } from "../components/ui";
+import {
+  getAutoSeoThemes,
+  recordAutoSeoSearch,
+  subscribeAutoSeoUpdates,
+} from "../lib/autoSeoEngine";
 
 const WHATSAPP_NUMBER = "917318531953";
 
@@ -19,6 +24,9 @@ interface CakePin {
   badge?: string;
   pinUrl?: string;
 }
+
+// Instant 0ms client-side memory cache for searched cake themes & home showcase tabs
+const clientSearchCache = new Map<string, CakePin[]>();
 
 const CATEGORIES = [
   { id: "all", label: "🔥 All Trending" },
@@ -1109,6 +1117,24 @@ export default function CustomCakePinterestFinder() {
   const [isImageZoomed, setIsImageZoomed] = useState(false);
   const [customNote, setCustomNote] = useState("");
   const [customPasteUrl, setCustomPasteUrl] = useState("");
+  const [autoSeoThemes, setAutoSeoThemes] = useState(() => getAutoSeoThemes());
+
+  useEffect(() => {
+    return subscribeAutoSeoUpdates(() => {
+      setAutoSeoThemes(getAutoSeoThemes());
+    });
+  }, []);
+
+  const allDirectoryThemes = useMemo(() => {
+    const seen = new Set<string>();
+    const combined: SeoCakeThemeItem[] = [];
+    for (const item of [...SEO_CUSTOM_CAKE_THEMES, ...autoSeoThemes]) {
+      if (seen.has(item.slug)) continue;
+      seen.add(item.slug);
+      combined.push(item);
+    }
+    return combined;
+  }, [autoSeoThemes]);
 
   useEffect(() => {
     const qParam = searchParams.get("q");
@@ -1142,7 +1168,7 @@ export default function CustomCakePinterestFinder() {
     };
   }, [previewPin]);
 
-  // Live Custom Cake Search via our /api/pinterest-search endpoint when user types or selects a query
+  // Live Custom Cake Search via our /api/pinterest-search endpoint with 0ms client cache & auto-SEO indexing
   useEffect(() => {
     const q = searchQuery.trim();
     const normQ = normalizeCakeQuery(q);
@@ -1152,11 +1178,23 @@ export default function CustomCakePinterestFinder() {
       return;
     }
 
+    // Instant 0ms cache hit if this query was already searched in this session
+    const cachedPins = clientSearchCache.get(normQ);
+    if (cachedPins && cachedPins.length > 0) {
+      setLiveResult({ query: normQ, pins: cachedPins });
+      setIsSearchingWeb(false);
+      recordAutoSeoSearch(normQ);
+      return;
+    }
+
     // Immediately mark as searching so we don't show stale results
     setIsSearchingWeb(true);
 
     const controller = new AbortController();
     const timer = setTimeout(async () => {
+      // Automatically record this customer search into the in-built SEO/GEO ranking system
+      recordAutoSeoSearch(normQ);
+
       try {
         const res = await fetch(`/api/pinterest-search?q=${encodeURIComponent(normQ)}`, {
           signal: controller.signal,
@@ -1176,6 +1214,9 @@ export default function CustomCakePinterestFinder() {
           badge: "Custom Design",
           pinUrl: p.pinUrl,
         }));
+        if (fetchedPins.length > 0) {
+          clientSearchCache.set(normQ, fetchedPins);
+        }
         if (!controller.signal.aborted) {
           setLiveResult({ query: normQ, pins: fetchedPins });
         }
@@ -1188,7 +1229,7 @@ export default function CustomCakePinterestFinder() {
           setIsSearchingWeb(false);
         }
       }
-    }, 220);
+    }, 150);
 
     return () => {
       clearTimeout(timer);
@@ -1484,6 +1525,7 @@ export default function CustomCakePinterestFinder() {
                     src={pin.img}
                     alt={pin.title}
                     loading="lazy"
+                    decoding="async"
                     referrerPolicy="no-referrer"
                     onError={(e) => {
                       const target = e.currentTarget;
@@ -1618,7 +1660,7 @@ export default function CustomCakePinterestFinder() {
         </div>
 
         <div className="flex flex-wrap gap-1.5 sm:gap-2">
-          {SEO_CUSTOM_CAKE_THEMES.map((theme) => (
+          {allDirectoryThemes.map((theme) => (
             <Link
               key={theme.slug}
               to={`/custom-cake/${theme.slug}`}
@@ -1900,16 +1942,25 @@ export function HomeThemeCakeShowcase() {
     };
   }, [previewPin]);
 
-  // Fetch live custom cake results for the selected theme to enrich pre-loaded results (16+ designs)
+  // Fetch live custom cake results for the selected theme with 0ms client cache
   useEffect(() => {
     const controller = new AbortController();
     const q = selectedTheme.searchLinkQuery || selectedTheme.query;
-    setIsLoadingLive(true);
+    const cacheKey = `home:${selectedTheme.id}`;
 
     // Reset horizontal scroll position to start when switching theme
     if (pinsReelRef.current) {
       pinsReelRef.current.scrollTo({ left: 0, behavior: "smooth" });
     }
+
+    const cached = clientSearchCache.get(cacheKey);
+    if (cached && cached.length > 0) {
+      setLiveThemeResult({ themeId: selectedTheme.id, pins: cached });
+      setIsLoadingLive(false);
+      return;
+    }
+
+    setIsLoadingLive(true);
 
     fetch(`/api/pinterest-search?q=${encodeURIComponent(q)}`, {
       signal: controller.signal,
@@ -1926,6 +1977,9 @@ export function HomeThemeCakeShowcase() {
           tags: [selectedTheme.id, "custom"],
           badge: selectedTheme.badge,
         }));
+        if (fetched.length > 0) {
+          clientSearchCache.set(cacheKey, fetched);
+        }
         if (!controller.signal.aborted) {
           setLiveThemeResult({ themeId: selectedTheme.id, pins: fetched });
         }
