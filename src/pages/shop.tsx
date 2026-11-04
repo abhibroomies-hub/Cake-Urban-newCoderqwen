@@ -5,6 +5,7 @@ import { useStore } from "../lib/store";
 import { BRANDS, CATEGORIES } from "../data/catalog";
 import { Ic, Reveal } from "../components/ui";
 import { ProductCard } from "../components/product";
+import { LandingPinterestCakeSearch } from "./builder";
 
 type Filters = { cats: string[]; brands: string[]; colors: string[]; sizes: string[]; minRating: number; maxPrice: number; inStock: boolean; q: string };
 
@@ -260,6 +261,9 @@ export default function Shop() {
               ))}
             </div>
           )}
+
+          {/* Live Pinterest Custom Cake Search & Smart Suggestions inside Shop */}
+          <LandingPinterestCakeSearch locationLabel="Delhi NCR" />
         </div>
       </div>
 

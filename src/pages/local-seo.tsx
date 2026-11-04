@@ -4,6 +4,7 @@ import { DELHI_NCR_CITIES, getAllSeoAreas, getSeoAreaBySlug, SEO_INTENTS } from 
 import { useStore } from "../lib/store";
 import { ProductCard } from "../components/product";
 import { generateAreaStructuredData } from "../lib/seoHelpers";
+import { LandingPinterestCakeSearch } from "./builder";
 
 export function DeliveryLocationsIndex() {
   const allAreas = useMemo(() => getAllSeoAreas(), []);
@@ -117,6 +118,9 @@ export function DeliveryLocationsIndex() {
           ))}
         </div>
       </div>
+
+      {/* Live Pinterest Custom Cake Search & Smart Suggestions on Delivery Locations Hub */}
+      <LandingPinterestCakeSearch locationLabel="Delhi NCR (Faridabad, Gurgaon, Noida, Delhi & Ghaziabad)" />
 
       {/* City Hub Cards */}
       <div className="space-y-6 sm:space-y-10">
@@ -254,6 +258,9 @@ export function CityHubPage() {
           </Link>
         </div>
       </div>
+
+      {/* Live Pinterest Custom Cake Search & Smart Suggestions for this City Hub */}
+      <LandingPinterestCakeSearch locationLabel={city.cityName} />
 
       {/* Top Selling Products in this City */}
       <div className="mb-10">
@@ -497,6 +504,20 @@ export function AreaLandingPage({ intent = "standard", overrideSlug }: { intent?
           </Link>
         </div>
       </div>
+
+      {/* Live Pinterest Custom Cake Search & Smart Suggestions for Every Area/Programmatic Landing Page */}
+      <LandingPinterestCakeSearch
+        initialQuery={
+          area.intentBadge && area.intentBadge.startsWith("🎂 ")
+            ? area.intentBadge.replace(/^🎂\s*/, "").replace(/\s+Cakes?$/i, " Cake")
+            : detectedIntent === "birthday"
+            ? "Birthday Cake"
+            : detectedIntent === "anniversary" || detectedIntent === "eggless"
+            ? "Anniversary Cake"
+            : ""
+        }
+        locationLabel={`${area.areaName}, ${area.cityName}`}
+      />
 
       {/* Featured Products Grid */}
       <div className="mb-10">

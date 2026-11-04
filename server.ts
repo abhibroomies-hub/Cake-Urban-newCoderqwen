@@ -18,6 +18,7 @@ import {
   isProgrammaticSeoSlug,
   SEO_INTENTS,
 } from "./src/data/seoLocations.ts";
+import { buildSitemapByType } from "./api/sitemap.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -891,205 +892,17 @@ async function startServer() {
 
   const CANONICAL_SITE_URL = "https://www.cakeurban.com";
 
-  const renderUrlSetXml = (
-    urls: { loc: string; changefreq: string; priority: string }[],
-    lastmodDate: string
-  ) =>
-    `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls
-      .map(
-        (u) =>
-          `  <url><loc>${u.loc}</loc><lastmod>${lastmodDate}</lastmod><changefreq>${u.changefreq}</changefreq><priority>${u.priority}</priority></url>`
-      )
-      .join("\n")}\n</urlset>`;
-
-  const buildMainSitemapXml = (baseUrl: string, today: string) => {
-    const urls: { loc: string; changefreq: string; priority: string }[] = [
-      { loc: `${baseUrl}/`, changefreq: "daily", priority: "1.0" },
-      { loc: `${baseUrl}/builder`, changefreq: "daily", priority: "0.99" },
-      { loc: `${baseUrl}/shop`, changefreq: "daily", priority: "0.95" },
-      { loc: `${baseUrl}/delivery-locations`, changefreq: "daily", priority: "0.95" },
-      { loc: `${baseUrl}/track`, changefreq: "weekly", priority: "0.85" },
-      { loc: `${baseUrl}/blog`, changefreq: "weekly", priority: "0.85" },
-      { loc: `${baseUrl}/about`, changefreq: "monthly", priority: "0.75" },
-      { loc: `${baseUrl}/contact`, changefreq: "monthly", priority: "0.80" },
-    ];
-
-    for (const p of apiState.products.filter(
-      (prod) => !prod.approvalStatus || prod.approvalStatus === "approved"
-    )) {
-      urls.push({
-        loc: `${baseUrl}/product/${p.id}`,
-        changefreq: "weekly",
-        priority: "0.92",
-      });
-    }
-
-    for (const post of BLOG_POSTS) {
-      urls.push({
-        loc: `${baseUrl}/blog/${post.slug}`,
-        changefreq: "monthly",
-        priority: "0.84",
-      });
-    }
-
-    for (const singleSlug of GSC_HIGH_INTENT_SINGLE_SLUGS) {
-      urls.push({
-        loc: `${baseUrl}/${singleSlug}`,
-        changefreq: "daily",
-        priority: "0.94",
-      });
-    }
-
-    for (const slug of SITEMAP_THEME_SLUGS) {
-      urls.push({
-        loc: `${baseUrl}/custom-cake/${slug}`,
-        changefreq: "daily",
-        priority: "0.94",
-      });
-    }
-
-    for (const slug of SITEMAP_THEME_SLUGS.slice(0, 25)) {
-      for (const city of SITEMAP_CITIES) {
-        urls.push({
-          loc: `${baseUrl}/custom-cake/${slug}-in-${city}`,
-          changefreq: "daily",
-          priority: "0.91",
-        });
-      }
-    }
-
-    for (const city of SITEMAP_CITIES) {
-      urls.push({ loc: `${baseUrl}/cakes-in/${city}`, changefreq: "daily", priority: "0.95" });
-      urls.push({ loc: `${baseUrl}/cookies-${city}`, changefreq: "weekly", priority: "0.90" });
-    }
-
-    const intents = [
-      "cake-delivery-in",
-      "midnight-cake-delivery-in",
-      "birthday-cake-delivery-in",
-      "eggless-cake-delivery-in",
-      "custom-cake-delivery-in",
-      "anniversary-cake-delivery-in",
-    ];
-    for (const sector of SITEMAP_SECTORS) {
-      for (const intent of intents) {
-        urls.push({
-          loc: `${baseUrl}/${intent}/${sector}`,
-          changefreq: "weekly",
-          priority: "0.88",
-        });
-      }
-    }
-
-    return renderUrlSetXml(urls, today);
-  };
-
-  const buildSubSitemapXml = (cityKey: string, baseUrl: string, today: string): string | null => {
-    if (cityKey === "occasions") {
-      const urls: { loc: string; changefreq: string; priority: string }[] = [];
-      for (const slug of SITEMAP_THEME_SLUGS) {
-        urls.push({ loc: `${baseUrl}/custom-cake/${slug}`, changefreq: "daily", priority: "0.94" });
-        for (const city of SITEMAP_CITIES) {
-          urls.push({
-            loc: `${baseUrl}/custom-cake/${slug}-in-${city}`,
-            changefreq: "weekly",
-            priority: "0.90",
-          });
-        }
-      }
-      for (const singleSlug of GSC_HIGH_INTENT_SINGLE_SLUGS) {
-        urls.push({ loc: `${baseUrl}/${singleSlug}`, changefreq: "daily", priority: "0.93" });
-      }
-      return renderUrlSetXml(urls, today);
-    }
-
-    if (cityKey === "videos") {
-      const heroThumb =
-        "https://image.qwenlm.ai/generated-images/19868aa6-1a8b-4213-bf76-a00a5c538bec/_result.png";
-      const videoUrl =
-        "https://assets.mixkit.co/videos/preview/mixkit-confectioner-decorating-a-chocolate-cake-41444-large.mp4";
-      const watchPages = [
-        {
-          loc: `${baseUrl}/`,
-          title: "CakeUrban — How We Bake & Deliver 100% Pure Eggless Custom Theme Cakes in 30–45 Mins",
-          desc: "Watch how CakeUrban freshly bakes 100% pure eggless Belgian chocolate, sugar-free, birthday, and anniversary cakes with 30-45 minute cold-chain delivery across Delhi NCR.",
-        },
-        ...SITEMAP_CITIES.map((c) => ({
-          loc: `${baseUrl}/cakes-in/${c}`,
-          title: `How CakeUrban Bakes & Delivers 100% Eggless Cakes in ${c.charAt(0).toUpperCase() + c.slice(1)}`,
-          desc: `Watch live patisserie preparation and 4°C cold-box express cake delivery across ${c.charAt(0).toUpperCase() + c.slice(1)}.`,
-        })),
-        ...SITEMAP_SECTORS.map((s) => ({
-          loc: `${baseUrl}/cake-delivery-in/${s}`,
-          title: `Live Patisserie & 30-Min Cold-Chain Cake Delivery in ${s.replace(/-/g, " ")}`,
-          desc: `Watch how CakeUrban bakes 100% pure eggless cakes and delivers in 30-45 minutes across ${s.replace(/-/g, " ")}.`,
-        })),
-        ...GSC_HIGH_INTENT_SINGLE_SLUGS.map((s) => ({
-          loc: `${baseUrl}/${s}`,
-          title: `${s.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())} — CakeUrban Live Patisserie`,
-          desc: `Watch CakeUrban prepare and dispatch ${s.replace(/-/g, " ")} in 100% pure eggless with chilled doorstep delivery.`,
-        })),
-      ];
-
-      return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">\n${watchPages
-        .map(
-          (v) => `  <url>
-    <loc>${v.loc}</loc>
-    <video:video>
-      <video:thumbnail_loc>${heroThumb}</video:thumbnail_loc>
-      <video:title>${v.title.replace(/&/g, "&amp;")}</video:title>
-      <video:description>${v.desc.replace(/&/g, "&amp;")}</video:description>
-      <video:content_loc>${videoUrl}</video:content_loc>
-      <video:duration>45</video:duration>
-      <video:publication_date>2026-01-15T08:00:00+05:30</video:publication_date>
-      <video:family_friendly>yes</video:family_friendly>
-    </video:video>
-  </url>`
-        )
-        .join("\n")}\n</urlset>`;
-    }
-
-    const cityData = DELHI_NCR_CITIES[cityKey];
-    if (!cityData) return null;
-
-    const cityUrls: { loc: string; changefreq: string; priority: string }[] = [
-      { loc: `${baseUrl}/cakes-in/${cityKey}`, changefreq: "daily", priority: "0.96" },
-      { loc: `${baseUrl}/cookies-${cityKey}`, changefreq: "weekly", priority: "0.92" },
-    ];
-    for (const area of cityData.areas) {
-      for (const cfg of Object.values(SEO_INTENTS)) {
-        cityUrls.push({
-          loc: `${baseUrl}/${cfg.prefix}/${area.slug}`,
-          changefreq: "weekly",
-          priority: "0.89",
-        });
-      }
-      cityUrls.push({
-        loc: `${baseUrl}/belgian-chocolate-cake-in-${area.slug}`,
-        changefreq: "weekly",
-        priority: "0.88",
-      });
-      cityUrls.push({
-        loc: `${baseUrl}/sugar-free-cake-delivery-in-${area.slug}`,
-        changefreq: "weekly",
-        priority: "0.88",
-      });
-    }
-
-    return renderUrlSetXml(cityUrls, today);
-  };
-
-  // Write physical XML sitemaps to /public (and /dist if built) so static CDNs (Vercel/Cloudflare) serve 100% valid XML
+  // Write physical XML sitemaps to /public (and /dist if built) so static CDNs (Vercel/Cloudflare) serve 100% valid XML with 10,000+ URLs each
   const syncStaticSitemapsToDisk = () => {
     try {
       const today = new Date().toISOString().split("T")[0];
-      const mainXml = buildMainSitemapXml(CANONICAL_SITE_URL, today);
+      const mainXml = buildSitemapByType("main", CANONICAL_SITE_URL, today);
       const filesMap: Record<string, string> = {
         "sitemap.xml": mainXml,
         "sitemap-main.xml": mainXml,
       };
       for (const subKey of ["faridabad", "gurgaon", "noida", "delhi", "ghaziabad", "occasions", "videos"]) {
-        const subXml = buildSubSitemapXml(subKey, CANONICAL_SITE_URL, today);
+        const subXml = buildSitemapByType(subKey, CANONICAL_SITE_URL, today);
         if (subXml) {
           filesMap[`sitemap-${subKey}.xml`] = subXml;
         }
@@ -1112,22 +925,25 @@ async function startServer() {
 
   syncStaticSitemapsToDisk();
 
-  // Master XML Sitemap (500+ High-Intent SEO, Product, Single-Segment GSC & Programmatic Theme × City URLs)
+  // Master XML Sitemap & Serverless Route (10,000+ High-Intent SEO, Product, Single-Segment GSC & Programmatic Theme × Sector URLs)
+  app.get("/api/sitemap", (req, res) => {
+    const type = String(req.query.type || "main").toLowerCase();
+    const today = new Date().toISOString().split("T")[0];
+    res.setHeader("Content-Type", "application/xml; charset=utf-8");
+    res.send(buildSitemapByType(type, CANONICAL_SITE_URL, today));
+  });
+
   app.get(["/sitemap.xml", "/sitemap-main.xml"], (_req, res) => {
     const today = new Date().toISOString().split("T")[0];
     res.setHeader("Content-Type", "application/xml; charset=utf-8");
-    res.send(buildMainSitemapXml(CANONICAL_SITE_URL, today));
+    res.send(buildSitemapByType("main", CANONICAL_SITE_URL, today));
   });
 
-  // City-Specific Sub-Sitemaps referenced in robots.txt
-  app.get("/sitemap-:cityKey.xml", (req, res, next) => {
-    const cityKey = String(req.params.cityKey || "").toLowerCase();
+  // City & Occasion Sub-Sitemaps (10,000+ URLs each)
+  app.get("/sitemap-:cityKey.xml", (req, res) => {
+    const cityKey = String(req.params.cityKey || "main").toLowerCase();
     const today = new Date().toISOString().split("T")[0];
-    const xml = buildSubSitemapXml(cityKey, CANONICAL_SITE_URL, today);
-    if (!xml) {
-      next();
-      return;
-    }
+    const xml = buildSitemapByType(cityKey, CANONICAL_SITE_URL, today);
     res.setHeader("Content-Type", "application/xml; charset=utf-8");
     res.send(xml);
   });

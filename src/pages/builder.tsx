@@ -1057,13 +1057,18 @@ export function parseThemeAndCityFromSlug(rawSlug: string): {
   let citySlug: string | undefined;
   let cityName: string | undefined;
 
-  for (const [cSlug, cName] of Object.entries(NCR_CITY_MAP)) {
-    const suffix = `-in-${cSlug}`;
-    if (cleanSlug.endsWith(suffix)) {
-      citySlug = cSlug;
-      cityName = cName;
-      cleanSlug = cleanSlug.slice(0, -suffix.length);
-      break;
+  if (cleanSlug.includes("-in-")) {
+    const idx = cleanSlug.lastIndexOf("-in-");
+    const left = cleanSlug.slice(0, idx);
+    const right = cleanSlug.slice(idx + 4);
+    if (left && right) {
+      cleanSlug = left;
+      citySlug = right;
+      cityName =
+        NCR_CITY_MAP[right] ||
+        right
+          .replace(/-/g, " ")
+          .replace(/\b\w/g, (l) => l.toUpperCase());
     }
   }
 
@@ -1906,6 +1911,7 @@ const HOME_THEME_CARDS = [
 
 export function HomeThemeCakeShowcase() {
   const [selectedTheme, setSelectedTheme] = useState(HOME_THEME_CARDS[0]);
+  const [homeSearchQuery, setHomeSearchQuery] = useState("");
   const [liveThemeResult, setLiveThemeResult] = useState<{ themeId: string; pins: CakePin[] }>({
     themeId: "",
     pins: [],
@@ -1942,25 +1948,29 @@ export function HomeThemeCakeShowcase() {
     };
   }, [previewPin]);
 
-  // Fetch live custom cake results for the selected theme with 0ms client cache
+  // Fetch live custom cake results for the selected theme or custom search query with 0ms client cache
   useEffect(() => {
     const controller = new AbortController();
-    const q = selectedTheme.searchLinkQuery || selectedTheme.query;
-    const cacheKey = `home:${selectedTheme.id}`;
+    const customQ = homeSearchQuery.trim();
+    const q = customQ ? normalizeCakeQuery(customQ) : selectedTheme.searchLinkQuery || selectedTheme.query;
+    const activeKey = customQ ? `q:${normalizeCakeQuery(customQ)}` : selectedTheme.id;
+    const cacheKey = `home:${activeKey}`;
 
-    // Reset horizontal scroll position to start when switching theme
+    // Reset horizontal scroll position to start when switching theme or query
     if (pinsReelRef.current) {
       pinsReelRef.current.scrollTo({ left: 0, behavior: "smooth" });
     }
 
-    const cached = clientSearchCache.get(cacheKey);
+    const cached = clientSearchCache.get(cacheKey) || (customQ ? clientSearchCache.get(q) : undefined);
     if (cached && cached.length > 0) {
-      setLiveThemeResult({ themeId: selectedTheme.id, pins: cached });
+      setLiveThemeResult({ themeId: activeKey, pins: cached });
       setIsLoadingLive(false);
+      if (customQ) recordAutoSeoSearch(q);
       return;
     }
 
     setIsLoadingLive(true);
+    if (customQ) recordAutoSeoSearch(q);
 
     fetch(`/api/pinterest-search?q=${encodeURIComponent(q)}`, {
       signal: controller.signal,
@@ -1968,25 +1978,25 @@ export function HomeThemeCakeShowcase() {
       .then((res) => (res.ok ? res.json() : Promise.reject()))
       .then((data) => {
         const fetched: CakePin[] = (data?.pins || []).map((p: any, idx: number) => ({
-          id: p.id || `home-live-${selectedTheme.id}-${idx}`,
-          title: p.title || `${selectedTheme.title} Design`,
+          id: p.id || `home-live-${activeKey}-${idx}`,
+          title: p.title || `${customQ || selectedTheme.title} Design`,
           category: "custom",
           img: p.img,
           startingWeight: "1.0 Kg",
           priceInr: 999,
-          tags: [selectedTheme.id, "custom"],
-          badge: selectedTheme.badge,
+          tags: [activeKey, "custom"],
+          badge: customQ ? "Custom Design" : selectedTheme.badge,
         }));
         if (fetched.length > 0) {
           clientSearchCache.set(cacheKey, fetched);
         }
         if (!controller.signal.aborted) {
-          setLiveThemeResult({ themeId: selectedTheme.id, pins: fetched });
+          setLiveThemeResult({ themeId: activeKey, pins: fetched });
         }
       })
       .catch(() => {
         if (!controller.signal.aborted) {
-          setLiveThemeResult({ themeId: selectedTheme.id, pins: [] });
+          setLiveThemeResult({ themeId: activeKey, pins: [] });
         }
       })
       .finally(() => {
@@ -1994,17 +2004,51 @@ export function HomeThemeCakeShowcase() {
       });
 
     return () => controller.abort();
-  }, [selectedTheme]);
+  }, [selectedTheme, homeSearchQuery]);
+
+  const homeSuggestions = useMemo(() => {
+    const q = homeSearchQuery.trim().toLowerCase();
+    if (!q) return POPULAR_SEARCHES.slice(0, 14);
+    const matched = SMART_SUGGESTIONS_POOL.filter(
+      (item) => item.toLowerCase().includes(q) && item.toLowerCase() !== q
+    );
+    const extras = POPULAR_SEARCHES.filter(
+      (item) => item.toLowerCase() !== q && !matched.includes(item)
+    );
+    return [...matched, ...extras].slice(0, 14);
+  }, [homeSearchQuery]);
 
   // Pre-loaded curated results + live search results (16+ cards in horizontal reel)
   const themePins = useMemo(() => {
+    const customQ = homeSearchQuery.trim();
+    const activeKey = customQ ? `q:${normalizeCakeQuery(customQ)}` : selectedTheme.id;
+    const currentLive = liveThemeResult.themeId === activeKey ? liveThemeResult.pins : [];
+
+    if (customQ) {
+      const normQ = normalizeCakeQuery(customQ);
+      const scoredLocal = CURATED_PINS.map((pin) => ({
+        pin,
+        score: scorePinAgainstQuery(pin, normQ),
+      }))
+        .filter((item) => item.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .map((item) => item.pin);
+
+      const seen = new Set<string>();
+      const combined: CakePin[] = [];
+      for (const p of [...currentLive, ...scoredLocal]) {
+        if (!p.img || seen.has(p.img)) continue;
+        seen.add(p.img);
+        combined.push(p);
+      }
+      return combined.slice(0, 24);
+    }
+
     const themeKeywords = selectedTheme.query.toLowerCase().split(/\s+/).filter(Boolean);
     const scoredLocal = CURATED_PINS.filter((pin) => {
       const hay = `${pin.title} ${pin.category} ${pin.tags.join(" ")}`.toLowerCase();
       return themeKeywords.some((kw) => hay.includes(kw));
     });
-
-    const currentLive = liveThemeResult.themeId === selectedTheme.id ? liveThemeResult.pins : [];
 
     const seen = new Set<string>();
     const combined: CakePin[] = [];
@@ -2015,7 +2059,7 @@ export function HomeThemeCakeShowcase() {
     }
 
     return combined.slice(0, 24);
-  }, [selectedTheme, liveThemeResult]);
+  }, [selectedTheme, liveThemeResult, homeSearchQuery]);
 
   const buildWhatsAppLink = (pin: CakePin, extraNote?: string) => {
     const lines = [
@@ -2060,6 +2104,66 @@ export function HomeThemeCakeShowcase() {
           <span>🔍 Search 1000+ Custom Cakes</span>
           <Ic.arrow className="w-3.5 h-3.5" />
         </Link>
+      </div>
+
+      {/* Interactive Pinterest Cake Search Bar + Smart Suggestions right on Home */}
+      <div className="mt-4 p-3.5 sm:p-5 bg-ink-900/90 border border-ink-800 rounded-xl space-y-2.5">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (typeof document !== "undefined" && document.activeElement instanceof HTMLElement) {
+              document.activeElement.blur();
+            }
+          }}
+        >
+          <div className="relative flex items-center bg-ink-950 border-2 border-ink-700 focus-within:border-blaze-500 rounded-full overflow-hidden shadow-lg transition-colors">
+            <span className="pl-3.5 sm:pl-5 text-ink-400 shrink-0">
+              <Ic.search className="w-4 h-4 sm:w-5 sm:h-5 text-blaze-500" />
+            </span>
+            <input
+              type="search"
+              value={homeSearchQuery}
+              onChange={(e) => setHomeSearchQuery(e.target.value)}
+              placeholder="Search any Pinterest cake design: 'Butterfly', 'Doraemon', 'Pineapple', '2 Tier Wedding'..."
+              className="w-full min-w-0 bg-transparent px-2.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-ink-50 placeholder-ink-400 outline-none"
+            />
+            {homeSearchQuery && (
+              <button
+                type="button"
+                onClick={() => setHomeSearchQuery("")}
+                className="px-2 text-ink-400 hover:text-ink-100 font-mono text-xs shrink-0"
+              >
+                ✕
+              </button>
+            )}
+            <button
+              type="submit"
+              className="mr-1.5 px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full bg-blaze-500 hover:bg-blaze-400 text-white font-mono text-[10px] sm:text-xs uppercase font-bold tracking-wider transition-colors shrink-0"
+            >
+              Search
+            </button>
+          </div>
+        </form>
+
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-1 pb-0.5">
+          <span className="font-mono text-[9px] uppercase tracking-wider text-gold-400 font-bold shrink-0">
+            {homeSearchQuery.trim() ? "✨ Related Ideas:" : "🔥 Popular Ideas:"}
+          </span>
+          {homeSuggestions.map((term) => (
+            <button
+              key={term}
+              type="button"
+              onClick={() => setHomeSearchQuery(term)}
+              className={`px-2.5 py-1 rounded-full font-mono text-[10px] border transition-all shrink-0 ${
+                homeSearchQuery.toLowerCase() === term.toLowerCase()
+                  ? "bg-blaze-500 text-white border-blaze-500 font-bold shadow-sm"
+                  : "bg-ink-950 text-ink-200 border-ink-700 hover:border-blaze-400 hover:text-white"
+              }`}
+            >
+              🔍 {term}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* 1. Theme Cake Cards — Strictly 1 Single Horizontal Line on Phone & Full-Width Row on Desktop */}
@@ -2354,3 +2458,507 @@ export function HomeThemeCakeShowcase() {
     </section>
   );
 }
+
+// ============================================================================
+// EMBEDDABLE LIVE PINTEREST CAKE SEARCH + SMART SUGGESTIONS FOR ALL LANDING PAGES
+// ============================================================================
+export function LandingPinterestCakeSearch({
+  initialQuery = "",
+  locationLabel = "Delhi NCR",
+}: {
+  initialQuery?: string;
+  locationLabel?: string;
+}) {
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
+  const [activeCategory, setActiveCategory] = useState("all");
+  const [liveResult, setLiveResult] = useState<{ query: string; pins: CakePin[] }>({
+    query: "",
+    pins: [],
+  });
+  const [isSearchingWeb, setIsSearchingWeb] = useState(false);
+  const [previewPin, setPreviewPin] = useState<CakePin | null>(null);
+  const [isImageZoomed, setIsImageZoomed] = useState(false);
+  const [customNote, setCustomNote] = useState("");
+  const [customPasteUrl, setCustomPasteUrl] = useState("");
+
+  useEffect(() => {
+    setSearchQuery(initialQuery || "");
+  }, [initialQuery]);
+
+  useEffect(() => {
+    if (!previewPin) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [previewPin]);
+
+  useEffect(() => {
+    const q = searchQuery.trim();
+    const normQ = normalizeCakeQuery(q);
+    if (q.length < 2) {
+      setLiveResult({ query: "", pins: [] });
+      setIsSearchingWeb(false);
+      return;
+    }
+
+    const cachedPins = clientSearchCache.get(normQ);
+    if (cachedPins && cachedPins.length > 0) {
+      setLiveResult({ query: normQ, pins: cachedPins });
+      setIsSearchingWeb(false);
+      recordAutoSeoSearch(normQ);
+      return;
+    }
+
+    setIsSearchingWeb(true);
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      recordAutoSeoSearch(normQ);
+      try {
+        const res = await fetch(`/api/pinterest-search?q=${encodeURIComponent(normQ)}`, {
+          signal: controller.signal,
+        });
+        if (!res.ok) throw new Error("API error");
+        const data = await res.json();
+        const fetchedPins: CakePin[] = (data?.pins || []).map((p: any, idx: number) => ({
+          id: p.id || `landing-pin-${idx}-${Date.now()}`,
+          title: p.title || `Custom ${normQ} Cake`,
+          category: "custom",
+          img: p.img,
+          startingWeight: p.startingWeight || "1.0 Kg",
+          priceInr: p.priceInr || 999,
+          tags: [normQ, q.toLowerCase(), "custom"],
+          badge: "Custom Design",
+          pinUrl: p.pinUrl,
+        }));
+        if (fetchedPins.length > 0) {
+          clientSearchCache.set(normQ, fetchedPins);
+        }
+        if (!controller.signal.aborted) {
+          setLiveResult({ query: normQ, pins: fetchedPins });
+        }
+      } catch (err: any) {
+        if (err?.name !== "AbortError") {
+          setLiveResult({ query: normQ, pins: [] });
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsSearchingWeb(false);
+        }
+      }
+    }, 150);
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [searchQuery]);
+
+  const displayedPins = useMemo(() => {
+    const q = searchQuery.trim();
+    const normQ = normalizeCakeQuery(q);
+
+    if (!q) {
+      return CURATED_PINS.filter(
+        (pin) => activeCategory === "all" || pin.category === activeCategory
+      ).slice(0, 18);
+    }
+
+    const currentLivePins = liveResult.query === normQ ? liveResult.pins : [];
+    const scoredLocal = CURATED_PINS.map((pin) => ({
+      pin,
+      score: scorePinAgainstQuery(pin, normQ),
+    }))
+      .filter((item) => item.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .map((item) => item.pin);
+
+    const seenImgs = new Set<string>();
+    const combined: CakePin[] = [];
+    for (const p of [...currentLivePins, ...scoredLocal]) {
+      if (!p.img || seenImgs.has(p.img)) continue;
+      seenImgs.add(p.img);
+      combined.push(p);
+    }
+    return combined.slice(0, 24);
+  }, [searchQuery, activeCategory, liveResult]);
+
+  const relatedSuggestions = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return POPULAR_SEARCHES.slice(0, 16);
+
+    const matched = SMART_SUGGESTIONS_POOL.filter(
+      (item) => item.toLowerCase().includes(q) && item.toLowerCase() !== q
+    );
+    const extras = POPULAR_SEARCHES.filter(
+      (item) => item.toLowerCase() !== q && !matched.includes(item)
+    );
+    return [...matched, ...extras].slice(0, 16);
+  }, [searchQuery]);
+
+  const buildWhatsAppLink = (pin: CakePin, extraNote?: string) => {
+    const lines = [
+      `Hi CakeUrban! 🎂 Mujhe ${locationLabel} me ye custom cake banwana hai:`,
+      ``,
+      `🎂 *Cake Design:* ${pin.title}`,
+      `📍 *Delivery Area:* ${locationLabel}`,
+      `✨ *Type:* 100% Pure Eggless Custom Cake`,
+      ...(extraNote?.trim() ? [`✍️ *Custom Note:* ${extraNote.trim()}`] : []),
+      ``,
+      `🖼️ *Selected Cake Photo:*`,
+      pin.img,
+      ``,
+      `Please share price & express delivery slot!`,
+    ];
+    return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(lines.join("\n"))}`;
+  };
+
+  return (
+    <section
+      id="pinterest-cake-search"
+      aria-label={`Search Custom Pinterest Cakes in ${locationLabel}`}
+      className="my-8 sm:my-10 border border-blaze-500/40 bg-gradient-to-b from-ink-850 via-ink-900 to-ink-950 p-4 sm:p-7 clip-tile rounded-xl shadow-2xl"
+    >
+      {/* Header + Search Input */}
+      <div className="max-w-4xl mx-auto text-center space-y-2.5">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blaze-500/15 border border-blaze-500/40 text-blaze-400 font-mono text-[9px] sm:text-[10px] tracking-[0.15em] uppercase font-bold">
+          <span className="w-2 h-2 rounded-full bg-blaze-500 animate-ping shrink-0" />
+          <span>🎂 Live Pinterest Custom Cake Search · {locationLabel}</span>
+        </div>
+
+        <h2 className="font-display text-xl sm:text-3xl md:text-4xl font-black uppercase tracking-tight">
+          Search Any <span className="text-blaze-500">Custom Cake Design</span> in {locationLabel}
+        </h2>
+
+        <p className="text-ink-300 text-xs sm:text-sm max-w-2xl mx-auto leading-relaxed">
+          Koi bhi cake theme search karein (jaise <strong>Butterfly, Doraemon, 2-Tier Engagement, Rasmalai, Spiderman, Barbie</strong>) ya niche diye suggestions par click karein — aur pasand aane par seedha WhatsApp par order karein!
+        </p>
+
+        {/* Search Input Bar */}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (typeof document !== "undefined" && document.activeElement instanceof HTMLElement) {
+              document.activeElement.blur();
+            }
+          }}
+          className="pt-2"
+        >
+          <div className="relative flex items-center bg-ink-950 border-2 border-ink-700 focus-within:border-blaze-500 rounded-full overflow-hidden shadow-2xl transition-colors">
+            <span className="pl-3.5 sm:pl-5 text-ink-400 shrink-0">
+              <Ic.search className="w-4 h-4 sm:w-5 sm:h-5 text-blaze-500" />
+            </span>
+            <input
+              type="search"
+              enterKeyHint="search"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                if (activeCategory !== "all") setActiveCategory("all");
+              }}
+              placeholder="Search any cake: 'Butterfly', 'Doraemon', 'Pineapple', '2 Tier Wedding'..."
+              className="w-full min-w-0 bg-transparent px-2.5 sm:px-4 py-3 sm:py-3.5 text-xs sm:text-sm text-ink-50 placeholder-ink-400 outline-none"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="px-2 text-ink-400 hover:text-ink-100 font-mono text-xs shrink-0"
+                aria-label="Clear search"
+              >
+                ✕
+              </button>
+            )}
+            <button
+              type="submit"
+              className="mr-1.5 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full bg-blaze-500 hover:bg-blaze-400 text-white font-mono text-[10px] sm:text-xs uppercase font-bold tracking-wider transition-colors shrink-0"
+            >
+              Search
+            </button>
+          </div>
+        </form>
+
+        {/* Interactive Smart Suggestions Strip */}
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-2 pb-1 justify-start">
+          <span className="font-mono text-[9px] uppercase tracking-wider text-gold-400 font-bold shrink-0">
+            {searchQuery.trim() ? "✨ Related Suggestions:" : "🔥 Popular Suggestions:"}
+          </span>
+          {relatedSuggestions.map((term) => (
+            <button
+              key={term}
+              type="button"
+              onClick={() => {
+                setSearchQuery(term);
+                setActiveCategory("all");
+              }}
+              className={`px-2.5 py-1 rounded-full font-mono text-[10px] border transition-all shrink-0 ${
+                searchQuery.toLowerCase() === term.toLowerCase()
+                  ? "bg-blaze-500 text-white border-blaze-500 font-bold shadow-sm"
+                  : "bg-ink-900/90 text-ink-200 border-ink-700 hover:border-blaze-400 hover:text-white"
+              }`}
+            >
+              🔍 {term}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Category Filter Pills */}
+      <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar pb-2 mt-4 mb-4">
+        {CATEGORIES.map((cat) => (
+          <button
+            key={cat.id}
+            type="button"
+            onClick={() => {
+              setActiveCategory(cat.id);
+              if (searchQuery) setSearchQuery("");
+            }}
+            className={`px-3 sm:px-4 py-1.5 rounded-full font-mono text-[10px] sm:text-xs uppercase tracking-wider border transition-all shrink-0 ${
+              activeCategory === cat.id && !searchQuery
+                ? "bg-blaze-500 text-white border-blaze-500 font-bold shadow-md"
+                : "bg-ink-900 text-ink-300 border-ink-700/80 hover:border-ink-500"
+            }`}
+          >
+            {cat.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Active Search Status */}
+      {searchQuery.trim() !== "" && (
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-3 px-1">
+          <div className="flex items-center gap-2 min-w-0">
+            <p className="font-mono text-xs text-ink-300 truncate">
+              Showing Pinterest cake designs for{" "}
+              <span className="text-blaze-400 font-bold">"{normalizeCakeQuery(searchQuery)}"</span>{" "}
+              in <span className="text-emerald-400">{locationLabel}</span> ({displayedPins.length} designs)
+            </p>
+            {isSearchingWeb && (
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-blaze-500/20 border border-blaze-500/40 text-blaze-400 font-mono text-[10px] animate-pulse shrink-0">
+                Loading live designs...
+              </span>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={() => setSearchQuery("")}
+            className="font-mono text-[11px] text-blaze-400 hover:underline shrink-0"
+          >
+            Reset ✕
+          </button>
+        </div>
+      )}
+
+      {/* Loading Skeleton */}
+      {isSearchingWeb && displayedPins.length === 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2.5 sm:gap-4 mb-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="bg-ink-900 border border-ink-800 rounded-xl overflow-hidden animate-pulse">
+              <div className="aspect-[4/5] bg-ink-800/70" />
+              <div className="p-3 space-y-2">
+                <div className="h-3.5 bg-ink-800 rounded w-3/4" />
+                <div className="h-8 bg-ink-800 rounded w-full mt-2" />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Pinterest Cake Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2.5 sm:gap-4">
+        {displayedPins.map((pin) => {
+          const waHref = buildWhatsAppLink(pin);
+          return (
+            <div
+              key={pin.id}
+              className="group bg-ink-900 border border-ink-800 hover:border-blaze-500/60 rounded-xl overflow-hidden flex flex-col justify-between transition-all duration-300 shadow-lg hover:shadow-blaze-500/10 min-w-0"
+            >
+              <div>
+                <div
+                  onClick={() => {
+                    setIsImageZoomed(false);
+                    setPreviewPin(pin);
+                  }}
+                  className="relative aspect-[4/5] bg-ink-950 overflow-hidden cursor-zoom-in"
+                >
+                  <img
+                    src={pin.img}
+                    alt={`${pin.title} in ${locationLabel}`}
+                    loading="lazy"
+                    decoding="async"
+                    referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      if (target.src !== FALLBACK_CAKE_IMG) {
+                        target.src = FALLBACK_CAKE_IMG;
+                      }
+                    }}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  {pin.badge && (
+                    <div className="absolute top-2 left-2 right-2 flex items-center justify-between pointer-events-none gap-1">
+                      <span className="px-2 py-0.5 rounded-full bg-ink-950/85 backdrop-blur-sm border border-ink-700 font-mono text-[7.5px] sm:text-[9px] tracking-wider uppercase text-gold-400 font-bold truncate max-w-[75%]">
+                        {pin.badge}
+                      </span>
+                      <span className="px-1.5 py-0.5 rounded-full bg-ink-950/85 backdrop-blur-sm border border-ink-700 font-mono text-[8px] text-ink-200 shrink-0">
+                        🔍 Zoom
+                      </span>
+                    </div>
+                  )}
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink-950 via-ink-950/50 to-transparent p-2.5 pt-7 flex items-end justify-between">
+                    <span className="font-mono text-[9px] text-emerald-400 uppercase block font-bold">
+                      100% Pure Eggless
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-2.5 sm:p-3 pb-1.5">
+                  <h3
+                    onClick={() => {
+                      setIsImageZoomed(false);
+                      setPreviewPin(pin);
+                    }}
+                    className="font-display font-bold text-xs sm:text-sm text-ink-50 group-hover:text-blaze-400 transition-colors line-clamp-2 cursor-pointer leading-snug"
+                  >
+                    {pin.title}
+                  </h3>
+                </div>
+              </div>
+
+              <div className="p-2 sm:p-3 pt-1">
+                <a
+                  href={waHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-2 sm:py-2.5 px-2 sm:px-3 rounded-lg bg-[#25D366] hover:bg-[#1fb855] text-ink-950 font-mono text-[9.5px] sm:text-xs font-extrabold uppercase tracking-tight sm:tracking-wider flex items-center justify-center gap-1 sm:gap-1.5 shadow-md transition-all active:scale-95 min-w-0"
+                >
+                  <Ic.whatsapp className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current shrink-0" />
+                  <span className="truncate">Chat About This Cake</span>
+                </a>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Paste Reference Link or Custom Idea Bar */}
+      <div className="mt-5 pt-4 border-t border-ink-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-display text-xs sm:text-sm font-bold uppercase text-ink-100">
+            ✨ Have a Reference Cake Link or Photo for {locationLabel}?
+          </p>
+          <p className="text-[11px] text-ink-400">
+            Apna cake idea likhein ya link paste karein aur WhatsApp par instant price paayein!
+          </p>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-2 sm:w-auto flex-1 max-w-lg">
+          <input
+            type="text"
+            value={customPasteUrl}
+            onChange={(e) => setCustomPasteUrl(e.target.value)}
+            placeholder="Paste cake link or type your cake idea..."
+            className="flex-1 min-w-0 bg-ink-950 border border-ink-700 focus:border-blaze-500 rounded-lg px-3 py-2 text-xs text-ink-100 outline-none"
+          />
+          <a
+            href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
+              `Hi CakeUrban! 🎂 Mujhe ${locationLabel} me ye custom cake banwana hai:\n\n🔗 Idea/Link: ${
+                customPasteUrl.trim() || searchQuery.trim() || "Custom Theme Cake"
+              }\n✨ Type: 100% Pure Eggless\n\nPlease share price & delivery slot!`
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-2 rounded-lg bg-[#25D366] hover:bg-[#1fb855] text-ink-950 font-mono text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 shrink-0"
+          >
+            <Ic.whatsapp className="w-4 h-4 fill-current" /> Send to WhatsApp
+          </a>
+        </div>
+      </div>
+
+      {/* Lightbox Modal */}
+      {previewPin &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            onClick={() => setPreviewPin(null)}
+            className="fixed inset-0 z-[9999] bg-ink-950/95 backdrop-blur-md p-2 sm:p-5 flex items-center justify-center overflow-hidden"
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="bg-ink-900 border border-ink-700 rounded-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden shadow-2xl"
+            >
+              <div className="flex items-center justify-between gap-2 px-3.5 sm:px-5 py-2.5 sm:py-3 border-b border-ink-800 bg-ink-950/90 shrink-0">
+                <div className="min-w-0">
+                  <span className="font-mono text-[9px] sm:text-[10px] text-gold-400 uppercase tracking-wider block">
+                    🎂 Full Cake Preview · {locationLabel}
+                  </span>
+                  <h3 className="font-display text-sm sm:text-lg font-black uppercase text-ink-50 truncate">
+                    {previewPin.title}
+                  </h3>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setIsImageZoomed((z) => !z)}
+                    className="px-2.5 sm:px-3 py-1.5 rounded-lg bg-ink-800 hover:bg-ink-700 border border-ink-600 text-ink-100 font-mono text-[10px] sm:text-xs font-bold transition-colors"
+                  >
+                    {isImageZoomed ? "🔍 Fit Screen" : "🔍 Zoom In +"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewPin(null)}
+                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-ink-800 hover:bg-blaze-500 text-white grid place-items-center text-sm font-bold transition-colors"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+
+              <div
+                onClick={() => setIsImageZoomed((z) => !z)}
+                className={`relative bg-ink-950 flex-1 overflow-auto flex items-center justify-center p-2 sm:p-4 select-none ${
+                  isImageZoomed ? "cursor-zoom-out items-start" : "cursor-zoom-in"
+                }`}
+              >
+                <img
+                  src={previewPin.img.replace(/\/(236x|474x)\//, "/736x/")}
+                  alt={previewPin.title}
+                  referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    if (target.src !== FALLBACK_CAKE_IMG) target.src = FALLBACK_CAKE_IMG;
+                  }}
+                  className={`transition-all duration-300 rounded-lg shadow-2xl ${
+                    isImageZoomed
+                      ? "w-full sm:w-[85%] max-w-none h-auto object-contain mx-auto"
+                      : "max-h-[58vh] sm:max-h-[66vh] w-auto max-w-full object-contain mx-auto"
+                  }`}
+                />
+              </div>
+
+              <div className="p-3 sm:p-4 border-t border-ink-800 bg-ink-900 shrink-0 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3">
+                <input
+                  type="text"
+                  value={customNote}
+                  onChange={(e) => setCustomNote(e.target.value)}
+                  placeholder="Cake message or custom note (e.g. Happy Birthday Aarav!)..."
+                  className="flex-1 min-w-0 bg-ink-950 border border-ink-700 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-ink-100 outline-none focus:border-blaze-500"
+                />
+                <a
+                  href={buildWhatsAppLink(previewPin, customNote)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="py-2.5 sm:py-3 px-4 sm:px-6 rounded-xl bg-[#25D366] hover:bg-[#1fb855] text-ink-950 font-mono text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shrink-0"
+                >
+                  <Ic.whatsapp className="w-4 h-4 fill-current shrink-0" />
+                  <span>Chat About This Cake on WhatsApp</span>
+                </a>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
+    </section>
+  );
+}
+

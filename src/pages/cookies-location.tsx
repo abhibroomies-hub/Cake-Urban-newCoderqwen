@@ -3,6 +3,7 @@ import { useParams, useLocation, Link } from "react-router-dom";
 import { Ic } from "../components/ui";
 import { PRODUCTS } from "../data/catalog";
 import { ProductCard } from "../components/product";
+import { LandingPinterestCakeSearch } from "./builder";
 
 const CITY_SEO_DATA: Record<string, { name: string; title: string; desc: string; heroImg: string; hubs: string[] }> = {
   delhi: {
@@ -150,6 +151,9 @@ export function CookiesLocationPage() {
           ))}
         </div>
       </div>
+
+      {/* Live Pinterest Custom Cake Search & Smart Suggestions on City Cookies & Hampers Landing Page */}
+      <LandingPinterestCakeSearch locationLabel={cityData.name} />
 
       {/* Compact Collapsible FAQ Section */}
       <div className="border border-ink-700/60 bg-ink-850 p-4 sm:p-6 clip-tile">

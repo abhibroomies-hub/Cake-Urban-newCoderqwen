@@ -10,10 +10,9 @@
   ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/(.*\\.xml)", "destination": "/$1" },
-    { "source": "/llms.txt", "destination": "/llms.txt" },
-    { "source": "/robots.txt", "destination": "/robots.txt" },
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
+    { "source": "/sitemap.xml", "destination": "/api/sitemap?type=main" },
+    { "source": "/sitemap-main.xml", "destination": "/api/sitemap?type=main" },
+    { "source": "/sitemap-:type.xml", "destination": "/api/sitemap?type=:type" },
+    { "source": "/((?!api/|sitemap.*\\.xml|.*\\.xml$|robots\\.txt$|llms\\.txt$|assets/).*)", "destination": "/index.html" }
   ]
 }
-
