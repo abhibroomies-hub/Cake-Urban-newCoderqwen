@@ -1,4 +1,13 @@
 {
+  "headers": [
+    {
+      "source": "/(.*\\.xml)",
+      "headers": [
+        { "key": "Content-Type", "value": "application/xml; charset=utf-8" },
+        { "key": "Cache-Control", "value": "public, max-age=3600, s-maxage=3600" }
+      ]
+    }
+  ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/(.*\\.xml)", "destination": "/$1" },
@@ -7,3 +16,4 @@
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }
+

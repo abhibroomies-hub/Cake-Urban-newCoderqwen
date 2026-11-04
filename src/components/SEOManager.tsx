@@ -32,13 +32,14 @@ export function SEOManager() {
   }, []);
 
   useEffect(() => {
-    const origin = typeof window !== "undefined" ? window.location.origin : "https://www.cakeurban.com";
+    const origin = "https://www.cakeurban.com";
     const params = new URLSearchParams(search);
     const queryParam = params.get("q")?.trim() || "";
     if (queryParam.length >= 3) {
       recordAutoSeoSearch(queryParam);
     }
-    const canonicalUrl = `${origin}${pathname === "/" ? "" : pathname}`;
+    const cleanPath = pathname.replace(/\/+$/, "") || "/";
+    const canonicalUrl = cleanPath === "/" ? `${origin}/` : `${origin}${cleanPath}`;
 
     let title =
       "CakeUrban — #1 Custom Theme Cakes (Birthday, Anniversary, Cartoon, Wedding), 100% Eggless Bakery, Cookies & Gift Hampers";

@@ -20,8 +20,7 @@ const CITY_COORDS: Record<string, { lat: number; lng: number; region: string }> 
  * Incorporates Bakery/LocalBusiness, GeoCoordinates, Service Area, AggregateRating, VideoObject, BreadcrumbList, and FAQPage.
  */
 export function generateAreaStructuredData(area: AreaData, options: SchemaOptions = {}) {
-  const baseUrl =
-    options.siteUrl || (typeof window !== "undefined" ? window.location.origin : "https://www.cakeurban.com");
+  const baseUrl = options.siteUrl || "https://www.cakeurban.com";
   const pathPart =
     options.currentPath ||
     (typeof window !== "undefined" ? window.location.pathname : `/cake-delivery-in/${area.slug}`);

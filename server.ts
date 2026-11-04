@@ -889,6 +889,8 @@ async function startServer() {
     "pineapple-birthday-cake-delivery-in-nit-faridabad",
   ];
 
+  const CANONICAL_SITE_URL = "https://www.cakeurban.com";
+
   const renderUrlSetXml = (
     urls: { loc: string; changefreq: string; priority: string }[],
     lastmodDate: string
@@ -900,10 +902,7 @@ async function startServer() {
       )
       .join("\n")}\n</urlset>`;
 
-  // Master XML Sitemap (500+ High-Intent SEO, Product, Single-Segment GSC & Programmatic Theme × City URLs)
-  app.get(["/sitemap.xml", "/sitemap-main.xml"], (req, res) => {
-    const baseUrl = process.env.APP_URL || `https://${req.get("host") || "www.cakeurban.com"}`;
-    const today = new Date().toISOString().split("T")[0];
+  const buildMainSitemapXml = (baseUrl: string, today: string) => {
     const urls: { loc: string; changefreq: string; priority: string }[] = [
       { loc: `${baseUrl}/`, changefreq: "daily", priority: "1.0" },
       { loc: `${baseUrl}/builder`, changefreq: "daily", priority: "0.99" },
@@ -915,7 +914,6 @@ async function startServer() {
       { loc: `${baseUrl}/contact`, changefreq: "monthly", priority: "0.80" },
     ];
 
-    // All Approved Storefront Products
     for (const p of apiState.products.filter(
       (prod) => !prod.approvalStatus || prod.approvalStatus === "approved"
     )) {
@@ -926,7 +924,6 @@ async function startServer() {
       });
     }
 
-    // Blog Posts
     for (const post of BLOG_POSTS) {
       urls.push({
         loc: `${baseUrl}/blog/${post.slug}`,
@@ -935,7 +932,6 @@ async function startServer() {
       });
     }
 
-    // High-CTR Single-Segment GSC URLs
     for (const singleSlug of GSC_HIGH_INTENT_SINGLE_SLUGS) {
       urls.push({
         loc: `${baseUrl}/${singleSlug}`,
@@ -944,7 +940,6 @@ async function startServer() {
       });
     }
 
-    // 55+ Custom Theme Cake Landing Pages
     for (const slug of SITEMAP_THEME_SLUGS) {
       urls.push({
         loc: `${baseUrl}/custom-cake/${slug}`,
@@ -953,7 +948,6 @@ async function startServer() {
       });
     }
 
-    // Programmatic Theme × City Combinations (Top 25 Themes × 5 Cities = 125 Hyperlocal Theme Pages)
     for (const slug of SITEMAP_THEME_SLUGS.slice(0, 25)) {
       for (const city of SITEMAP_CITIES) {
         urls.push({
@@ -964,13 +958,11 @@ async function startServer() {
       }
     }
 
-    // City Hubs & Cookie Hubs
     for (const city of SITEMAP_CITIES) {
       urls.push({ loc: `${baseUrl}/cakes-in/${city}`, changefreq: "daily", priority: "0.95" });
       urls.push({ loc: `${baseUrl}/cookies-${city}`, changefreq: "weekly", priority: "0.90" });
     }
 
-    // Hyperlocal Sector Intent Pages
     const intents = [
       "cake-delivery-in",
       "midnight-cake-delivery-in",
@@ -989,16 +981,10 @@ async function startServer() {
       }
     }
 
-    res.setHeader("Content-Type", "application/xml; charset=utf-8");
-    res.send(renderUrlSetXml(urls, today));
-  });
+    return renderUrlSetXml(urls, today);
+  };
 
-  // City-Specific Sub-Sitemaps referenced in robots.txt
-  app.get("/sitemap-:cityKey.xml", (req, res, next) => {
-    const cityKey = String(req.params.cityKey || "").toLowerCase();
-    const baseUrl = process.env.APP_URL || `https://${req.get("host") || "www.cakeurban.com"}`;
-    const today = new Date().toISOString().split("T")[0];
-
+  const buildSubSitemapXml = (cityKey: string, baseUrl: string, today: string): string | null => {
     if (cityKey === "occasions") {
       const urls: { loc: string; changefreq: string; priority: string }[] = [];
       for (const slug of SITEMAP_THEME_SLUGS) {
@@ -1014,9 +1000,7 @@ async function startServer() {
       for (const singleSlug of GSC_HIGH_INTENT_SINGLE_SLUGS) {
         urls.push({ loc: `${baseUrl}/${singleSlug}`, changefreq: "daily", priority: "0.93" });
       }
-      res.setHeader("Content-Type", "application/xml; charset=utf-8");
-      res.send(renderUrlSetXml(urls, today));
-      return;
+      return renderUrlSetXml(urls, today);
     }
 
     if (cityKey === "videos") {
@@ -1047,7 +1031,7 @@ async function startServer() {
         })),
       ];
 
-      const videoXml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">\n${watchPages
+      return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">\n${watchPages
         .map(
           (v) => `  <url>
     <loc>${v.loc}</loc>
@@ -1063,17 +1047,10 @@ async function startServer() {
   </url>`
         )
         .join("\n")}\n</urlset>`;
-
-      res.setHeader("Content-Type", "application/xml; charset=utf-8");
-      res.send(videoXml);
-      return;
     }
 
     const cityData = DELHI_NCR_CITIES[cityKey];
-    if (!cityData) {
-      next();
-      return;
-    }
+    if (!cityData) return null;
 
     const cityUrls: { loc: string; changefreq: string; priority: string }[] = [
       { loc: `${baseUrl}/cakes-in/${cityKey}`, changefreq: "daily", priority: "0.96" },
@@ -1099,8 +1076,60 @@ async function startServer() {
       });
     }
 
+    return renderUrlSetXml(cityUrls, today);
+  };
+
+  // Write physical XML sitemaps to /public (and /dist if built) so static CDNs (Vercel/Cloudflare) serve 100% valid XML
+  const syncStaticSitemapsToDisk = () => {
+    try {
+      const today = new Date().toISOString().split("T")[0];
+      const mainXml = buildMainSitemapXml(CANONICAL_SITE_URL, today);
+      const filesMap: Record<string, string> = {
+        "sitemap.xml": mainXml,
+        "sitemap-main.xml": mainXml,
+      };
+      for (const subKey of ["faridabad", "gurgaon", "noida", "delhi", "ghaziabad", "occasions", "videos"]) {
+        const subXml = buildSubSitemapXml(subKey, CANONICAL_SITE_URL, today);
+        if (subXml) {
+          filesMap[`sitemap-${subKey}.xml`] = subXml;
+        }
+      }
+
+      const publicDir = path.resolve(__dirname, "public");
+      const distDir = path.resolve(__dirname, "dist");
+      for (const [filename, xmlContent] of Object.entries(filesMap)) {
+        if (fs.existsSync(publicDir)) {
+          fs.writeFileSync(path.join(publicDir, filename), xmlContent, "utf-8");
+        }
+        if (fs.existsSync(distDir)) {
+          fs.writeFileSync(path.join(distDir, filename), xmlContent, "utf-8");
+        }
+      }
+    } catch (e) {
+      console.error("Failed to sync static sitemaps:", e);
+    }
+  };
+
+  syncStaticSitemapsToDisk();
+
+  // Master XML Sitemap (500+ High-Intent SEO, Product, Single-Segment GSC & Programmatic Theme × City URLs)
+  app.get(["/sitemap.xml", "/sitemap-main.xml"], (_req, res) => {
+    const today = new Date().toISOString().split("T")[0];
     res.setHeader("Content-Type", "application/xml; charset=utf-8");
-    res.send(renderUrlSetXml(cityUrls, today));
+    res.send(buildMainSitemapXml(CANONICAL_SITE_URL, today));
+  });
+
+  // City-Specific Sub-Sitemaps referenced in robots.txt
+  app.get("/sitemap-:cityKey.xml", (req, res, next) => {
+    const cityKey = String(req.params.cityKey || "").toLowerCase();
+    const today = new Date().toISOString().split("T")[0];
+    const xml = buildSubSitemapXml(cityKey, CANONICAL_SITE_URL, today);
+    if (!xml) {
+      next();
+      return;
+    }
+    res.setHeader("Content-Type", "application/xml; charset=utf-8");
+    res.send(xml);
   });
 
   // Machine-Readable GEO Knowledge Feed for AI Search Crawlers (ChatGPT, Perplexity, Gemini, SGE)
@@ -1265,10 +1294,9 @@ async function startServer() {
 
     app.use(express.static(distPath, { index: false }));
     app.use((req, res) => {
-      const origin = process.env.APP_URL || `https://${req.get("host") || "www.cakeurban.com"}`;
       if (cachedTemplate) {
         res.setHeader("Content-Type", "text/html; charset=utf-8");
-        res.send(injectSeoIntoHtml(cachedTemplate, req.path, origin));
+        res.send(injectSeoIntoHtml(cachedTemplate, req.path, CANONICAL_SITE_URL));
       } else {
         res.sendFile(indexHtmlPath);
       }
