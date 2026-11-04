@@ -1,6 +1,15 @@
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
+import {
+  PRODUCTS,
+  SEED_PARTNERS,
+  SEED_API_KEYS,
+  type Product,
+  type VendorPartner,
+  type AndroidApiKey,
+  type Order,
+} from "./src/data/catalog.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -428,16 +437,6 @@ const SITEMAP_SECTORS = [
   "indirapuram-ghaziabad",
   "vaishali-ghaziabad",
 ];
-
-import {
-  PRODUCTS,
-  SEED_PARTNERS,
-  SEED_API_KEYS,
-  type Product,
-  type VendorPartner,
-  type AndroidApiKey,
-  type Order,
-} from "./src/data/catalog";
 
 let apiState: {
   partners: VendorPartner[];
