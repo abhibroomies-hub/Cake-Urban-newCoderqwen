@@ -24,15 +24,105 @@ interface LivePinItem {
 
 const searchCache = new Map<string, { timestamp: number; pins: LivePinItem[] }>();
 
+const TYPO_CORRECTIONS: Record<string, string> = {
+  pneapple: "pineapple",
+  pinapple: "pineapple",
+  pineaple: "pineapple",
+  pinaple: "pineapple",
+  pinaaple: "pineapple",
+  painapple: "pineapple",
+  pneaple: "pineapple",
+  buterscotch: "butterscotch",
+  butterscoth: "butterscotch",
+  buterscoth: "butterscotch",
+  choclate: "chocolate",
+  chocolat: "chocolate",
+  chocalate: "chocolate",
+  choclte: "chocolate",
+  straberry: "strawberry",
+  stawberry: "strawberry",
+  strawbery: "strawberry",
+  bluberry: "blueberry",
+  bluebery: "blueberry",
+  blakforest: "black forest",
+  blackforest: "black forest",
+  blak: "black",
+  rasmali: "rasmalai",
+  rasmalaiy: "rasmalai",
+  redvelvet: "red velvet",
+  vanila: "vanilla",
+  venilla: "vanilla",
+  trufle: "truffle",
+  truffel: "truffle",
+  biscoff: "lotus biscoff",
+  biscof: "lotus biscoff",
+  ferero: "ferrero rocher",
+  ferrero: "ferrero rocher",
+  doremon: "doraemon",
+  doraemone: "doraemon",
+  doramon: "doraemon",
+  shinchain: "shinchan",
+  sinchan: "shinchan",
+  spideman: "spiderman",
+  spidermen: "spiderman",
+  spidy: "spiderman",
+  barbi: "barbie",
+  barby: "barbie",
+  cocmelon: "cocomelon",
+  cocomellon: "cocomelon",
+  unicon: "unicorn",
+  unicron: "unicorn",
+  buterfly: "butterfly",
+  butterfy: "butterfly",
+  baterfly: "butterfly",
+  aniversary: "anniversary",
+  anniversery: "anniversary",
+  aniversery: "anniversary",
+  aniwersary: "anniversary",
+  birtday: "birthday",
+  brithday: "birthday",
+  bday: "birthday",
+  engagment: "engagement",
+  engajment: "engagement",
+  weding: "wedding",
+  weeding: "wedding",
+};
+
+function normalizeTypos(input: string): string {
+  return input
+    .toLowerCase()
+    .split(/(\s+)/)
+    .map((part) => {
+      const clean = part.replace(/[^a-z0-9]/g, "");
+      if (TYPO_CORRECTIONS[clean]) {
+        return TYPO_CORRECTIONS[clean];
+      }
+      return part;
+    })
+    .join("");
+}
+
+async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = 4500): Promise<Response> {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(id);
+  }
+}
+
 async function ensurePinterestSession(forceRefresh = false): Promise<{ cookieStr: string; csrf: string }> {
   const now = Date.now();
   if (!forceRefresh && cachedCsrf && cachedCookie && now - cookieTimestamp < 1000 * 60 * 30) {
     return { cookieStr: cachedCookie, csrf: cachedCsrf };
   }
 
-  const initRes = await fetch("https://www.pinterest.com/", {
-    headers: { "User-Agent": USER_AGENT },
-  });
+  const initRes = await fetchWithTimeout(
+    "https://www.pinterest.com/",
+    { headers: { "User-Agent": USER_AGENT } },
+    4000
+  );
 
   const rawCookies =
     typeof initRes.headers.getSetCookie === "function"
@@ -70,7 +160,7 @@ function cleanPinTitle(rawTitle: string, fallbackQuery: string): string {
 }
 
 async function searchPinterestCakes(rawQuery: string): Promise<LivePinItem[]> {
-  const normalized = rawQuery.trim().toLowerCase();
+  const normalized = normalizeTypos(rawQuery.trim());
   if (!normalized) return [];
 
   const cached = searchCache.get(normalized);
@@ -79,16 +169,15 @@ async function searchPinterestCakes(rawQuery: string): Promise<LivePinItem[]> {
   }
 
   const baseClean =
-    rawQuery
-      .trim()
+    normalized
       .replace(/\b(custom\s+)?cake(s)?(\s+design(s)?)?(\s+ideas?)?\b/gi, "")
       .replace(/\s+/g, " ")
-      .trim() || rawQuery.trim();
+      .trim() || normalized;
 
-  // High-precision Pinterest cake queries without unrelated filler words
+  // High-precision bakery cake queries so fruit/flavor queries return round frosted celebration cakes
   const searchQueries = [
-    `${baseClean} cake`,
     `${baseClean} cake design`,
+    `${baseClean} birthday cake`,
     `${baseClean} custom cake`,
   ];
 
@@ -112,19 +201,23 @@ async function searchPinterestCakes(rawQuery: string): Promise<LivePinItem[]> {
       sourceUrl
     )}&data=${encodeURIComponent(JSON.stringify(dataObj))}`;
 
-    return fetch(apiUrl, {
-      headers: {
-        "User-Agent": USER_AGENT,
-        Accept: "application/json, text/javascript, */*, q=0.01",
-        "X-Requested-With": "XMLHttpRequest",
-        "X-CSRFToken": csrf,
-        "X-Pinterest-AppState": "active",
-        "X-Pinterest-Source-Url": sourceUrl,
-        "X-Pinterest-PWS-Handler": "www/search/[scope].js",
-        Referer: `https://www.pinterest.com${sourceUrl}`,
-        Cookie: cookieStr,
+    return fetchWithTimeout(
+      apiUrl,
+      {
+        headers: {
+          "User-Agent": USER_AGENT,
+          Accept: "application/json, text/javascript, */*, q=0.01",
+          "X-Requested-With": "XMLHttpRequest",
+          "X-CSRFToken": csrf,
+          "X-Pinterest-AppState": "active",
+          "X-Pinterest-Source-Url": sourceUrl,
+          "X-Pinterest-PWS-Handler": "www/search/[scope].js",
+          Referer: `https://www.pinterest.com${sourceUrl}`,
+          Cookie: cookieStr,
+        },
       },
-    });
+      4500
+    );
   };
 
   let responses = await Promise.allSettled(

@@ -59,6 +59,11 @@ const POPULAR_SEARCHES = [
   "Jungle Theme",
   "Car Theme",
   "Red Velvet Heart",
+  "Pineapple Cake",
+  "Butterscotch Cake",
+  "Black Forest Cake",
+  "Fresh Fruit Cake",
+  "Strawberry Cake",
 ];
 
 const SMART_SUGGESTIONS_POOL = [
@@ -69,6 +74,12 @@ const SMART_SUGGESTIONS_POOL = [
   "Wife Birthday Cake",
   "Butterfly Birthday Cake",
   "Chocolate Truffle Birthday Cake",
+  "Fresh Cream Pineapple Birthday Cake",
+  "Butterscotch Caramel Crunch Cake",
+  "Classic Black Forest Cherry Cake",
+  "Fresh Fruit & Almond Cake",
+  "Pink Strawberry Cream Cake",
+  "Royal Alphonso Mango Cake",
   "2 Tier Birthday Cake",
   "1st Anniversary Heart Cake",
   "25th Silver Jubilee Anniversary Cake",
@@ -528,7 +539,327 @@ const CURATED_PINS: CakePin[] = [
     priceInr: 1249,
     tags: ["chocolate", "fudge", "truffle", "macaron", "birthday"],
   },
+
+  // Pineapple, Butterscotch, Black Forest, Strawberry, Mango & Fresh Fruit Cakes
+  {
+    id: "pin-pineapple-tropical-1",
+    title: "Fresh Cream Tropical Pineapple Birthday Cake 🍍",
+    category: "birthday",
+    img: "https://i.pinimg.com/736x/35/e5/42/35e542121b3850641ab34dcaa0506d1c.jpg",
+    startingWeight: "1.0 Kg",
+    priceInr: 899,
+    badge: "Fresh Pineapple",
+    tags: ["pineapple", "pneapple", "pinapple", "pineaple", "fruit", "yellow", "fresh cream", "birthday", "anniversary"],
+  },
+  {
+    id: "pin-pineapple-celebration-2",
+    title: "Classic Bakery Pineapple & Cherry Celebration Cake 🍍🍒",
+    category: "birthday",
+    img: "https://i.pinimg.com/736x/34/6f/d1/346fd1988370bc9f3b4487c7308b36fe.jpg",
+    startingWeight: "1.0 Kg",
+    priceInr: 849,
+    badge: "Bestseller",
+    tags: ["pineapple", "pneapple", "pinapple", "pineaple", "cherry", "fruit", "cream", "birthday"],
+  },
+  {
+    id: "pin-pineapple-elegant-3",
+    title: "Elegant Golden Pineapple Crown Designer Cake",
+    category: "birthday",
+    img: "https://i.pinimg.com/736x/65/c9/f3/65c9f3962dfbcc0bc5965d1585289442.jpg",
+    startingWeight: "1.0 Kg",
+    priceInr: 999,
+    tags: ["pineapple", "pneapple", "pinapple", "pineaple", "golden", "fruit", "birthday", "theme"],
+  },
+  {
+    id: "pin-pineapple-delight-4",
+    title: "Rich Whipped Cream & Juicy Pineapple Slice Cake",
+    category: "birthday",
+    img: "https://i.pinimg.com/736x/c4/a2/9d/c4a29daa8c1550131e46029c42f9406e.jpg",
+    startingWeight: "0.5 Kg",
+    priceInr: 699,
+    tags: ["pineapple", "pneapple", "pinapple", "pineaple", "fruit", "birthday"],
+  },
+  {
+    id: "pin-pineapple-party-5",
+    title: "Royal Yellow & White Pineapple Birthday Cake",
+    category: "birthday",
+    img: "https://i.pinimg.com/736x/45/73/a1/4573a156d8744817fed4e9bbaab16663.jpg",
+    startingWeight: "1.0 Kg",
+    priceInr: 899,
+    tags: ["pineapple", "pneapple", "pinapple", "pineaple", "yellow", "birthday"],
+  },
+  {
+    id: "pin-butterscotch-crunch-1",
+    title: "Caramel Butterscotch Praline Crunch Cake 🍯",
+    category: "chocolate",
+    img: "https://i.pinimg.com/736x/7f/78/d1/7f78d12a20d95c35280609edeeedb0ff.jpg",
+    startingWeight: "1.0 Kg",
+    priceInr: 899,
+    badge: "Caramel Crunch",
+    tags: ["butterscotch", "buterscotch", "caramel", "crunch", "praline", "birthday", "anniversary"],
+  },
+  {
+    id: "pin-butterscotch-birthday-2",
+    title: "Royal Butterscotch Drip & Nougat Birthday Cake",
+    category: "birthday",
+    img: "https://i.pinimg.com/736x/7e/2f/2e/7e2f2ef5cc976ab604a4d9d114ac4832.jpg",
+    startingWeight: "1.0 Kg",
+    priceInr: 949,
+    tags: ["butterscotch", "buterscotch", "caramel", "birthday"],
+  },
+  {
+    id: "pin-black-forest-1",
+    title: "Classic German Black Forest Cherry & Chocolate Flakes Cake 🍒",
+    category: "chocolate",
+    img: "https://i.pinimg.com/736x/f1/be/be/f1bebed1cbe96aaf2cc0e827dff89989.jpg",
+    startingWeight: "1.0 Kg",
+    priceInr: 899,
+    badge: "Classic Hit",
+    tags: ["black forest", "blackforest", "blak forest", "cherry", "chocolate", "birthday"],
+  },
+  {
+    id: "pin-black-forest-2",
+    title: "Rich White Cream & Dark Chocolate Black Forest Gateau",
+    category: "chocolate",
+    img: "https://i.pinimg.com/736x/83/af/eb/83afeb80790520320d2892dae943e7ae.jpg",
+    startingWeight: "1.0 Kg",
+    priceInr: 949,
+    tags: ["black forest", "blackforest", "cherry", "chocolate", "birthday"],
+  },
+  {
+    id: "pin-strawberry-fresh-1",
+    title: "Fluffy Fresh Pink Strawberry Cream Celebration Cake 🍓",
+    category: "birthday",
+    img: "https://i.pinimg.com/736x/44/fd/4a/44fd4a40252b82aa7a447a7ce9570599.jpg",
+    startingWeight: "1.0 Kg",
+    priceInr: 999,
+    badge: "Fresh Berry",
+    tags: ["strawberry", "straberry", "berry", "pink", "fruit", "girl", "birthday"],
+  },
+  {
+    id: "pin-strawberry-cake-2",
+    title: "Lush Strawberry Glaze & Whipped Frosting Cake",
+    category: "birthday",
+    img: "https://i.pinimg.com/736x/1f/fb/aa/1ffbaa3457a770958dea0f5522ef3671.jpg",
+    startingWeight: "1.0 Kg",
+    priceInr: 1049,
+    tags: ["strawberry", "straberry", "berry", "fruit", "birthday", "anniversary"],
+  },
+  {
+    id: "pin-mango-fresh-1",
+    title: "Royal Alphonso Mango Fresh Cream Summer Cake 🥭",
+    category: "birthday",
+    img: "https://i.pinimg.com/736x/34/58/d4/3458d452a52728481dfbb45ff8f11888.jpg",
+    startingWeight: "1.0 Kg",
+    priceInr: 1099,
+    badge: "Seasonal Hit",
+    tags: ["mango", "alphonso", "fruit", "yellow", "birthday"],
+  },
+  {
+    id: "pin-fresh-fruit-1",
+    title: "Exotic Seasonal Fresh Fruit & Roasted Almond Cake 🥝🍓",
+    category: "birthday",
+    img: "https://i.pinimg.com/736x/05/deb2/05deb28f58475049797565c9040adfcd.jpg".replace("/05/deb2/", "/05/de/b2/"),
+    startingWeight: "1.0 Kg",
+    priceInr: 1149,
+    badge: "Fresh Fruits",
+    tags: ["fruit", "fresh fruit", "mixed fruit", "kiwi", "strawberry", "pineapple", "birthday", "anniversary"],
+  },
+  {
+    id: "pin-fresh-fruit-2",
+    title: "Luxury Fresh Berries & Tropical Fruit Overload Cake",
+    category: "birthday",
+    img: "https://i.pinimg.com/736x/1a/dc/e5/1adce5702126f492685c6b2100554f16.jpg",
+    startingWeight: "1.0 Kg",
+    priceInr: 1199,
+    tags: ["fruit", "fresh fruit", "mixed fruit", "berries", "birthday"],
+  },
+
+  // Additional Popular Kids & Custom Themes (Shinchan, Boss Baby, Elsa, Doctor, Gym, Mahakal)
+  {
+    id: "pin-shinchan-1",
+    title: "Naughty 3D Shinchan & Shiro Happy Birthday Cake 🖍️",
+    category: "kids",
+    img: "https://i.pinimg.com/736x/54/c9/26/54c926ed7dc8e06a72cce9b1e09c8b95.jpg",
+    startingWeight: "1.0 Kg",
+    priceInr: 1199,
+    badge: "Shinchan Hit",
+    tags: ["shinchan", "sinchan", "shinchain", "cartoon", "anime", "kids", "boy", "birthday"],
+  },
+  {
+    id: "pin-shinchan-2",
+    title: "Shinchan Fun House Colorful Birthday Cake",
+    category: "kids",
+    img: "https://i.pinimg.com/736x/50/93/08/5093080f192ce7b0d22b7b99653625be.jpg",
+    startingWeight: "1.0 Kg",
+    priceInr: 1249,
+    tags: ["shinchan", "sinchan", "cartoon", "kids", "birthday"],
+  },
+  {
+    id: "pin-boss-baby-1",
+    title: "Boss Baby Blue Suit & Bottle 1st Birthday Cake 👶🍼",
+    category: "kids",
+    img: "https://i.pinimg.com/736x/6c/d9/11/6cd9110295db6495a3dbc01d60c28a7d.jpg",
+    startingWeight: "1.0 Kg",
+    priceInr: 1199,
+    badge: "1st Birthday",
+    tags: ["boss baby", "bossbaby", "baby", "1st birthday", "boy", "kids", "blue", "birthday"],
+  },
+  {
+    id: "pin-frozen-elsa-1",
+    title: "Magical Disney Frozen Princess Elsa Snowflake Cake ❄️",
+    category: "kids",
+    img: "https://i.pinimg.com/736x/9e/77/3c/9e773c6289b61f6d769dccabd92ca265.jpg",
+    startingWeight: "1.5 Kg",
+    priceInr: 1499,
+    badge: "Frozen Elsa",
+    tags: ["frozen", "elsa", "princess", "snowflake", "blue", "girl", "kids", "doll", "birthday"],
+  },
+  {
+    id: "pin-doctor-theme-1",
+    title: "Doctor Stethoscope & Medical Coat MBBS Celebration Cake 🩺",
+    category: "birthday",
+    img: "https://i.pinimg.com/736x/ce/95/07/ce95077385eccbb110b13ddbb42d2683.jpg",
+    startingWeight: "1.0 Kg",
+    priceInr: 1299,
+    badge: "Doctor Theme",
+    tags: ["doctor", "mbbs", "medical", "hospital", "stethoscope", "nurse", "graduation", "birthday"],
+  },
+  {
+    id: "pin-gym-theme-1",
+    title: "Gym Dumbbell & Fitness Bodybuilder Champion Cake 💪",
+    category: "birthday",
+    img: "https://i.pinimg.com/736x/80/d4/ea/80d4ea21c0320af02b04a0bbefaa32be.jpg",
+    startingWeight: "1.0 Kg",
+    priceInr: 1249,
+    badge: "Fitness Fan",
+    tags: ["gym", "fitness", "workout", "dumbbell", "bodybuilder", "protein", "boy", "mens", "birthday"],
+  },
+  {
+    id: "pin-mahakal-theme-1",
+    title: "Har Har Mahadev Trishul & Damru Mahakal Theme Cake 🔱",
+    category: "birthday",
+    img: "https://i.pinimg.com/736x/5f/cb/fd/5fcbfdbcbabafad2367f78e11ad3d231.jpg",
+    startingWeight: "1.0 Kg",
+    priceInr: 1199,
+    badge: "Mahakal Special",
+    tags: ["mahakal", "shiva", "mahadev", "trishul", "bholenath", "birthday"],
+  },
 ];
+
+const TYPO_MAP: Record<string, string> = {
+  pneapple: "pineapple",
+  pinapple: "pineapple",
+  pineaple: "pineapple",
+  pinaple: "pineapple",
+  pinaaple: "pineapple",
+  painapple: "pineapple",
+  pneaple: "pineapple",
+  buterscotch: "butterscotch",
+  butterscoth: "butterscotch",
+  buterscoth: "butterscotch",
+  choclate: "chocolate",
+  chocolat: "chocolate",
+  chocalate: "chocolate",
+  choclte: "chocolate",
+  straberry: "strawberry",
+  stawberry: "strawberry",
+  strawbery: "strawberry",
+  bluberry: "blueberry",
+  bluebery: "blueberry",
+  blakforest: "black forest",
+  blackforest: "black forest",
+  blak: "black",
+  rasmali: "rasmalai",
+  rasmalaiy: "rasmalai",
+  redvelvet: "red velvet",
+  vanila: "vanilla",
+  venilla: "vanilla",
+  trufle: "truffle",
+  truffel: "truffle",
+  biscoff: "lotus biscoff",
+  biscof: "lotus biscoff",
+  ferero: "ferrero rocher",
+  doremon: "doraemon",
+  doraemone: "doraemon",
+  doramon: "doraemon",
+  shinchain: "shinchan",
+  sinchan: "shinchan",
+  spideman: "spiderman",
+  spidermen: "spiderman",
+  spidy: "spiderman",
+  barbi: "barbie",
+  barby: "barbie",
+  cocmelon: "cocomelon",
+  cocomellon: "cocomelon",
+  unicon: "unicorn",
+  unicron: "unicorn",
+  buterfly: "butterfly",
+  butterfy: "butterfly",
+  baterfly: "butterfly",
+  aniversary: "anniversary",
+  anniversery: "anniversary",
+  aniversery: "anniversary",
+  aniwersary: "anniversary",
+  birtday: "birthday",
+  brithday: "birthday",
+  bday: "birthday",
+  engagment: "engagement",
+  engajment: "engagement",
+  weding: "wedding",
+  weeding: "wedding",
+};
+
+export function normalizeCakeQuery(raw: string): string {
+  return raw
+    .trim()
+    .toLowerCase()
+    .split(/(\s+)/)
+    .map((part) => {
+      const clean = part.replace(/[^a-z0-9]/g, "");
+      if (TYPO_MAP[clean]) {
+        return TYPO_MAP[clean];
+      }
+      return part;
+    })
+    .join("");
+}
+
+function levenshteinDistance(a: string, b: string): number {
+  if (a === b) return 0;
+  if (a.length === 0) return b.length;
+  if (b.length === 0) return a.length;
+  if (Math.abs(a.length - b.length) > 2) return 99;
+
+  const matrix: number[][] = [];
+  for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+  for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      const cost = b.charAt(i - 1) === a.charAt(j - 1) ? 0 : 1;
+      matrix[i][j] = Math.min(
+        matrix[i - 1][j] + 1,
+        matrix[i][j - 1] + 1,
+        matrix[i - 1][j - 1] + cost
+      );
+    }
+  }
+  return matrix[b.length][a.length];
+}
+
+function matchesWordOrFuzzy(token: string, haystackText: string, haystackWordList: string[]): boolean {
+  if (haystackText.includes(token)) return true;
+  if (token.length < 4) return false;
+  const maxDist = token.length >= 6 ? 2 : 1;
+  for (const w of haystackWordList) {
+    if (w.length < 4) continue;
+    if (levenshteinDistance(token, w) <= maxDist) {
+      return true;
+    }
+  }
+  return false;
+}
 
 const STOP_WORDS = new Set([
   "cake",
@@ -583,7 +914,7 @@ const GENERIC_MODIFIER_WORDS = new Set([
 ]);
 
 function scorePinAgainstQuery(pin: CakePin, rawQuery: string): number {
-  const q = rawQuery.trim().toLowerCase();
+  const q = normalizeCakeQuery(rawQuery);
   if (!q) return 1;
 
   const haystackWords = [
@@ -593,24 +924,27 @@ function scorePinAgainstQuery(pin: CakePin, rawQuery: string): number {
     ...pin.tags.map((t) => t.toLowerCase()),
   ].join(" ");
 
+  const haystackWordList = haystackWords
+    .split(/[^a-z0-9]+/)
+    .filter((w) => w.length >= 3);
+
   const rawTokens = q
     .split(/[\s,/-]+/)
-    .map((t) => t.trim())
+    .map((t) => TYPO_MAP[t.trim()] || t.trim())
     .filter((t) => t.length > 1);
 
   const meaningfulTokens = rawTokens.filter((t) => !STOP_WORDS.has(t));
   if (meaningfulTokens.length === 0) {
-    // User searched just "cake" or "theme cake"
     return 10;
   }
 
-  // Separate specific subject words (e.g. "doraemon", "doctor", "gym", "butterfly") from generic occasion words ("birthday", "boy", "girl")
+  // Separate specific subject words (e.g. "pineapple", "doraemon", "doctor") from generic occasion words ("birthday", "boy", "girl")
   const specificTokens = meaningfulTokens.filter((t) => !GENERIC_MODIFIER_WORDS.has(t));
   const requiredTokens = specificTokens.length > 0 ? specificTokens : meaningfulTokens;
 
-  // Every required subject token MUST match this pin, otherwise reject it (score 0)
+  // Every required subject token MUST match (exact or 1-2 char typo-tolerant fuzzy match)
   for (const reqTok of requiredTokens) {
-    if (!haystackWords.includes(reqTok)) {
+    if (!matchesWordOrFuzzy(reqTok, haystackWords, haystackWordList)) {
       return 0;
     }
   }
@@ -621,7 +955,7 @@ function scorePinAgainstQuery(pin: CakePin, rawQuery: string): number {
   }
 
   for (const token of meaningfulTokens) {
-    if (haystackWords.includes(token)) {
+    if (matchesWordOrFuzzy(token, haystackWords, haystackWordList)) {
       score += 25;
       if (pin.title.toLowerCase().includes(token)) {
         score += 20;
@@ -811,7 +1145,7 @@ export default function CustomCakePinterestFinder() {
   // Live Custom Cake Search via our /api/pinterest-search endpoint when user types or selects a query
   useEffect(() => {
     const q = searchQuery.trim();
-    const normQ = q.toLowerCase();
+    const normQ = normalizeCakeQuery(q);
     if (q.length < 2) {
       setLiveResult({ query: "", pins: [] });
       setIsSearchingWeb(false);
@@ -824,19 +1158,21 @@ export default function CustomCakePinterestFinder() {
     const controller = new AbortController();
     const timer = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/pinterest-search?q=${encodeURIComponent(q)}`, {
+        const res = await fetch(`/api/pinterest-search?q=${encodeURIComponent(normQ)}`, {
           signal: controller.signal,
         });
         if (!res.ok) throw new Error("API error");
+        const contentType = res.headers.get("content-type") || "";
+        if (!contentType.includes("json")) throw new Error("Non-JSON response");
         const data = await res.json();
         const fetchedPins: CakePin[] = (data?.pins || []).map((p: any, idx: number) => ({
           id: p.id || `live-pin-${idx}-${Date.now()}`,
-          title: p.title || `Custom ${q} Cake`,
+          title: p.title || `Custom ${normQ} Cake`,
           category: "custom",
           img: p.img,
           startingWeight: p.startingWeight || "1.0 Kg",
           priceInr: p.priceInr || 999,
-          tags: [normQ, "custom"],
+          tags: [normQ, q.toLowerCase(), "custom"],
           badge: "Custom Design",
           pinUrl: p.pinUrl,
         }));
@@ -852,7 +1188,7 @@ export default function CustomCakePinterestFinder() {
           setIsSearchingWeb(false);
         }
       }
-    }, 160);
+    }, 220);
 
     return () => {
       clearTimeout(timer);
@@ -860,10 +1196,10 @@ export default function CustomCakePinterestFinder() {
     };
   }, [searchQuery]);
 
-  // Combine Live Fetched Pins FIRST + Strictly Matched Curated Pins (No unrelated filler cakes!)
+  // Combine Live Fetched Pins FIRST + Strictly/Fuzzy Matched Curated Pins (No unrelated filler cakes!)
   const displayedPins = useMemo(() => {
     const q = searchQuery.trim();
-    const normQ = q.toLowerCase();
+    const normQ = normalizeCakeQuery(q);
 
     if (!q) {
       return CURATED_PINS.filter(
@@ -871,19 +1207,19 @@ export default function CustomCakePinterestFinder() {
       );
     }
 
-    // Only use live pins if they belong to the current search query
+    // Only use live pins if they belong to the current normalized search query
     const currentLivePins = liveResult.query === normQ ? liveResult.pins : [];
 
-    // Strictly score curated pins — only pins matching ALL specific subject words are kept
+    // Strictly score curated pins (with typo tolerance e.g. "pneapple" -> "pineapple")
     const scoredLocal = CURATED_PINS.map((pin) => ({
       pin,
-      score: scorePinAgainstQuery(pin, q),
+      score: scorePinAgainstQuery(pin, normQ),
     }))
       .filter((item) => item.score > 0)
       .sort((a, b) => b.score - a.score)
       .map((item) => item.pin);
 
-    // Put LIVE Pinterest results for the exact query FIRST, followed by strict local matches
+    // Put LIVE Pinterest results for the exact query FIRST, followed by strict/fuzzy local matches
     const seenImgs = new Set<string>();
     const combined: CakePin[] = [];
 
@@ -994,6 +1330,9 @@ export default function CustomCakePinterestFinder() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
+              if (typeof document !== "undefined" && document.activeElement instanceof HTMLElement) {
+                document.activeElement.blur();
+              }
               const el = document.getElementById("pins-grid");
               el?.scrollIntoView({ behavior: "smooth" });
             }}
@@ -1004,13 +1343,14 @@ export default function CustomCakePinterestFinder() {
                 <Ic.search className="w-4 h-4 sm:w-5 sm:h-5 text-blaze-500" />
               </span>
               <input
-                type="text"
+                type="search"
+                enterKeyHint="search"
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
                   if (activeCategory !== "all") setActiveCategory("all");
                 }}
-                placeholder="Search any custom cake: 'Butterfly', 'Doraemon', 'Shinchan', '2 Tier'..."
+                placeholder="Search any cake: 'Pineapple', 'Butterfly', 'Doraemon', '2 Tier'..."
                 className="w-full min-w-0 bg-transparent px-2.5 sm:px-4 py-3 sm:py-3.5 text-xs sm:text-sm text-ink-50 placeholder-ink-400 outline-none"
               />
               {searchQuery && (
@@ -1084,7 +1424,10 @@ export default function CustomCakePinterestFinder() {
         <div className="flex flex-wrap items-center justify-between gap-2 mb-4 px-1">
           <div className="flex items-center gap-2 min-w-0">
             <p className="font-mono text-xs text-ink-300 truncate">
-              Showing cake designs for <span className="text-blaze-400 font-bold">"{searchQuery}"</span>{" "}
+              Showing cake designs for{" "}
+              <span className="text-blaze-400 font-bold">
+                "{normalizeCakeQuery(searchQuery)}"
+              </span>{" "}
               <span className="text-ink-400">({displayedPins.length} designs)</span>
             </p>
             {isSearchingWeb && (
