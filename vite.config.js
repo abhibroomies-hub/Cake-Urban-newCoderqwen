@@ -4,6 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 import fs from "fs";
 import path from "path";
 import { buildSitemapByType } from "./api/sitemap.js";
+import { buildMerchantFeedXml } from "./api/merchant-feed.js";
 
 function cakeUrbanSitemapPlugin() {
   const SITEMAP_TYPES = [
@@ -22,6 +23,11 @@ function cakeUrbanSitemapPlugin() {
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
         const urlPath = (req.url || "").split("?")[0];
+        if (urlPath === "/merchant-feed.xml") {
+          res.setHeader("Content-Type", "application/xml; charset=utf-8");
+          res.end(buildMerchantFeedXml("https://www.cakeurban.com"));
+          return;
+        }
         if (urlPath === "/sitemap.xml" || urlPath === "/sitemap-main.xml") {
           res.setHeader("Content-Type", "application/xml; charset=utf-8");
           res.end(buildSitemapByType("main"));
@@ -52,6 +58,9 @@ function cakeUrbanSitemapPlugin() {
           const xml = buildSitemapByType(t, "https://www.cakeurban.com", today);
           fs.writeFileSync(path.join(distDir, `sitemap-${t}.xml`), xml, "utf-8");
         }
+
+        const merchantXml = buildMerchantFeedXml("https://www.cakeurban.com");
+        fs.writeFileSync(path.join(distDir, "merchant-feed.xml"), merchantXml, "utf-8");
       } catch (err) {
         console.error("Sitemap build generation warning:", err);
       }

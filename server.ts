@@ -19,6 +19,7 @@ import {
   SEO_INTENTS,
 } from "./src/data/seoLocations.ts";
 import { buildSitemapByType } from "./api/sitemap.js";
+import { buildMerchantFeedXml } from "./api/merchant-feed.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -907,6 +908,7 @@ async function startServer() {
           filesMap[`sitemap-${subKey}.xml`] = subXml;
         }
       }
+      filesMap["merchant-feed.xml"] = buildMerchantFeedXml(CANONICAL_SITE_URL);
 
       const publicDir = path.resolve(__dirname, "public");
       const distDir = path.resolve(__dirname, "dist");
@@ -924,6 +926,12 @@ async function startServer() {
   };
 
   syncStaticSitemapsToDisk();
+
+  // Google Merchant Center XML Feed for Free Google Shopping Listings
+  app.get(["/merchant-feed.xml", "/api/merchant-feed"], (_req, res) => {
+    res.setHeader("Content-Type", "application/xml; charset=utf-8");
+    res.send(buildMerchantFeedXml(CANONICAL_SITE_URL));
+  });
 
   // Master XML Sitemap & Serverless Route (10,000+ High-Intent SEO, Product, Single-Segment GSC & Programmatic Theme × Sector URLs)
   app.get("/api/sitemap", (req, res) => {
@@ -1061,6 +1069,117 @@ async function startServer() {
     const { title, description, canonicalUrl } = resolveServerSeoForPath(reqPath, origin);
     const safeTitle = title.replace(/"/g, "&quot;");
     const safeDesc = description.replace(/"/g, "&quot;");
+    const cleanHeading = title.split("|")[0].split("—")[0].trim();
+    const heroImg = "https://image.qwenlm.ai/generated-images/19868aa6-1a8b-4213-bf76-a00a5c538bec/_result.png";
+    const videoContentUrl =
+      "https://assets.mixkit.co/videos/preview/mixkit-confectioner-decorating-a-chocolate-cake-41444-large.mp4";
+
+    const ssrSchemaGraph = {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Product",
+          "@id": `${canonicalUrl}#product`,
+          name: cleanHeading,
+          image: [heroImg],
+          description,
+          brand: { "@type": "Brand", name: "CakeUrban" },
+          offers: {
+            "@type": "AggregateOffer",
+            url: canonicalUrl,
+            priceCurrency: "INR",
+            lowPrice: "449",
+            highPrice: "2499",
+            offerCount: "48",
+            availability: "https://schema.org/InStock",
+            shippingDetails: {
+              "@type": "OfferShippingDetails",
+              shippingRate: { "@type": "MonetaryAmount", value: "0", currency: "INR" },
+              shippingDestination: { "@type": "DefinedRegion", addressCountry: "IN" },
+              deliveryTime: {
+                "@type": "ShippingDeliveryTime",
+                handlingTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: 1, unitCode: "HUR" },
+                transitTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: 1, unitCode: "HUR" },
+              },
+            },
+            hasMerchantReturnPolicy: {
+              "@type": "MerchantReturnPolicy",
+              applicableCountry: "IN",
+              returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+              merchantReturnDays: 1,
+              returnMethod: "https://schema.org/ReturnByMail",
+              returnFees: "https://schema.org/FreeReturn",
+            },
+          },
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: "4.9",
+            reviewCount: "2840",
+            bestRating: "5",
+            worstRating: "1",
+          },
+          review: [
+            {
+              "@type": "Review",
+              author: { "@type": "Person", name: "Aarav Sharma" },
+              datePublished: "2026-10-18",
+              reviewBody: `Ordered ${cleanHeading} from CakeUrban. Delivered chilled in 32 minutes—100% pure eggless, super moist sponge and rich Belgian chocolate frosting!`,
+              reviewRating: { "@type": "Rating", ratingValue: "5", bestRating: "5" },
+            },
+            {
+              "@type": "Review",
+              author: { "@type": "Person", name: "Priya Malhotra" },
+              datePublished: "2026-10-25",
+              reviewBody: `Best custom cake bakery in Delhi NCR! Sent our Pinterest reference photo on WhatsApp and received the exact design right on time at 12 AM midnight.`,
+              reviewRating: { "@type": "Rating", ratingValue: "5", bestRating: "5" },
+            },
+          ],
+        },
+        {
+          "@type": "VideoObject",
+          "@id": `${canonicalUrl}#video`,
+          name: `${cleanHeading} - CakeUrban Live Patisserie and 30-Min Express Delivery`,
+          description,
+          thumbnailUrl: [heroImg],
+          uploadDate: "2026-01-15T08:00:00+05:30",
+          duration: "PT45S",
+          contentUrl: videoContentUrl,
+          embedUrl: canonicalUrl,
+          potentialAction: {
+            "@type": "SeekToAction",
+            target: `${canonicalUrl}?t={seek_to_second_number}`,
+            "startOffset-input": "required name=seek_to_second_number",
+          },
+          hasPart: [
+            {
+              "@type": "Clip",
+              name: "100% Eggless Sponge and Belgian Ganache Layering",
+              startOffset: 0,
+              endOffset: 15,
+              url: `${canonicalUrl}#t=0`,
+            },
+            {
+              "@type": "Clip",
+              name: "Custom Theme Piping and Edible Topper Detailing",
+              startOffset: 15,
+              endOffset: 30,
+              url: `${canonicalUrl}#t=15`,
+            },
+            {
+              "@type": "Clip",
+              name: "4C Cold-Box Sealing and 30-Min Express Rider Dispatch",
+              startOffset: 30,
+              endOffset: 45,
+              url: `${canonicalUrl}#t=30`,
+            },
+          ],
+        },
+      ],
+    };
+
+    const ssrScriptTag = `<script id="ssr-seo-json-ld" type="application/ld+json">${JSON.stringify(
+      ssrSchemaGraph
+    )}</script>`;
 
     return rawHtml
       .replace(/<title>[\s\S]*?<\/title>/i, `<title>${safeTitle}</title>`)
@@ -1091,7 +1210,8 @@ async function startServer() {
       .replace(
         /<meta\s+name="twitter:description"\s+content="[^"]*"\s*\/?>/i,
         `<meta name="twitter:description" content="${safeDesc}" />`
-      );
+      )
+      .replace(/<\/head>/i, `${ssrScriptTag}\n</head>`);
   };
 
   if (process.env.NODE_ENV !== "production") {

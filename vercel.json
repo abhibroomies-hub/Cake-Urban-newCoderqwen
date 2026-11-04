@@ -10,9 +10,10 @@
   ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/merchant-feed.xml", "destination": "/api/merchant-feed" },
     { "source": "/sitemap.xml", "destination": "/api/sitemap?type=main" },
     { "source": "/sitemap-main.xml", "destination": "/api/sitemap?type=main" },
     { "source": "/sitemap-:type.xml", "destination": "/api/sitemap?type=:type" },
-    { "source": "/((?!api/|sitemap.*\\.xml|.*\\.xml$|robots\\.txt$|llms\\.txt$|assets/).*)", "destination": "/index.html" }
+    { "source": "/((?!api/|merchant-feed\\.xml|sitemap.*\\.xml|.*\\.xml$|robots\\.txt$|llms\\.txt$|assets/).*)", "destination": "/index.html" }
   ]
 }
