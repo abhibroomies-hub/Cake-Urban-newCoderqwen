@@ -528,10 +528,20 @@ const DELIVERY_INTENT_PREFIXES = [
   "same-day-cake-delivery-in",
 ];
 
+function escapeXml(str) {
+  return String(str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
 function wrapUrlsetXml(urlStrings, today) {
+  const safeToday = escapeXml(today);
   const rows = new Array(urlStrings.length);
   for (let i = 0; i < urlStrings.length; i++) {
-    rows[i] = `<url><loc>${urlStrings[i]}</loc><lastmod>${today}</lastmod></url>`;
+    rows[i] = `<url><loc>${escapeXml(urlStrings[i])}</loc><lastmod>${safeToday}</lastmod></url>`;
   }
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${rows.join("\n")}\n</urlset>`;
 }
@@ -601,15 +611,17 @@ export function buildSitemapByType(rawType = "main", baseUrl = CANONICAL_SITE_UR
 
   // 3. Videos Sitemap: sitemap-videos.xml (10,000+ Video Watch Pages)
   if (type === "videos") {
-    const heroThumb =
-      "https://image.qwenlm.ai/generated-images/19868aa6-1a8b-4213-bf76-a00a5c538bec/_result.png";
-    const videoUrl =
-      "https://assets.mixkit.co/videos/preview/mixkit-confectioner-decorating-a-chocolate-cake-41444-large.mp4";
+    const heroThumb = escapeXml(
+      "https://image.qwenlm.ai/generated-images/19868aa6-1a8b-4213-bf76-a00a5c538bec/_result.png"
+    );
+    const videoUrl = escapeXml(
+      "https://assets.mixkit.co/videos/preview/mixkit-confectioner-decorating-a-chocolate-cake-41444-large.mp4"
+    );
 
     const watchEntries = [
       {
         loc: `${baseUrl}/`,
-        title: "CakeUrban 100% Pure Eggless Custom Theme Cakes & 30-Min Cold-Chain Delivery",
+        title: "CakeUrban 100% Pure Eggless Custom Theme Cakes and 30-Min Cold-Chain Delivery",
         desc: "Watch how CakeUrban freshly bakes 100% pure eggless Belgian chocolate, sugar-free, birthday and anniversary cakes across Delhi NCR.",
       },
     ];
@@ -618,7 +630,7 @@ export function buildSitemapByType(rawType = "main", baseUrl = CANONICAL_SITE_UR
       const label = s.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
       watchEntries.push({
         loc: `${baseUrl}/${s}`,
-        title: `${label} — CakeUrban Live Patisserie & Express Delivery`,
+        title: `${label} - CakeUrban Live Patisserie and Express Delivery`,
         desc: `Watch how CakeUrban bakes and delivers ${label} in 100% pure eggless with 30-45 min cold-chain doorstep service.`,
       });
     }
@@ -637,7 +649,7 @@ export function buildSitemapByType(rawType = "main", baseUrl = CANONICAL_SITE_UR
         const locLabel = loc.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
         watchEntries.push({
           loc: `${baseUrl}/${theme}-delivery-in-${loc}`,
-          title: `100% Eggless ${themeLabel} Delivery in ${locLabel} — CakeUrban Kitchen`,
+          title: `100% Eggless ${themeLabel} Delivery in ${locLabel} - CakeUrban Kitchen`,
           desc: `Watch CakeUrban patisserie chefs prepare 100% pure eggless ${themeLabel} for 30-45 min delivery in ${locLabel}.`,
         });
       }
@@ -645,7 +657,7 @@ export function buildSitemapByType(rawType = "main", baseUrl = CANONICAL_SITE_UR
 
     const rows = watchEntries.map(
       (v) =>
-        `<url><loc>${v.loc}</loc><video:video><video:thumbnail_loc>${heroThumb}</video:thumbnail_loc><video:title>${v.title}</video:title><video:description>${v.desc}</video:description><video:content_loc>${videoUrl}</video:content_loc><video:duration>45</video:duration><video:publication_date>2026-01-15T08:00:00+05:30</video:publication_date><video:family_friendly>yes</video:family_friendly></video:video></url>`
+        `<url><loc>${escapeXml(v.loc)}</loc><video:video><video:thumbnail_loc>${heroThumb}</video:thumbnail_loc><video:title>${escapeXml(v.title)}</video:title><video:description>${escapeXml(v.desc)}</video:description><video:content_loc>${videoUrl}</video:content_loc><video:duration>45</video:duration><video:publication_date>2026-01-15T08:00:00+05:30</video:publication_date><video:family_friendly>yes</video:family_friendly></video:video></url>`
     );
 
     return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">\n${rows.join("\n")}\n</urlset>`;
