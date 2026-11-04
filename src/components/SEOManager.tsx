@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useStore } from "../lib/store";
-import { DELHI_NCR_CITIES, getSeoAreaBySlug, SEO_INTENTS } from "../data/seoLocations";
+import { DELHI_NCR_CITIES, getSeoAreaBySlug, isProgrammaticSeoSlug, SEO_INTENTS } from "../data/seoLocations";
 import { BLOG_POSTS, resolveNcrPincode } from "../data/catalog";
 import { SEO_CUSTOM_CAKE_THEMES, parseThemeAndCityFromSlug } from "../pages/builder";
 import {
@@ -266,6 +266,38 @@ export function SEOManager() {
       title = "Contact CakeUrban — 24×7 Express & Midnight Delivery Hotline (+91 7318531953)";
       description =
         "Contact CakeUrban Central Bakehouse in Sector 15 Faridabad, Delhi NCR. Call or WhatsApp +91 7318531953 for urgent 30-min cake delivery, custom cakes & bulk corporate hampers.";
+    } else if (isProgrammaticSeoSlug(pathname)) {
+      const area = getSeoAreaBySlug(pathname, "standard");
+      if (area) {
+        activeCityKey = area.citySlug in CITY_GEO_COORDS ? area.citySlug : "faridabad";
+        title = area.title;
+        description = area.metaDesc;
+        keywords = `${area.intentTitle?.toLowerCase() || area.areaName.toLowerCase()}, ${area.areaName.toLowerCase()} cake delivery, midnight cake delivery ${area.areaName.toLowerCase()}, eggless cake ${area.areaName.toLowerCase()} ${area.pincode}, cakeurban ${area.cityName.toLowerCase()}`;
+        pageSchema = {
+          "@type": "Product",
+          "@id": `${canonicalUrl}#product`,
+          name: area.intentTitle || `Cake Delivery in ${area.areaName}, ${area.cityName}`,
+          image: [ogImage],
+          description: area.metaDesc,
+          brand: { "@type": "Brand", name: "CakeUrban" },
+          offers: {
+            "@type": "AggregateOffer",
+            url: canonicalUrl,
+            priceCurrency: "INR",
+            lowPrice: "599",
+            highPrice: "4999",
+            offerCount: "24",
+            availability: "https://schema.org/InStock",
+          },
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: "4.9",
+            reviewCount: "2480",
+            bestRating: "5",
+            worstRating: "1",
+          },
+        };
+      }
     }
 
     // Apply Document Title
@@ -466,6 +498,25 @@ export function SEOManager() {
         speakable: {
           "@type": "SpeakableSpecification",
           cssSelector: ["#seo-main-heading", "#seo-direct-summary", "#geo-answer-capsule", "h1"],
+        },
+      },
+      {
+        "@type": "VideoObject",
+        "@id": `${canonicalUrl}#video`,
+        name: `${title.split("|")[0].trim()} — Live Patisserie & 30-Min Cold-Chain Delivery`,
+        description,
+        thumbnailUrl: [ogImage],
+        uploadDate: "2026-01-15T08:00:00+05:30",
+        duration: "PT0M45S",
+        contentUrl: "https://assets.mixkit.co/videos/preview/mixkit-confectioner-decorating-a-chocolate-cake-41444-large.mp4",
+        embedUrl: canonicalUrl,
+        publisher: {
+          "@type": "Organization",
+          name: "CakeUrban",
+          logo: {
+            "@type": "ImageObject",
+            url: ogImage,
+          },
         },
       },
       {

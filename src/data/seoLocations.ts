@@ -717,9 +717,50 @@ export const DELHI_NCR_CITIES: Record<string, CityHubData> = {
  * Accepts ANY slug (predefined OR programmatic like `sector-45-gurgaon`, `rohini-sector-15-delhi`, `dlf-phase-2-gurgaon`)
  * and returns rich, tailored AreaData so that no programmatic landing page ever returns 404!
  */
+export function isProgrammaticSeoSlug(rawSlug: string): boolean {
+  const s = rawSlug.toLowerCase().replace(/^\/+|\/+$/g, "");
+  if (!s || s.includes("/")) return false;
+  return (
+    s.includes("-in-") ||
+    s.includes("-cake") ||
+    s.includes("cake-") ||
+    s.includes("-delivery") ||
+    s.includes("-faridabad") ||
+    s.includes("-gurgaon") ||
+    s.includes("-gurugram") ||
+    s.includes("-noida") ||
+    s.includes("-delhi") ||
+    s.includes("-ghaziabad") ||
+    s.includes("-cookies") ||
+    s.includes("-hamper") ||
+    s.includes("-bakery")
+  );
+}
+
+function formatWordsTitle(slugPart: string): string {
+  return slugPart
+    .split("-")
+    .filter(Boolean)
+    .map((w) => {
+      const lw = w.toLowerCase();
+      if (lw === "dlf") return "DLF";
+      if (lw === "nit") return "NIT";
+      if (lw === "gk") return "GK";
+      if (lw === "cp") return "CP";
+      if (lw === "it") return "IT";
+      if (lw === "ncr") return "NCR";
+      if (lw === "vasant") return "Vasant";
+      if (lw === "kunj") return "Kunj";
+      if (lw === "hauz") return "Hauz";
+      if (lw === "khas") return "Khas";
+      return w.charAt(0).toUpperCase() + w.slice(1);
+    })
+    .join(" ");
+}
+
 export function resolveAreaSlug(slug: string, intentKey = "standard"): AreaData {
   const cleanSlug = slug.toLowerCase().replace(/^\/+|\/+$/g, "");
-  
+
   // 1. Check if exact slug exists in predefined database
   for (const city of Object.values(DELHI_NCR_CITIES)) {
     const found = city.areas.find((a) => a.slug === cleanSlug);
@@ -728,44 +769,109 @@ export function resolveAreaSlug(slug: string, intentKey = "standard"): AreaData 
     }
   }
 
-  // 2. Dynamic slug decomposition & intelligent programmatic synthesis
-  // Slugs follow patterns like:
-  // "sector-15-faridabad", "dlf-phase-3-gurgaon", "sector-137-noida", "dwarka-sector-10-delhi", "indirapuram-ghaziabad"
-  let cityName = "Delhi NCR";
+  // 2. Check if this is a compound single-segment slug like:
+  // "sugar-free-cake-delivery-in-vasant-kunj"
+  // "baby-shower-cake-delivery-in-sector-45-gurgaon"
+  // "belgian-chocolate-birthday-cake-in-faridabad"
+  // "belgian-chocolate-cake-in-greenfield"
+  let customProductSubject = "";
+  let targetAreaPart = cleanSlug;
+
+  if (cleanSlug.includes("-cake-delivery-in-")) {
+    const [left, right] = cleanSlug.split("-cake-delivery-in-");
+    customProductSubject = `${formatWordsTitle(left)} Cake`;
+    targetAreaPart = right || cleanSlug;
+  } else if (cleanSlug.includes("-delivery-in-")) {
+    const [left, right] = cleanSlug.split("-delivery-in-");
+    customProductSubject = formatWordsTitle(left);
+    targetAreaPart = right || cleanSlug;
+  } else if (cleanSlug.includes("-cake-in-")) {
+    const [left, right] = cleanSlug.split("-cake-in-");
+    customProductSubject = `${formatWordsTitle(left)} Cake`;
+    targetAreaPart = right || cleanSlug;
+  } else if (cleanSlug.includes("-cakes-in-")) {
+    const [left, right] = cleanSlug.split("-cakes-in-");
+    customProductSubject = `${formatWordsTitle(left)} Cakes`;
+    targetAreaPart = right || cleanSlug;
+  } else if (cleanSlug.includes("-in-")) {
+    const idx = cleanSlug.lastIndexOf("-in-");
+    const left = cleanSlug.slice(0, idx);
+    const right = cleanSlug.slice(idx + 4);
+    customProductSubject = formatWordsTitle(left);
+    targetAreaPart = right || cleanSlug;
+  }
+
+  // Polish common high-traffic flavor/occasion names to match Google Search Console high-CTR titles
+  if (/^sugar Free Cake$/i.test(customProductSubject)) {
+    customProductSubject = "Healthy Sugar-Free Cake";
+  } else if (/^belgian Chocolate Cake$/i.test(customProductSubject)) {
+    customProductSubject = "Belgian Chocolate Truffle Cake";
+  } else if (/^belgian Chocolate Birthday Cake$/i.test(customProductSubject)) {
+    customProductSubject = "Belgian Chocolate Truffle Birthday Cake";
+  }
+
+  // Determine city & pincode from targetAreaPart or cleanSlug
+  let cityName = "Delhi";
   let citySlug = "delhi";
   let pincode = "110001";
   let sla = "30-45 mins";
 
-  if (cleanSlug.includes("faridabad")) {
+  const localityCheck = `${targetAreaPart} ${cleanSlug}`;
+  if (
+    localityCheck.includes("faridabad") ||
+    localityCheck.includes("greenfield") ||
+    localityCheck.includes("surajkund") ||
+    localityCheck.includes("charmwood") ||
+    localityCheck.includes("ballabgarh") ||
+    localityCheck.includes("neharpar") ||
+    localityCheck.includes("nit-")
+  ) {
     cityName = "Faridabad";
     citySlug = "faridabad";
-    pincode = "121001";
+    pincode = localityCheck.includes("greenfield") ? "121010" : "121007";
     sla = "30-40 mins";
-  } else if (cleanSlug.includes("gurgaon") || cleanSlug.includes("gurugram")) {
+  } else if (
+    localityCheck.includes("gurgaon") ||
+    localityCheck.includes("gurugram") ||
+    localityCheck.includes("dlf") ||
+    localityCheck.includes("sohna") ||
+    localityCheck.includes("sushant-lok") ||
+    localityCheck.includes("golf-course") ||
+    localityCheck.includes("cyber-city")
+  ) {
     cityName = "Gurgaon";
     citySlug = "gurgaon";
-    pincode = "122001";
+    pincode = "122002";
     sla = "25-35 mins";
-  } else if (cleanSlug.includes("noida") || cleanSlug.includes("greater-noida")) {
+  } else if (
+    localityCheck.includes("noida") ||
+    localityCheck.includes("greater-noida") ||
+    localityCheck.includes("gaur-city")
+  ) {
     cityName = "Noida";
     citySlug = "noida";
     pincode = "201301";
     sla = "30-40 mins";
-  } else if (cleanSlug.includes("ghaziabad")) {
+  } else if (
+    localityCheck.includes("ghaziabad") ||
+    localityCheck.includes("indirapuram") ||
+    localityCheck.includes("vaishali") ||
+    localityCheck.includes("vasundhara") ||
+    localityCheck.includes("raj-nagar") ||
+    localityCheck.includes("crossings-republik")
+  ) {
     cityName = "Ghaziabad";
     citySlug = "ghaziabad";
-    pincode = "201001";
+    pincode = "201014";
     sla = "30-45 mins";
   } else {
     cityName = "Delhi";
     citySlug = "delhi";
-    pincode = "110001";
+    pincode = localityCheck.includes("vasant-kunj") ? "110070" : "110048";
     sla = "30-45 mins";
   }
 
-  // Formatted Area Name from slug
-  // Strip city name suffix if present
-  let rawArea = cleanSlug
+  let rawArea = targetAreaPart
     .replace(/-faridabad$/, "")
     .replace(/-gurgaon$/, "")
     .replace(/-gurugram$/, "")
@@ -773,54 +879,71 @@ export function resolveAreaSlug(slug: string, intentKey = "standard"): AreaData 
     .replace(/-ghaziabad$/, "")
     .replace(/-delhi$/, "");
 
-  // Format words (e.g. "sector-45" -> "Sector 45", "dlf-phase-2" -> "DLF Phase 2")
-  const areaWords = rawArea.split("-").map((w) => {
-    if (w.toLowerCase() === "dlf") return "DLF";
-    if (w.toLowerCase() === "nit") return "NIT";
-    if (w.toLowerCase() === "gk") return "GK";
-    if (w.toLowerCase() === "cp") return "CP";
-    if (w.toLowerCase() === "it") return "IT";
-    return w.charAt(0).toUpperCase() + w.slice(1);
-  });
-  const areaName = areaWords.join(" ");
+  if (rawArea === "greenfield") rawArea = "greenfield-colony";
+  if (!rawArea || rawArea === citySlug) {
+    rawArea = citySlug;
+  }
+
+  const areaName = formatWordsTitle(rawArea);
+  const fullLocationLabel =
+    areaName.toLowerCase() === cityName.toLowerCase()
+      ? cityName
+      : `${areaName}, ${cityName}`;
 
   const intentConfig = SEO_INTENTS[intentKey] || SEO_INTENTS["standard"];
+
+  const computedTitle = customProductSubject
+    ? `${customProductSubject} Home Delivery in ${fullLocationLabel} | CakeUrban - Premium 100% Eggless Bakery`
+    : `${intentConfig.heading} ${fullLocationLabel} | Midnight Cake Shop | CakeUrban`;
+
+  const computedMetaDesc = customProductSubject
+    ? `Order ${customProductSubject} online in ${fullLocationLabel} (PIN ${pincode}). 100% pure eggless, freshly baked to order with ${sla} express & 12 AM midnight delivery. WhatsApp: +91 7318531953.`
+    : `Best ${intentConfig.label.toLowerCase()} in ${fullLocationLabel}. 35-min express delivery & guaranteed midnight delivery. 100% fresh baked, eggless options & custom designs.`;
 
   const dynamicArea: AreaData = {
     slug: cleanSlug,
     cityName,
     citySlug,
     areaName,
-    title: `${intentConfig.heading} ${areaName}, ${cityName} | Midnight Cake Shop`,
-    metaDesc: `Best ${intentConfig.label.toLowerCase()} in ${areaName}, ${cityName}. 35-min express delivery & guaranteed midnight delivery. 100% fresh baked, eggless options & custom designs.`,
+    title: computedTitle,
+    metaDesc: computedMetaDesc,
     pincode,
     landmarks: [`${areaName} Main Market`, `Central Road ${areaName}`, `Metro Station vicinity`],
     sla,
     highlights: [
-      `30-45 minute express dispatch directly to ${areaName} homes & venues`,
+      `${sla} express dispatch of ${customProductSubject || "100% pure eggless cakes & hampers"} directly to ${fullLocationLabel}`,
       `Guaranteed midnight delivery between 11:00 PM and 12:30 AM 365 days a year`,
       `100% fresh baking on order confirmation — pure Belgian chocolate & high-quality cream`,
-      `Free complimentary greeting card & party candles included with every cake`
+      `Free complimentary greeting card & party candles included with every cake`,
     ],
     faqs: [
       {
-        q: `Do you deliver cakes to ${areaName}, ${cityName} in 30-45 minutes?`,
-        a: `Yes! Our local kitchen dispatch hub serves ${areaName} with express 30 to 45 minute doorstep delivery for birthdays and urgent celebrations.`
+        q: `Do you deliver ${customProductSubject || "fresh eggless cakes"} to ${fullLocationLabel} in ${sla}?`,
+        a: `Yes! Our local CakeUrban kitchen dispatch hub serves ${fullLocationLabel} (PIN ${pincode}) with express ${sla} doorstep delivery for birthdays, anniversaries, and urgent celebrations.`,
       },
       {
-        q: `Can I order midnight cake delivery in ${areaName}?`,
-        a: `Yes, guaranteed midnight surprise cake delivery is available across ${areaName}, ${cityName} between 11:00 PM and 12:30 AM.`
+        q: `Can I order midnight ${customProductSubject || "cake"} delivery in ${areaName}?`,
+        a: `Yes, guaranteed midnight surprise delivery is available across ${fullLocationLabel} between 11:00 PM and 12:30 AM.`,
       },
       {
-        q: `Are 100% eggless cakes available for delivery in ${areaName}?`,
-        a: `Yes! Every cake on our menu is available in a 100% eggless vegetarian variant baked with pure dairy cream and natural ingredients.`
+        q: `Are 100% eggless & sugar-free options available for delivery in ${areaName}?`,
+        a: `Yes! Every cake at CakeUrban is 100% pure vegetarian & eggless, and we also offer diabetic-friendly sugar-free and Belgian chocolate truffle options.`,
       },
       {
-        q: `Can I customize a birthday or photo cake for ${areaName}?`,
-        a: `Absolutely! You can upload high-resolution photos for edible sugar prints, request custom message pipings, and choose weights from 500g up to 5kg.`
-      }
-    ]
+        q: `Can I customize a birthday, baby shower, or photo cake for ${areaName}?`,
+        a: `Absolutely! Chat with our master chefs on WhatsApp (+91 7318531953) or use our Custom Cake Studio to order any theme in 0.5 Kg to 5 Kg.`,
+      },
+    ],
+    intent: customProductSubject ? "custom" : intentKey,
+    intentBadge: customProductSubject ? `🎂 ${customProductSubject}` : intentConfig.badge,
+    intentTitle: customProductSubject
+      ? `${customProductSubject} in ${fullLocationLabel}`
+      : `${areaName}, ${cityName}`,
   };
+
+  if (customProductSubject) {
+    return dynamicArea;
+  }
 
   return applyIntentToAreaData(dynamicArea, intentKey);
 }
@@ -857,3 +980,4 @@ export function getAllSeoAreas(): AreaData[] {
 export function getSeoAreaBySlug(slug: string, intentKey = "standard"): AreaData {
   return resolveAreaSlug(slug, intentKey);
 }
+

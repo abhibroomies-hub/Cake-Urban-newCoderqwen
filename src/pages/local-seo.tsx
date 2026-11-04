@@ -314,8 +314,9 @@ export function CityHubPage() {
   );
 }
 
-export function AreaLandingPage({ intent = "standard" }: { intent?: string }) {
-  const { areaSlug } = useParams<{ areaSlug: string }>();
+export function AreaLandingPage({ intent = "standard", overrideSlug }: { intent?: string; overrideSlug?: string }) {
+  const { areaSlug, seoSlug } = useParams<{ areaSlug?: string; seoSlug?: string }>();
+  const effectiveSlug = overrideSlug || areaSlug || seoSlug;
   const location = useLocation();
   const [openFaqIdx, setOpenFaqIdx] = useState<number | null>(0);
   const [showLocalDetails, setShowLocalDetails] = useState(false);
@@ -329,9 +330,9 @@ export function AreaLandingPage({ intent = "standard" }: { intent?: string }) {
   }, [location.pathname, intent]);
 
   const area = useMemo(() => {
-    if (!areaSlug) return undefined;
-    return getSeoAreaBySlug(areaSlug, detectedIntent);
-  }, [areaSlug, detectedIntent]);
+    if (!effectiveSlug) return undefined;
+    return getSeoAreaBySlug(effectiveSlug, detectedIntent);
+  }, [effectiveSlug, detectedIntent]);
 
   const navigate = useNavigate();
   const { products } = useStore();
@@ -363,9 +364,14 @@ export function AreaLandingPage({ intent = "standard" }: { intent?: string }) {
         script.type = "application/ld+json";
         document.head.appendChild(script);
       }
-      script.textContent = JSON.stringify(generateAreaStructuredData(area, { siteUrl: window.location.origin }));
+      script.textContent = JSON.stringify(
+        generateAreaStructuredData(area, {
+          siteUrl: window.location.origin,
+          currentPath: location.pathname,
+        })
+      );
     }
-  }, [area]);
+  }, [area, location.pathname]);
 
   if (!area) {
     return (
@@ -623,6 +629,37 @@ export function AreaLandingPage({ intent = "standard" }: { intent?: string }) {
               )}
             </div>
           )}
+        </div>
+
+        {/* Dedicated Video Watch Section for Google Search Console Video Indexing */}
+        <div id="watch-video" className="p-4 sm:p-6 bg-ink-850 border border-ink-700/70 clip-tile">
+          <div className="flex flex-col md:flex-row gap-5 items-center">
+            <div className="w-full md:w-72 shrink-0 overflow-hidden border border-ink-700 bg-ink-950 clip-tile relative">
+              <video
+                controls
+                preload="metadata"
+                poster="https://image.qwenlm.ai/generated-images/19868aa6-1a8b-4213-bf76-a00a5c538bec/_result.png"
+                className="w-full aspect-video object-cover"
+              >
+                <source
+                  src="https://assets.mixkit.co/videos/preview/mixkit-confectioner-decorating-a-chocolate-cake-41444-large.mp4"
+                  type="video/mp4"
+                />
+              </video>
+            </div>
+            <div className="flex-1">
+              <span className="font-mono text-[10px] tracking-[0.2em] text-emerald-400 uppercase">
+                ▶ Watch Kitchen & Cold-Chain Dispatch
+              </span>
+              <h3 className="font-display text-base sm:text-xl font-bold uppercase mt-1">
+                How CakeUrban Bakes & Delivers 100% Eggless Cakes in {area.areaName}, {area.cityName}
+              </h3>
+              <p className="text-xs text-ink-300 leading-relaxed mt-1.5">
+                Watch our patisserie chefs hand-pipe Belgian chocolate ganache and pack every order inside 4°C chilled
+                insulated boxes for {area.sla} express delivery across {area.areaName} (PIN {area.pincode}).
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Compact Accordion FAQs */}

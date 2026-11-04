@@ -100,6 +100,7 @@ function Shell() {
             <Route path="/chocolate-cake-delivery-in/:areaSlug" element={<AreaLandingPage intent="chocolate" />} />
             <Route path="/pinata-cake-delivery-in/:areaSlug" element={<AreaLandingPage intent="pinata" />} />
             <Route path="/same-day-cake-delivery-in/:areaSlug" element={<AreaLandingPage intent="same-day" />} />
+            <Route path="/:seoSlug" element={<AreaLandingPage />} />
             <Route path="*" element={<Home />} />
           </Routes>
         </div>

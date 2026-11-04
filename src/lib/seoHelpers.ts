@@ -2,6 +2,7 @@ import { AreaData } from "../data/seoLocations";
 
 export interface SchemaOptions {
   siteUrl?: string;
+  currentPath?: string;
   ratingValue?: string;
   reviewCount?: string;
 }
@@ -16,28 +17,37 @@ const CITY_COORDS: Record<string, { lat: number; lng: number; region: string }> 
 
 /**
  * Generates advanced JSON-LD structured data graph for hyperlocal area pages.
- * Incorporates Bakery/LocalBusiness, GeoCoordinates, Service Area, AggregateRating, BreadcrumbList, and FAQPage.
+ * Incorporates Bakery/LocalBusiness, GeoCoordinates, Service Area, AggregateRating, VideoObject, BreadcrumbList, and FAQPage.
  */
 export function generateAreaStructuredData(area: AreaData, options: SchemaOptions = {}) {
   const baseUrl =
     options.siteUrl || (typeof window !== "undefined" ? window.location.origin : "https://www.cakeurban.com");
+  const pathPart =
+    options.currentPath ||
+    (typeof window !== "undefined" ? window.location.pathname : `/cake-delivery-in/${area.slug}`);
+  const exactPageUrl = `${baseUrl}${pathPart.startsWith("/") ? pathPart : `/${pathPart}`}`;
   const rating = options.ratingValue || "4.9";
   const reviews = options.reviewCount || "318";
   const coords = CITY_COORDS[area.citySlug] || CITY_COORDS.faridabad;
+  const heroThumb = "https://image.qwenlm.ai/generated-images/19868aa6-1a8b-4213-bf76-a00a5c538bec/_result.png";
 
   return {
     "@context": "https://schema.org",
     "@graph": [
       {
         "@type": ["Bakery", "FoodEstablishment", "LocalBusiness"],
-        "@id": `${baseUrl}/cake-delivery-in/${area.slug}#localbusiness`,
-        name: `CakeUrban — ${area.areaName}, ${area.cityName}`,
+        "@id": `${exactPageUrl}#localbusiness`,
+        name: area.intentTitle
+          ? `CakeUrban — ${area.intentTitle}`
+          : `CakeUrban — ${area.areaName}, ${area.cityName}`,
         description: area.metaDesc,
-        url: `${baseUrl}/cake-delivery-in/${area.slug}`,
+        url: exactPageUrl,
+        image: heroThumb,
         telephone: "+91-7318531953",
         priceRange: "₹₹",
         servesCuisine: [
           "100% Pure Eggless Cakes",
+          "Healthy Sugar-Free Cakes",
           "Belgian Chocolate Truffle",
           "72-Hour Cold-Fermented Cookies",
           "Luxury Gift Hampers",
@@ -75,7 +85,27 @@ export function generateAreaStructuredData(area: AreaData, options: SchemaOption
         },
       },
       {
+        "@type": "VideoObject",
+        "@id": `${exactPageUrl}#watch-video`,
+        name: `How CakeUrban Bakes & Delivers 100% Eggless Cakes in ${area.areaName}, ${area.cityName}`,
+        description: `Watch how CakeUrban's central patisserie freshly bakes 100% pure eggless Belgian chocolate, sugar-free, and custom theme cakes with ${area.sla} chilled delivery in ${area.areaName}, ${area.cityName} (PIN ${area.pincode}).`,
+        thumbnailUrl: [heroThumb],
+        uploadDate: "2026-01-15T08:00:00+05:30",
+        duration: "PT0M45S",
+        contentUrl: "https://assets.mixkit.co/videos/preview/mixkit-confectioner-decorating-a-chocolate-cake-41444-large.mp4",
+        embedUrl: exactPageUrl,
+        publisher: {
+          "@type": "Organization",
+          name: "CakeUrban",
+          logo: {
+            "@type": "ImageObject",
+            url: heroThumb,
+          },
+        },
+      },
+      {
         "@type": "BreadcrumbList",
+        "@id": `${exactPageUrl}#breadcrumb`,
         itemListElement: [
           {
             "@type": "ListItem",
@@ -92,13 +122,14 @@ export function generateAreaStructuredData(area: AreaData, options: SchemaOption
           {
             "@type": "ListItem",
             position: 3,
-            name: area.areaName,
-            item: `${baseUrl}/cake-delivery-in/${area.slug}`,
+            name: area.intentTitle || area.areaName,
+            item: exactPageUrl,
           },
         ],
       },
       {
         "@type": "FAQPage",
+        "@id": `${exactPageUrl}#faq`,
         mainEntity: area.faqs.map((faq) => ({
           "@type": "Question",
           name: faq.q,

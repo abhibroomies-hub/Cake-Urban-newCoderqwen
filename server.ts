@@ -1,8 +1,10 @@
 import express from "express";
+import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import {
   PRODUCTS,
+  BLOG_POSTS,
   SEED_PARTNERS,
   SEED_API_KEYS,
   type Product,
@@ -10,6 +12,12 @@ import {
   type AndroidApiKey,
   type Order,
 } from "./src/data/catalog.ts";
+import {
+  DELHI_NCR_CITIES,
+  getSeoAreaBySlug,
+  isProgrammaticSeoSlug,
+  SEO_INTENTS,
+} from "./src/data/seoLocations.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -858,9 +866,44 @@ async function startServer() {
     }
   });
 
-  // Dynamic Auto-Expanding XML Sitemap (300+ High-Intent SEO & Programmatic Theme × City URLs)
-  app.get("/sitemap.xml", (req, res) => {
+  const GSC_HIGH_INTENT_SINGLE_SLUGS = [
+    "sugar-free-cake-delivery-in-vasant-kunj",
+    "baby-shower-cake-delivery-in-sector-45-gurgaon",
+    "belgian-chocolate-birthday-cake-in-faridabad",
+    "belgian-chocolate-cake-in-greenfield",
+    "rasmalai-cake-delivery-in-sector-15-faridabad",
+    "butterfly-cake-delivery-in-dlf-phase-5-gurgaon",
+    "eggless-birthday-cake-delivery-in-sector-18-noida",
+    "midnight-cake-delivery-in-greater-kailash-delhi",
+    "anniversary-heart-cake-delivery-in-indirapuram-ghaziabad",
+    "2-tier-wedding-cake-delivery-in-gurgaon",
+    "doraemon-cartoon-cake-delivery-in-faridabad",
+    "spiderman-birthday-cake-delivery-in-noida",
+    "barbie-doll-cake-delivery-in-south-delhi",
+    "red-velvet-cake-delivery-in-sector-21c-faridabad",
+    "lotus-biscoff-cake-delivery-in-cyber-city-gurgaon",
+    "fresh-fruit-cake-delivery-in-saket-delhi",
+    "pinata-smash-cake-delivery-in-sector-62-noida",
+    "bento-lunchbox-cake-delivery-in-hauz-khas-delhi",
+    "ferrero-rocher-cake-delivery-in-golf-course-road-gurgaon",
+    "pineapple-birthday-cake-delivery-in-nit-faridabad",
+  ];
+
+  const renderUrlSetXml = (
+    urls: { loc: string; changefreq: string; priority: string }[],
+    lastmodDate: string
+  ) =>
+    `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls
+      .map(
+        (u) =>
+          `  <url><loc>${u.loc}</loc><lastmod>${lastmodDate}</lastmod><changefreq>${u.changefreq}</changefreq><priority>${u.priority}</priority></url>`
+      )
+      .join("\n")}\n</urlset>`;
+
+  // Master XML Sitemap (500+ High-Intent SEO, Product, Single-Segment GSC & Programmatic Theme × City URLs)
+  app.get(["/sitemap.xml", "/sitemap-main.xml"], (req, res) => {
     const baseUrl = process.env.APP_URL || `https://${req.get("host") || "www.cakeurban.com"}`;
+    const today = new Date().toISOString().split("T")[0];
     const urls: { loc: string; changefreq: string; priority: string }[] = [
       { loc: `${baseUrl}/`, changefreq: "daily", priority: "1.0" },
       { loc: `${baseUrl}/builder`, changefreq: "daily", priority: "0.99" },
@@ -872,7 +915,36 @@ async function startServer() {
       { loc: `${baseUrl}/contact`, changefreq: "monthly", priority: "0.80" },
     ];
 
-    // 50+ Custom Theme Cake Landing Pages
+    // All Approved Storefront Products
+    for (const p of apiState.products.filter(
+      (prod) => !prod.approvalStatus || prod.approvalStatus === "approved"
+    )) {
+      urls.push({
+        loc: `${baseUrl}/product/${p.id}`,
+        changefreq: "weekly",
+        priority: "0.92",
+      });
+    }
+
+    // Blog Posts
+    for (const post of BLOG_POSTS) {
+      urls.push({
+        loc: `${baseUrl}/blog/${post.slug}`,
+        changefreq: "monthly",
+        priority: "0.84",
+      });
+    }
+
+    // High-CTR Single-Segment GSC URLs
+    for (const singleSlug of GSC_HIGH_INTENT_SINGLE_SLUGS) {
+      urls.push({
+        loc: `${baseUrl}/${singleSlug}`,
+        changefreq: "daily",
+        priority: "0.94",
+      });
+    }
+
+    // 55+ Custom Theme Cake Landing Pages
     for (const slug of SITEMAP_THEME_SLUGS) {
       urls.push({
         loc: `${baseUrl}/custom-cake/${slug}`,
@@ -917,15 +989,118 @@ async function startServer() {
       }
     }
 
-    const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls
-      .map(
-        (u) =>
-          `  <url><loc>${u.loc}</loc><changefreq>${u.changefreq}</changefreq><priority>${u.priority}</priority></url>`
-      )
-      .join("\n")}\n</urlset>`;
+    res.setHeader("Content-Type", "application/xml; charset=utf-8");
+    res.send(renderUrlSetXml(urls, today));
+  });
+
+  // City-Specific Sub-Sitemaps referenced in robots.txt
+  app.get("/sitemap-:cityKey.xml", (req, res, next) => {
+    const cityKey = String(req.params.cityKey || "").toLowerCase();
+    const baseUrl = process.env.APP_URL || `https://${req.get("host") || "www.cakeurban.com"}`;
+    const today = new Date().toISOString().split("T")[0];
+
+    if (cityKey === "occasions") {
+      const urls: { loc: string; changefreq: string; priority: string }[] = [];
+      for (const slug of SITEMAP_THEME_SLUGS) {
+        urls.push({ loc: `${baseUrl}/custom-cake/${slug}`, changefreq: "daily", priority: "0.94" });
+        for (const city of SITEMAP_CITIES) {
+          urls.push({
+            loc: `${baseUrl}/custom-cake/${slug}-in-${city}`,
+            changefreq: "weekly",
+            priority: "0.90",
+          });
+        }
+      }
+      for (const singleSlug of GSC_HIGH_INTENT_SINGLE_SLUGS) {
+        urls.push({ loc: `${baseUrl}/${singleSlug}`, changefreq: "daily", priority: "0.93" });
+      }
+      res.setHeader("Content-Type", "application/xml; charset=utf-8");
+      res.send(renderUrlSetXml(urls, today));
+      return;
+    }
+
+    if (cityKey === "videos") {
+      const heroThumb =
+        "https://image.qwenlm.ai/generated-images/19868aa6-1a8b-4213-bf76-a00a5c538bec/_result.png";
+      const videoUrl =
+        "https://assets.mixkit.co/videos/preview/mixkit-confectioner-decorating-a-chocolate-cake-41444-large.mp4";
+      const watchPages = [
+        {
+          loc: `${baseUrl}/`,
+          title: "CakeUrban — How We Bake & Deliver 100% Pure Eggless Custom Theme Cakes in 30–45 Mins",
+          desc: "Watch how CakeUrban freshly bakes 100% pure eggless Belgian chocolate, sugar-free, birthday, and anniversary cakes with 30-45 minute cold-chain delivery across Delhi NCR.",
+        },
+        ...SITEMAP_CITIES.map((c) => ({
+          loc: `${baseUrl}/cakes-in/${c}`,
+          title: `How CakeUrban Bakes & Delivers 100% Eggless Cakes in ${c.charAt(0).toUpperCase() + c.slice(1)}`,
+          desc: `Watch live patisserie preparation and 4°C cold-box express cake delivery across ${c.charAt(0).toUpperCase() + c.slice(1)}.`,
+        })),
+        ...SITEMAP_SECTORS.map((s) => ({
+          loc: `${baseUrl}/cake-delivery-in/${s}`,
+          title: `Live Patisserie & 30-Min Cold-Chain Cake Delivery in ${s.replace(/-/g, " ")}`,
+          desc: `Watch how CakeUrban bakes 100% pure eggless cakes and delivers in 30-45 minutes across ${s.replace(/-/g, " ")}.`,
+        })),
+        ...GSC_HIGH_INTENT_SINGLE_SLUGS.map((s) => ({
+          loc: `${baseUrl}/${s}`,
+          title: `${s.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())} — CakeUrban Live Patisserie`,
+          desc: `Watch CakeUrban prepare and dispatch ${s.replace(/-/g, " ")} in 100% pure eggless with chilled doorstep delivery.`,
+        })),
+      ];
+
+      const videoXml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">\n${watchPages
+        .map(
+          (v) => `  <url>
+    <loc>${v.loc}</loc>
+    <video:video>
+      <video:thumbnail_loc>${heroThumb}</video:thumbnail_loc>
+      <video:title>${v.title.replace(/&/g, "&amp;")}</video:title>
+      <video:description>${v.desc.replace(/&/g, "&amp;")}</video:description>
+      <video:content_loc>${videoUrl}</video:content_loc>
+      <video:duration>45</video:duration>
+      <video:publication_date>2026-01-15T08:00:00+05:30</video:publication_date>
+      <video:family_friendly>yes</video:family_friendly>
+    </video:video>
+  </url>`
+        )
+        .join("\n")}\n</urlset>`;
+
+      res.setHeader("Content-Type", "application/xml; charset=utf-8");
+      res.send(videoXml);
+      return;
+    }
+
+    const cityData = DELHI_NCR_CITIES[cityKey];
+    if (!cityData) {
+      next();
+      return;
+    }
+
+    const cityUrls: { loc: string; changefreq: string; priority: string }[] = [
+      { loc: `${baseUrl}/cakes-in/${cityKey}`, changefreq: "daily", priority: "0.96" },
+      { loc: `${baseUrl}/cookies-${cityKey}`, changefreq: "weekly", priority: "0.92" },
+    ];
+    for (const area of cityData.areas) {
+      for (const cfg of Object.values(SEO_INTENTS)) {
+        cityUrls.push({
+          loc: `${baseUrl}/${cfg.prefix}/${area.slug}`,
+          changefreq: "weekly",
+          priority: "0.89",
+        });
+      }
+      cityUrls.push({
+        loc: `${baseUrl}/belgian-chocolate-cake-in-${area.slug}`,
+        changefreq: "weekly",
+        priority: "0.88",
+      });
+      cityUrls.push({
+        loc: `${baseUrl}/sugar-free-cake-delivery-in-${area.slug}`,
+        changefreq: "weekly",
+        priority: "0.88",
+      });
+    }
 
     res.setHeader("Content-Type", "application/xml; charset=utf-8");
-    res.send(xml);
+    res.send(renderUrlSetXml(cityUrls, today));
   });
 
   // Machine-Readable GEO Knowledge Feed for AI Search Crawlers (ChatGPT, Perplexity, Gemini, SGE)
@@ -942,6 +1117,138 @@ async function startServer() {
     });
   });
 
+  // Server-Side Dynamic Canonical & Meta Tag Resolver (Prevents Duplicate Canonical & Crawled-Not-Indexed in GSC)
+  const resolveServerSeoForPath = (rawPath: string, origin: string) => {
+    const pathname = rawPath.split("?")[0].replace(/\/+$/, "") || "/";
+    const canonicalUrl = pathname === "/" ? `${origin}/` : `${origin}${pathname}`;
+    let title =
+      "CakeUrban — #1 Custom Theme Cakes (Birthday, Anniversary, Cartoon, Wedding), 100% Eggless Bakery, Cookies & Gift Hampers";
+    let description =
+      "Search & order any Custom Theme Cake (Birthday, Anniversary, Butterfly, Doraemon, Spiderman, Barbie, 2-Tier Wedding), 100% pure eggless cakes, gourmet cookies & luxury gift hampers across Faridabad, Gurgaon, Noida, Delhi & Ghaziabad. WhatsApp: +91 7318531953.";
+
+    if (pathname.startsWith("/product/")) {
+      const prodId = pathname.replace("/product/", "");
+      const prod = apiState.products.find((p) => p.id === prodId);
+      if (prod) {
+        title = prod.seoTitle || `${prod.name} — 30-Min Express Delivery in Delhi NCR | CakeUrban`;
+        description =
+          prod.seoDesc ||
+          `Order ${prod.name} online at CakeUrban. ${prod.desc} 100% Pure Eggless, freshly baked to order with 30-45 mins express & 12 AM midnight delivery.`;
+      }
+    } else if (pathname.startsWith("/cakes-in/")) {
+      const citySlug = pathname.replace("/cakes-in/", "").toLowerCase();
+      const city = DELHI_NCR_CITIES[citySlug];
+      if (city) {
+        title = city.title;
+        description = city.metaDesc;
+      }
+    } else if (
+      Object.values(SEO_INTENTS).some((cfg) => pathname.startsWith(`/${cfg.prefix}/`))
+    ) {
+      let matchedIntent = "standard";
+      let areaSlug = "";
+      for (const [key, cfg] of Object.entries(SEO_INTENTS)) {
+        if (pathname.startsWith(`/${cfg.prefix}/`)) {
+          matchedIntent = key;
+          areaSlug = pathname.replace(`/${cfg.prefix}/`, "");
+          break;
+        }
+      }
+      const area = getSeoAreaBySlug(areaSlug, matchedIntent);
+      if (area) {
+        title = area.title;
+        description = area.metaDesc;
+      }
+    } else if (pathname.startsWith("/cookies-") || pathname.startsWith("/cookies/")) {
+      const cityKey = pathname.replace(/^\/cookies[-/]/, "").toLowerCase();
+      const cityName = cityKey.charAt(0).toUpperCase() + cityKey.slice(1);
+      title = `Best Gourmet Cookies, Namkeens & Luxury Gift Hampers in ${cityName} | 35-Min Delivery | CakeUrban`;
+      description = `Order 72-hour cold-fermented choc-chip cookies, French macarons, roasted makhana & luxury corporate/birthday gift hampers in ${cityName} with 35-min express & midnight delivery.`;
+    } else if (pathname === "/builder" || pathname.startsWith("/custom-cake/")) {
+      const slugPart = pathname.startsWith("/custom-cake/")
+        ? pathname.replace("/custom-cake/", "").trim()
+        : "";
+      if (slugPart) {
+        const readable = slugPart
+          .replace(/-/g, " ")
+          .replace(/\b\w/g, (c) => c.toUpperCase());
+        title = `Custom ${readable} (100% Eggless) — 30-45 Min & Midnight Delivery | CakeUrban`;
+        description = `Browse 40+ trending custom ${readable} designs at CakeUrban! 100% pure eggless, freshly baked to order with same-day & 12 AM midnight delivery across Faridabad, Gurgaon, Noida & Delhi NCR.`;
+      } else {
+        title =
+          "Custom Theme Cake Search Studio — Birthday, Anniversary, Cartoon, Butterfly & Wedding Cakes | CakeUrban";
+        description =
+          "Search 1000+ custom cake designs for any theme (Birthday, Anniversary, Butterfly, Doraemon, Spiderman, Barbie Doll, 2-Tier Wedding) & order 100% pure eggless on WhatsApp (+91 7318531953).";
+      }
+    } else if (pathname === "/shop") {
+      title = "Shop Gourmet Cookies, Eggless Cakes, Namkeens & Luxury Gift Hampers | CakeUrban Delhi NCR";
+      description =
+        "Browse CakeUrban's complete menu of 100% eggless Belgian chocolate cakes, molten choc-chip cookies, royal Bikaneri namkeens, and luxury gift hampers. 30-45 mins express delivery.";
+    } else if (pathname === "/delivery-locations") {
+      title = "Express Cake & Gift Hamper Delivery Locations Across Delhi NCR (100+ Sectors) | CakeUrban";
+      description =
+        "View all 5 CakeUrban kitchen hubs and 100+ express delivery sectors across Faridabad, Gurgaon, Noida, South Delhi, and Ghaziabad with 30-45 min SLA.";
+    } else if (pathname.startsWith("/blog")) {
+      const slug = pathname.replace("/blog/", "").replace("/blog", "");
+      const post = BLOG_POSTS.find((p) => p.slug === slug);
+      if (post) {
+        title = `${post.title} | CakeUrban Journal`;
+        description = post.excerpt;
+      } else {
+        title = "The CakeUrban Journal — Artisan Baking & Delhi NCR Celebration Guides";
+      }
+    } else if (pathname === "/about") {
+      title = "About CakeUrban — 100% Pure Eggless Artisan Bakehouse in Delhi NCR";
+    } else if (pathname === "/contact") {
+      title = "Contact CakeUrban — 24×7 Express & Midnight Delivery Hotline (+91 7318531953)";
+    } else if (isProgrammaticSeoSlug(pathname)) {
+      const area = getSeoAreaBySlug(pathname, "standard");
+      if (area) {
+        title = area.title;
+        description = area.metaDesc;
+      }
+    }
+
+    return { title, description, canonicalUrl };
+  };
+
+  const injectSeoIntoHtml = (rawHtml: string, reqPath: string, origin: string): string => {
+    const { title, description, canonicalUrl } = resolveServerSeoForPath(reqPath, origin);
+    const safeTitle = title.replace(/"/g, "&quot;");
+    const safeDesc = description.replace(/"/g, "&quot;");
+
+    return rawHtml
+      .replace(/<title>[\s\S]*?<\/title>/i, `<title>${safeTitle}</title>`)
+      .replace(
+        /<meta\s+name="description"\s+content="[^"]*"\s*\/?>/i,
+        `<meta name="description" content="${safeDesc}" />`
+      )
+      .replace(
+        /<link\s+rel="canonical"\s+href="[^"]*"\s*\/?>/i,
+        `<link rel="canonical" href="${canonicalUrl}" />`
+      )
+      .replace(
+        /<meta\s+property="og:title"\s+content="[^"]*"\s*\/?>/i,
+        `<meta property="og:title" content="${safeTitle}" />`
+      )
+      .replace(
+        /<meta\s+property="og:description"\s+content="[^"]*"\s*\/?>/i,
+        `<meta property="og:description" content="${safeDesc}" />`
+      )
+      .replace(
+        /<meta\s+property="og:url"\s+content="[^"]*"\s*\/?>/i,
+        `<meta property="og:url" content="${canonicalUrl}" />`
+      )
+      .replace(
+        /<meta\s+name="twitter:title"\s+content="[^"]*"\s*\/?>/i,
+        `<meta name="twitter:title" content="${safeTitle}" />`
+      )
+      .replace(
+        /<meta\s+name="twitter:description"\s+content="[^"]*"\s*\/?>/i,
+        `<meta name="twitter:description" content="${safeDesc}" />`
+      );
+  };
+
   if (process.env.NODE_ENV !== "production") {
     const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
@@ -951,9 +1258,20 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     const distPath = path.resolve(__dirname, "dist");
-    app.use(express.static(distPath));
-    app.use((_req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
+    const indexHtmlPath = path.join(distPath, "index.html");
+    const cachedTemplate = fs.existsSync(indexHtmlPath)
+      ? fs.readFileSync(indexHtmlPath, "utf-8")
+      : "";
+
+    app.use(express.static(distPath, { index: false }));
+    app.use((req, res) => {
+      const origin = process.env.APP_URL || `https://${req.get("host") || "www.cakeurban.com"}`;
+      if (cachedTemplate) {
+        res.setHeader("Content-Type", "text/html; charset=utf-8");
+        res.send(injectSeoIntoHtml(cachedTemplate, req.path, origin));
+      } else {
+        res.sendFile(indexHtmlPath);
+      }
     });
   }
 
@@ -965,3 +1283,4 @@ async function startServer() {
 }
 
 startServer();
+

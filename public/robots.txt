@@ -37,4 +37,7 @@ Sitemap: https://www.cakeurban.com/sitemap-faridabad.xml
 Sitemap: https://www.cakeurban.com/sitemap-gurgaon.xml
 Sitemap: https://www.cakeurban.com/sitemap-noida.xml
 Sitemap: https://www.cakeurban.com/sitemap-delhi.xml
+Sitemap: https://www.cakeurban.com/sitemap-ghaziabad.xml
 Sitemap: https://www.cakeurban.com/sitemap-occasions.xml
+Sitemap: https://www.cakeurban.com/sitemap-videos.xml
+
